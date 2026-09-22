@@ -43,3 +43,10 @@ export const BOOKING_LABELS: Record<BookingMethod, { label: string; hint: string
   PHONE: { label: "בטלפון", hint: "הלקוח מתקשר אליכם" },
   LINK: { label: "בקישור", hint: "למשל יומן תורים אונליין" },
 };
+
+/** Purpose of a row in VerificationToken - keeps password-reset and email-verify tokens in one table without mixing them up. */
+export const TOKEN_PURPOSE = {
+  PASSWORD_RESET: "PASSWORD_RESET",
+  EMAIL_VERIFY: "EMAIL_VERIFY",
+} as const;
+export type TokenPurpose = (typeof TOKEN_PURPOSE)[keyof typeof TOKEN_PURPOSE];

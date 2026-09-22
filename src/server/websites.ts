@@ -4,6 +4,7 @@ import { SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type CtaType, ty
 import { isSectionType } from "@/lib/sections";
 import { isValidSlug, uniqueSlug } from "@/lib/slug";
 import { defaultHours, normalizeSections, withAllSections } from "@/lib/site-defaults";
+import { removeUploadedImage } from "@/lib/storage";
 import type { BookingMethod } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
 
@@ -237,13 +238,45 @@ export async function createWebsite(userId: string, d: SiteData): Promise<Websit
 
 export class SlugError extends Error {}
 
-export async function updateWebsite(userId: string, id: string, d: SiteData): Promise<WebsiteRecord | null> {
-  const current = await db.website.findFirst({ where: { id, userId }, select: { slug: true } });
-  if (!current) return null;
+/** Every image URL a site can reference, so we can tell which ones a save just stopped using. */
+function collectImageUrls(d: SiteData): string[] {
+  return [d.logoUrl, d.heroImageUrl, ...d.gallery, ...d.testimonials.map((t) => t.imageUrl)].filter((u): u is string => Boolean(u));
+}
 
-  let slug = current.slug;
+/**
+ * Deletes images that a save just dropped (replaced logo, removed a
+ * gallery photo, ...) from storage - but only after confirming no other
+ * website row references that exact URL. Nothing about our editor lets a
+ * user type an arbitrary URL into an image field (only our own uploader
+ * sets them), so a collision is not expected in practice; this check is
+ * the safety net that keeps a bug from ever deleting something still in
+ * use. Failures here are logged and swallowed - a missed cleanup wastes a
+ * little storage, it must never fail the save the user is waiting on.
+ */
+async function cleanupRemovedImages(websiteId: string, before: SiteData, after: SiteData) {
+  const stillUsedHere = new Set(collectImageUrls(after));
+  const dropped = [...new Set(collectImageUrls(before).filter((u) => !stillUsedHere.has(u)))];
+  for (const url of dropped) {
+    try {
+      const [onWebsite, inGallery, onTestimonial] = await Promise.all([
+        db.website.count({ where: { id: { not: websiteId }, OR: [{ logoUrl: url }, { heroImageUrl: url }] } }),
+        db.galleryImage.count({ where: { url, websiteId: { not: websiteId } } }),
+        db.testimonial.count({ where: { imageUrl: url, websiteId: { not: websiteId } } }),
+      ]);
+      if (onWebsite + inGallery + onTestimonial === 0) await removeUploadedImage(url);
+    } catch (e) {
+      console.error("image cleanup check failed (non-fatal):", e instanceof Error ? e.message : e);
+    }
+  }
+}
+
+export async function updateWebsite(userId: string, id: string, d: SiteData): Promise<WebsiteRecord | null> {
+  const before = await getOwnedWebsite(userId, id);
+  if (!before) return null;
+
+  let slug = before.slug;
   const wanted = d.slug.trim().toLowerCase();
-  if (wanted && wanted !== current.slug) {
+  if (wanted && wanted !== before.slug) {
     if (!isValidSlug(wanted)) throw new SlugError("הכתובת יכולה להכיל אותיות באנגלית, מספרים ומקפים בלבד (לפחות 3 תווים)");
     const taken = await db.website.findUnique({ where: { slug: wanted }, select: { id: true } });
     if (taken && taken.id !== id) throw new SlugError("הכתובת הזאת כבר תפוסה, נסו כתובת אחרת");
@@ -259,7 +292,9 @@ export async function updateWebsite(userId: string, id: string, d: SiteData): Pr
     });
     await writeChildren(tx, id, d);
   });
-  return getOwnedWebsite(userId, id);
+  const after = await getOwnedWebsite(userId, id);
+  if (after) await cleanupRemovedImages(id, before.data, after.data);
+  return after;
 }
 
 export async function setWebsiteStatus(userId: string, id: string, status: string) {

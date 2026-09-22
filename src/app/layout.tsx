@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Assistant, Frank_Ruhl_Libre, Heebo, Rubik, Secular_One } from "next/font/google";
+import { appUrl } from "@/lib/env";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -15,6 +16,8 @@ const rubik = Rubik({ variable: "--font-rubik", subsets: ["hebrew", "latin"], di
 const secular = Secular_One({ variable: "--font-secular", subsets: ["hebrew", "latin"], weight: "400", display: "swap", preload: false });
 
 export const metadata: Metadata = {
+  // Gives every relative URL in page metadata (og:image, canonical...) a correct absolute origin in production.
+  metadataBase: new URL(appUrl()),
   title: { default: "WEBG - האתר של העסק שלך, בכמה קליקים", template: "%s | WEBG" },
   description: "ממלאים כמה פרטים על העסק ומקבלים אתר מוכן. בלי לדעת כלום על בניית אתרים.",
 };

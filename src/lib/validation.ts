@@ -5,8 +5,21 @@ import { ALL_SECTIONS } from "./sections";
 const text = (max: number) => z.string().trim().max(max);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal(""));
 const hex = z.string().regex(/^#[0-9a-f]{6}$/i);
-/** Only our own upload URLs are accepted for images. */
-const imageUrl = z.string().regex(/^\/api\/files\/[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp|gif)$/).or(z.literal(""));
+
+/**
+ * Only our own uploaded images are accepted: either the local dev route
+ * (`/api/files/<name>`) or an absolute URL under our R2 public bucket
+ * origin. This stops anyone from pasting an arbitrary external URL into a
+ * "logo" field, which would otherwise let a site hot-link or reference
+ * unrelated (and unmoderated) content as if it were an upload.
+ */
+const imageUrl = z.string().superRefine((v, ctx) => {
+  if (v === "") return;
+  const okLocal = /^\/api\/files\/[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp|gif)$/.test(v);
+  const r2Base = process.env.R2_PUBLIC_URL;
+  const okR2 = Boolean(r2Base) && v.startsWith(`${r2Base}/`) && /\.(png|jpg|jpeg|webp|gif)$/i.test(v);
+  if (!okLocal && !okR2) ctx.addIssue({ code: "custom", message: "קובץ התמונה לא תקין" });
+});
 
 export const siteSchema = z.object({
   businessName: text(80).min(2, "נא למלא את שם העסק"),
@@ -65,7 +78,31 @@ export const siteSchema = z.object({
     .max(20),
 });
 
-export const credentialsSchema = z.object({
-  email: z.email("כתובת האימייל לא תקינה").max(120),
-  password: z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים").max(100),
+/** Trimmed, lowercased email, in one place so every entry point normalizes the same way (this is also what keeps one person from creating two accounts with "Name@Gmail.com" and "name@gmail.com"). */
+const emailField = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(120)
+  .refine((v) => z.email().safeParse(v).success, "כתובת האימייל לא תקינה");
+
+/** Login only checks that *something* was typed - the real check is the password comparison. A stricter minimum here would lock out anyone whose existing password predates a policy change. */
+export const loginSchema = z.object({
+  email: emailField,
+  password: z.string().min(1, "נא לכתוב סיסמה").max(200),
 });
+
+/** New passwords (signup, reset) must meet today's minimum. */
+export const signupSchema = z.object({
+  email: emailField,
+  password: z.string().min(8, "הסיסמה חייבת להכיל לפחות 8 תווים").max(100),
+});
+
+export const forgotPasswordSchema = z.object({ email: emailField });
+
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "הסיסמה חייבת להכיל לפחות 8 תווים").max(100),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, { message: "הסיסמאות לא זהות", path: ["confirmPassword"] });

@@ -19,7 +19,8 @@ export function AuthForm({
   const isLogin = mode === "login";
 
   const emailError = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? "נא לכתוב כתובת אימייל תקינה. לדוגמה: name@gmail.com" : undefined;
-  const passwordError = !isLogin && password.length < 6 ? "הסיסמה צריכה להכיל לפחות 6 תווים." : password.length === 0 ? "נא לכתוב סיסמה." : undefined;
+  const passwordError =
+    password.length === 0 ? "נא לכתוב סיסמה." : !isLogin && password.length < 8 ? "הסיסמה צריכה להכיל לפחות 8 תווים." : undefined;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8">
@@ -42,9 +43,16 @@ export function AuthForm({
             <Field label="אימייל" hint={isLogin ? undefined : "עם האימייל הזה תתחברו בפעם הבאה."} error={emailError}>
               {(p) => <input {...p} name="email" type="email" dir="ltr" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />}
             </Field>
-            <Field label="סיסמה" hint={isLogin ? undefined : "לפחות 6 תווים."} error={passwordError}>
+            <Field label="סיסמה" hint={isLogin ? undefined : "לפחות 8 תווים."} error={passwordError}>
               {(p) => <input {...p} name="password" type="password" dir="ltr" autoComplete={isLogin ? "current-password" : "new-password"} value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />}
             </Field>
+            {isLogin && (
+              <p className="text-start">
+                <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">
+                  שכחת סיסמה?
+                </Link>
+              </p>
+            )}
             {state.error && <Notice kind="error">{state.error}</Notice>}
             <Button type="submit" className="w-full" loading={pending}>
               {pending ? (isLogin ? "מתחברים..." : "יוצרים את החשבון...") : isLogin ? "התחברות" : "יצירת חשבון"}

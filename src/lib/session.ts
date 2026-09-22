@@ -2,48 +2,56 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SignJWT, jwtVerify } from "jose";
 import { db } from "./db";
+import { generateToken, hashToken } from "./tokens";
 
 const COOKIE = "webg_session";
-const MAX_AGE = 60 * 60 * 24 * 30;
+const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
-function key() {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 32) throw new Error("SESSION_SECRET must be set (32+ chars)");
-  return new TextEncoder().encode(secret);
-}
-
+/**
+ * Sessions are stored in the database (opaque random token in the cookie,
+ * only its hash kept server-side). Unlike a self-contained JWT, this means
+ * logout and "sign out everywhere after a password change" actually revoke
+ * access immediately, rather than merely deleting a cookie the old token
+ * could still be replayed with until it expired.
+ */
 export async function createSession(userId: string) {
-  const token = await new SignJWT({ sub: userId })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${MAX_AGE}s`)
-    .sign(key());
+  const token = generateToken();
+  await db.session.create({
+    data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + MAX_AGE_SECONDS * 1000) },
+  });
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: MAX_AGE,
+    maxAge: MAX_AGE_SECONDS,
   });
 }
 
+/** Deletes the current session server-side (real revocation) and clears the cookie. */
 export async function destroySession() {
-  (await cookies()).delete(COOKIE);
+  const jar = await cookies();
+  const token = jar.get(COOKIE)?.value;
+  jar.delete(COOKIE);
+  if (token) await db.session.deleteMany({ where: { tokenHash: hashToken(token) } }).catch(() => {});
 }
 
-/** Current user or null. Cached per request. */
+/** Signs the user out of every device - used after a password reset. */
+export async function invalidateAllSessions(userId: string) {
+  await db.session.deleteMany({ where: { userId } });
+}
+
+/** Current user or null. Cached per request so multiple checks cost one query. */
 export const getCurrentUser = cache(async () => {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, key());
-    if (!payload.sub) return null;
-    return await db.user.findUnique({ where: { id: payload.sub }, select: { id: true, email: true } });
-  } catch {
-    return null;
-  }
+  const session = await db.session.findUnique({
+    where: { tokenHash: hashToken(token) },
+    select: { expiresAt: true, user: { select: { id: true, email: true, emailVerifiedAt: true } } },
+  });
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user;
 });
 
 export async function requireUser() {

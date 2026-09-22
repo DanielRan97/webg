@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/session";
-import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, saveImage } from "@/lib/storage";
+import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, saveUploadedImage } from "@/lib/storage";
 
 export async function POST(req: Request) {
   if (!(await getCurrentUser())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -14,6 +14,8 @@ export async function POST(req: Request) {
   if (file.size > MAX_UPLOAD_BYTES) {
     return NextResponse.json({ error: "התמונה גדולה מדי (עד 5MB)" }, { status: 400 });
   }
-  const url = await saveImage(Buffer.from(await file.arrayBuffer()), file.type);
-  return NextResponse.json({ url });
+
+  const result = await saveUploadedImage(Buffer.from(await file.arrayBuffer()), file.type);
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+  return NextResponse.json({ url: result.url });
 }

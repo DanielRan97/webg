@@ -8,6 +8,7 @@ import { getCategory } from "@/lib/categories";
 import { Logo } from "@/templates/shared/Logo";
 import { SiteActions } from "@/components/SiteActions";
 import { CopyButton } from "@/components/CopyButton";
+import { VerificationBanner } from "@/components/VerificationBanner";
 
 export const metadata: Metadata = { title: "האתרים שלי" };
 export const dynamic = "force-dynamic";
@@ -113,6 +114,7 @@ export default async function DashboardPage() {
   const sites = await listWebsites(user.id);
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-8">
+      {!user.emailVerifiedAt && <VerificationBanner />}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold">האתרים שלי</h1>
         <Link href="/create" className="inline-flex min-h-12 items-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">

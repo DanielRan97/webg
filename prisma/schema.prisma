@@ -13,11 +13,64 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  createdAt    DateTime  @default(now())
-  websites     Website[]
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  /** Set once the owner confirms their email. Publishing a new site requires this. */
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  websites        Website[]
+  sessions        Session[]
+  tokens          VerificationToken[]
+}
+
+/**
+ * A logged-in session. The cookie holds only an opaque random token; we store
+ * a hash of it here so a database leak never yields a usable session. Deleting
+ * a row here immediately signs that session out, everywhere.
+ */
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/**
+ * Single-use, expiring tokens for password reset and email verification.
+ * Only the hash is stored, never the raw token. `purpose` is one of the
+ * values in src/lib/constants.ts (TOKEN_PURPOSE).
+ */
+model VerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  purpose   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+}
+
+/**
+ * One row per attempt at a rate-limited action (login, signup, password
+ * reset...). `key` combines the action with an identifier (IP or email).
+ * Rows older than the window are ignored and pruned opportunistically.
+ */
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }
 
 model Website {
