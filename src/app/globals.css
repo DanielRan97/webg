@@ -2,25 +2,44 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-heebo);
+
+  /* Website template tokens, set per site by templates/engine/palette.ts */
+  --color-t-bg: var(--t-bg);
+  --color-t-fg: var(--t-fg);
+  --color-t-muted: var(--t-muted);
+  --color-t-surface: var(--t-surface);
+  --color-t-line: var(--t-line);
+  --color-t-tint: var(--t-tint);
+  --color-t-brand: var(--t-brand);
+  --color-t-brand-fg: var(--t-brand-fg);
+  --color-t-accent: var(--t-accent);
+  --color-t-accent-text: var(--t-accent-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Clearly visible keyboard focus everywhere. */
+:where(a, button, summary, input, select, textarea, [role="switch"], [tabindex]):focus-visible {
+  outline: 3px solid #4f46e5;
+  outline-offset: 2px;
 }

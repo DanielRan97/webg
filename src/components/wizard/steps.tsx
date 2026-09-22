@@ -1,0 +1,329 @@
+"use client";
+
+import { CATEGORIES, getCategory } from "@/lib/categories";
+import { COLOR_SWATCHES, isHexColor, readableOn } from "@/lib/color";
+import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS, SOCIAL_PLATFORMS } from "@/lib/constants";
+import { sectionsForCategory } from "@/lib/site-defaults";
+import type { SiteData } from "@/types/site";
+import { Logo } from "@/templates/shared/Logo";
+import { TemplatePicker } from "./TemplatePicker";
+import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
+
+export interface StepProps {
+  data: SiteData;
+  update: (patch: Partial<SiteData>) => void;
+  isNew: boolean;
+  errors: Record<string, string>;
+}
+
+export const SLUG_BASE = "webg.co.il/s/";
+
+/* 1 ─ Business basics */
+export function BasicsStep({ data, update, isNew, errors }: StepProps) {
+  function pickCategory(id: string) {
+    const cat = getCategory(id);
+    update({
+      category: id,
+      // Suggest good defaults for new sites only; never overwrite an existing site's choices.
+      ...(isNew ? { sections: sectionsForCategory(id), primaryColor: cat.color, ctaType: cat.cta } : {}),
+    });
+  }
+  return (
+    <div className="space-y-6">
+      <StepTitle title="ספרו לנו על העסק" subtitle="רק הפרטים הבסיסיים. תמיד אפשר לשנות אחר כך." />
+      <TextField
+        label="איך קוראים לעסק?"
+        required
+        hint="זה השם שיופיע בראש האתר."
+        placeholder="לדוגמה: הסלון של דניאל"
+        value={data.businessName}
+        onChange={(v) => update({ businessName: v })}
+        error={errors.name}
+        maxLength={80}
+        autoFocus
+      />
+      <div role="group" aria-labelledby="cat-label" className="space-y-2">
+        <p id="cat-label" className="text-sm font-semibold text-gray-900">מה סוג העסק?</p>
+        <p className="text-sm text-gray-600">לפי הבחירה נציע לכם מה מתאים להופיע באתר.</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {CATEGORIES.map((c) => (
+            <ChoiceCard key={c.id} selected={data.category === c.id} onClick={() => pickCategory(c.id)}>
+              <span className="text-2xl" aria-hidden>{c.emoji}</span>
+              {c.label}
+            </ChoiceCard>
+          ))}
+        </div>
+      </div>
+      <TextArea
+        label="ספרו בקצרה מה אתם עושים"
+        hint="משפט או שניים. זה יופיע בראש האתר ובחלק ״קצת עלינו״."
+        placeholder="לדוגמה: מספרה שכונתית בתל אביב. תספורות מדויקות ואווירה טובה."
+        value={data.description}
+        onChange={(v) => update({ description: v })}
+        maxLength={600}
+      />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField label="טלפון" hint="לקוחות יוכלו להתקשר אליכם בלחיצה אחת." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.phone} onChange={(v) => update({ phone: v })} error={errors.phone} />
+        <TextField label="מספר WhatsApp (לא חובה)" hint="אם זה אותו מספר, אפשר להשאיר ריק." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.whatsapp} onChange={(v) => update({ whatsapp: v })} error={errors.whatsapp} />
+      </div>
+      <TextField label="אימייל (לא חובה)" hint="יופיע באתר כדי שלקוחות יוכלו לכתוב לכם." placeholder="לדוגמה: name@gmail.com" type="email" dir="ltr" value={data.email} onChange={(v) => update({ email: v })} error={errors.email} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField label="כתובת העסק (לא חובה)" hint="כדי שלקוחות ידעו איך להגיע. נוסיף גם מפה." placeholder="לדוגמה: דיזנגוף 100" value={data.address} onChange={(v) => update({ address: v })} />
+        <TextField label="עיר (לא חובה)" placeholder="לדוגמה: תל אביב" value={data.city} onChange={(v) => update({ city: v })} />
+      </div>
+    </div>
+  );
+}
+
+/* 2 ─ Branding & design */
+function ColorPicker({ label, hint, value, onChange, allowNone }: { label: string; hint: string; value: string; onChange: (v: string) => void; allowNone?: boolean }) {
+  const swatch = COLOR_SWATCHES.find((c) => c.hex === value.toLowerCase());
+  return (
+    <div role="group" aria-label={label} className="space-y-2">
+      <p className="text-sm font-semibold text-gray-900">{label}</p>
+      <p className="text-sm text-gray-600">{hint}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        {allowNone && (
+          <button type="button" aria-pressed={value === ""} onClick={() => onChange("")} className={cx("min-h-11 rounded-full border-2 px-4 text-sm font-semibold", value === "" ? "border-indigo-700 bg-indigo-50" : "border-gray-300")}>
+            ללא
+          </button>
+        )}
+        {COLOR_SWATCHES.map((c) => {
+          const on = value.toLowerCase() === c.hex;
+          return (
+            <button
+              key={c.hex}
+              type="button"
+              aria-label={c.name}
+              aria-pressed={on}
+              onClick={() => onChange(c.hex)}
+              className={cx("flex h-11 w-11 items-center justify-center rounded-full border-2 text-lg font-bold", on ? "border-gray-900 ring-2 ring-gray-900 ring-offset-2" : "border-white shadow")}
+              style={{ background: c.hex, color: readableOn(c.hex) }}
+            >
+              {on && <span aria-hidden>✓</span>}
+            </button>
+          );
+        })}
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-gray-400 px-4 text-sm font-semibold focus-within:outline focus-within:outline-2 focus-within:outline-indigo-600">
+          צבע אחר
+          <input type="color" aria-label={`${label}: צבע אחר`} value={isHexColor(value) ? value : "#2563eb"} onChange={(e) => onChange(e.target.value)} className="h-7 w-7 cursor-pointer border-0 bg-transparent p-0" />
+        </label>
+      </div>
+      <p className="text-sm text-gray-700" aria-live="polite">
+        {value === "" ? "לא נבחר צבע משני." : `נבחר: ${swatch?.name ?? "צבע מותאם אישית"}`}
+      </p>
+    </div>
+  );
+}
+
+export function BrandingStep({ data, update }: StepProps) {
+  return (
+    <div className="space-y-8">
+      <StepTitle title="המראה של האתר" subtitle="בחרו לוגו וצבעים. אם אין לוגו, ניצור לכם אחד פשוט עם האות הראשונה של העסק." />
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-gray-900">לוגו (לא חובה)</p>
+        <div className="flex flex-wrap items-start gap-4">
+          <Logo logoUrl={data.logoUrl} name={data.businessName || "עסק"} color={data.primaryColor} size={72} />
+          <div className="space-y-2">
+            <ImageUploader
+              label={data.logoUrl ? "החלפת לוגו" : "העלאת לוגו"}
+              hint="קובץ PNG, JPG או WEBP, עד 5MB. מומלץ תמונה מרובעת, לפחות 200×200 פיקסלים."
+              onUploaded={(u) => update({ logoUrl: u[0] })}
+            />
+            {data.logoUrl && <Button type="button" variant="ghost" onClick={() => update({ logoUrl: "" })}>הסרת הלוגו</Button>}
+          </div>
+        </div>
+      </div>
+      <ColorPicker label="הצבע הראשי של העסק" hint="הצבע הזה יופיע בכפתורים, בכותרת ובלוגו." value={data.primaryColor} onChange={(v) => update({ primaryColor: v })} />
+      <ColorPicker label="צבע משני (לא חובה)" hint="לקישוטים קטנים כמו קווים ומחירים. אפשר לוותר." value={data.secondaryColor} onChange={(v) => update({ secondaryColor: v })} allowNone />
+      <TemplatePicker data={data} onPick={(id) => update({ templateId: id })} />
+    </div>
+  );
+}
+
+/* 3 ─ Opening hours */
+export function HoursStep({ data, update, errors }: StepProps) {
+  function setDay(day: number, patch: Partial<SiteData["hours"][number]>) {
+    const hours = data.hours.map((h) => (h.day === day ? { ...h, ...patch } : h));
+    update({ hours, ...(day === 6 && patch.isOpen !== undefined ? { openSaturday: patch.isOpen } : {}) });
+  }
+  return (
+    <div className="space-y-6">
+      <StepTitle title="מתי אתם פתוחים?" subtitle="הדליקו את הימים שבהם אתם עובדים, ובחרו שעות." />
+      <ul className="space-y-3">
+        {data.hours.map((h) => {
+          const err = errors[`hours-${h.day}`];
+          return (
+            <li key={h.day} className={cx("rounded-2xl border-2 p-3", h.isOpen ? "border-green-600 bg-green-50" : "border-gray-300 bg-gray-100")}>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-44 flex-1">
+                  <Toggle checked={h.isOpen} onChange={(v) => setDay(h.day, { isOpen: v })} label={`יום ${DAY_NAMES[h.day]}`} onText="✓ פתוח" offText="✕ סגור" />
+                </div>
+                {h.isOpen && (
+                  <div className="flex items-center gap-2" dir="ltr">
+                    <input aria-label={`שעת פתיחה ביום ${DAY_NAMES[h.day]}`} aria-invalid={err ? true : undefined} type="time" value={h.openTime} onChange={(e) => setDay(h.day, { openTime: e.target.value })} className={`${inputClass} w-32`} />
+                    <span aria-hidden>–</span>
+                    <input aria-label={`שעת סגירה ביום ${DAY_NAMES[h.day]}`} aria-invalid={err ? true : undefined} type="time" value={h.closeTime} onChange={(e) => setDay(h.day, { closeTime: e.target.value })} className={`${inputClass} w-32`} />
+                  </div>
+                )}
+              </div>
+              {err && <p role="alert" className="mt-2 flex gap-1.5 text-sm font-medium text-red-700"><span aria-hidden>⚠</span>{err}</p>}
+            </li>
+          );
+        })}
+      </ul>
+      <div className="space-y-2 rounded-2xl bg-gray-50 p-4">
+        <Toggle checked={data.openSaturday} onChange={(v) => setDay(6, { isOpen: v })} label="פתוחים בשבת?" onText="כן" offText="לא" />
+        <Toggle checked={data.openHolidays} onChange={(v) => update({ openHolidays: v })} label="פתוחים בחגים?" hint="יופיע באתר מתחת לשעות הפתיחה." onText="כן" offText="לא" />
+      </div>
+    </div>
+  );
+}
+
+/* 5 ─ Services / price list / menu (one list of items, shown by whichever sections are switched on) */
+export function ServicesStep({ data, update, errors }: StepProps) {
+  const cat = getCategory(data.category);
+  const on = (t: string) => data.sections.some((s) => s.type === t && s.enabled);
+  const menuOnly = on("menu") && !on("services") && !on("prices");
+  const noun = menuOnly ? "מנה" : "שירות";
+  const example = cat.sampleServices[0];
+  const groups = [...new Set(data.services.map((s) => s.category.trim()).filter(Boolean))];
+  function setItem(i: number, patch: Partial<SiteData["services"][number]>) {
+    update({ services: data.services.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) });
+  }
+  return (
+    <div className="space-y-6">
+      <StepTitle
+        title={menuOnly ? "מה יש בתפריט?" : on("prices") ? "מה אתם מציעים ומה המחירים?" : "מה אתם מציעים?"}
+        subtitle={`הוסיפו ${noun}ים אחד אחד. המחיר לא חובה, ואפשר גם לדלג על השלב. אפשר לחלק לקבוצות, למשל ״ראשונות״ ו״קינוחים״.`}
+      />
+      {data.services.length === 0 && (
+        <div className="rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center">
+          <p className="font-semibold">עדיין לא הוספתם {noun}ים</p>
+          <p className="mt-1 text-sm text-gray-700">{menuOnly ? "תפריט עם מחירים עוזר ללקוחות להחליט מה להזמין." : "רשימה ברורה עוזרת ללקוחות להבין מה אתם עושים."}</p>
+        </div>
+      )}
+      <datalist id="group-suggestions">{groups.map((g) => <option key={g} value={g} />)}</datalist>
+      {data.services.map((s, i) => (
+        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-gray-700">{noun} {i + 1}</legend>
+          <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
+            <TextField label={`שם ה${noun}`} placeholder={example ? `לדוגמה: ${example.name}` : undefined} value={s.name} onChange={(v) => setItem(i, { name: v })} error={errors[`service-${i}`]} maxLength={80} />
+            <TextField label="מחיר בשקלים" hint="מספר בלבד." placeholder="לדוגמה: 70" inputMode="decimal" value={s.price} onChange={(v) => setItem(i, { price: v })} maxLength={30} />
+          </div>
+          <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: תספורת, שטיפה וסידור" value={s.description} onChange={(v) => setItem(i, { description: v })} maxLength={300} />
+          <TextField label="קבוצה (לא חובה)" hint="פריטים באותה קבוצה יוצגו יחד, תחת כותרת." placeholder={menuOnly ? "לדוגמה: ראשונות" : "לדוגמה: תספורות"} list="group-suggestions" value={s.category} onChange={(v) => setItem(i, { category: v })} maxLength={40} />
+          <Button type="button" variant="danger" className="min-h-11" aria-label={`מחיקת ${noun} ${i + 1}`} onClick={() => update({ services: data.services.filter((_, idx) => idx !== i) })}>
+            🗑 מחיקת ה{noun}
+          </Button>
+        </fieldset>
+      ))}
+      <Button type="button" variant="secondary" onClick={() => update({ services: [...data.services, { name: "", description: "", price: "", category: "" }] })}>
+        + הוספת {noun}
+      </Button>
+    </div>
+  );
+}
+
+/* 6 ─ Images */
+export function ImagesStep({ data, update }: StepProps) {
+  const room = 12 - data.gallery.length;
+  return (
+    <div className="space-y-8">
+      <StepTitle title="תמונות" subtitle="תמונה טובה עושה הבדל גדול. הכול כאן לא חובה." />
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-gray-900">תמונה ראשית</p>
+        <p className="text-sm text-gray-600">התמונה הגדולה בראש האתר. עדיף תמונה פשוטה בלי הרבה טקסט, כך שם העסק ייקרא היטב. בלי תמונה, נשתמש בצבע העסק.</p>
+        {data.heroImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={data.heroImageUrl} alt="התמונה הראשית שבחרתם לאתר" className="h-40 w-full rounded-2xl object-cover sm:w-72" />
+        ) : (
+          <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">עדיין לא נבחרה תמונה ראשית</p>
+        )}
+        <div className="space-y-2">
+          <ImageUploader
+            label={data.heroImageUrl ? "החלפת תמונה" : "העלאת תמונה ראשית"}
+            hint="קובץ PNG, JPG או WEBP, עד 5MB. מומלץ תמונה לרוחב, לפחות 1600×900 פיקסלים."
+            onUploaded={(u) => update({ heroImageUrl: u[0] })}
+          />
+          {data.heroImageUrl && <Button type="button" variant="ghost" onClick={() => update({ heroImageUrl: "" })}>הסרת התמונה</Button>}
+        </div>
+      </div>
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-gray-900">גלריה ({data.gallery.length} מתוך 12)</p>
+        <p className="text-sm text-gray-600">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה.</p>
+        {data.gallery.length === 0 ? (
+          <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">עדיין אין תמונות בגלריה</p>
+        ) : (
+          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {data.gallery.map((url, i) => (
+              <li key={url} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-xl object-cover" />
+                <button type="button" aria-label={`הסרת תמונה ${i + 1} מהגלריה`} onClick={() => update({ gallery: data.gallery.filter((_, idx) => idx !== i) })} className="absolute end-1 top-1 h-10 w-10 rounded-full bg-black/80 text-lg text-white">×</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <ImageUploader
+          label="הוספת תמונות לגלריה"
+          hint="אפשר לבחור כמה תמונות יחד. PNG, JPG או WEBP, עד 5MB לתמונה. מומלץ לפחות 800×800 פיקסלים."
+          multiple
+          disabled={room <= 0}
+          onUploaded={(u) => update({ gallery: [...data.gallery, ...u].slice(0, 12) })}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* 7 ─ Social & contact */
+export function SocialStep({ data, update }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <StepTitle title="איך לקוחות יגיעו אליכם?" />
+      <div role="group" aria-labelledby="cta-label" className="space-y-2">
+        <p id="cta-label" className="text-sm font-semibold text-gray-900">מה תרצו שהלקוחות יעשו?</p>
+        <p className="text-sm text-gray-600">זה הכפתור הגדול שיופיע בראש האתר.</p>
+        <div className="grid grid-cols-2 gap-3">
+          {CTA_OPTIONS.map((o) => (
+            <ChoiceCard key={o.value} selected={data.ctaType === o.value} onClick={() => update({ ctaType: o.value })}>
+              {o.label}
+            </ChoiceCard>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-900">רשתות חברתיות (לא חובה)</p>
+          <p className="text-sm text-gray-600">כתבו את שם המשתמש או הדביקו את הקישור לעמוד. מה שתשאירו ריק לא יופיע.</p>
+        </div>
+        {SOCIAL_PLATFORMS.map((p) => (
+          <TextField key={p} label={SOCIAL_LABELS[p]} dir="ltr" placeholder={p === "facebook" ? "לדוגמה: facebook.com/העסק-שלי" : "לדוגמה: @danielbarber"} value={data.socials[p]} onChange={(v) => update({ socials: { ...data.socials, [p]: v } })} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Edit mode only ─ site address */
+export function AddressStep({ data, update, errors }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <StepTitle title="כתובת האתר" subtitle="זו הכתובת שבה הלקוחות שלך יוכלו לראות את האתר." />
+      <Field label="הכתובת שלכם" hint="באנגלית, מספרים ומקפים בלבד. לדוגמה: daniel-barber" error={errors.slug}>
+        {(p) => (
+          <div className="flex flex-wrap items-center gap-2" dir="ltr">
+            <span className="text-gray-700">{SLUG_BASE}</span>
+            <input {...p} value={data.slug} onChange={(e) => update({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} className={cx(inputClass, "flex-1")} maxLength={40} />
+          </div>
+        )}
+      </Field>
+      <div className="rounded-2xl bg-gray-50 p-4 text-sm">
+        <p className="font-semibold">הלקוחות ייכנסו ל:</p>
+        <p className="mt-1 break-all text-base font-bold text-indigo-800" dir="ltr">{SLUG_BASE}{data.slug || "…"}</p>
+      </div>
+      <Notice kind="info">אם תשנו את הכתובת, הכתובת הקודמת תפסיק לעבוד. עדכנו אותה בכרטיסי ביקור והודעות.</Notice>
+    </div>
+  );
+}

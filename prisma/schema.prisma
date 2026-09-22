@@ -1,0 +1,199 @@
+// WEBG database schema.
+// Written to be provider-agnostic: no enums, no Json columns, no native types.
+// Status-like fields are plain strings whose allowed values live in src/lib/constants.ts.
+// To move to PostgreSQL see the README ("Switching to PostgreSQL").
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  websites     Website[]
+}
+
+model Website {
+  id                 String   @id @default(cuid())
+  userId             String
+  businessName       String
+  slug               String   @unique
+  category           String
+  description        String?
+  primaryColor       String   @default("#2563eb")
+  secondaryColor     String?
+  logoUrl            String?
+  heroImageUrl       String?
+  templateId         String   @default("modern")
+  status             String   @default("DRAFT") // DRAFT | PUBLISHED
+  subscriptionStatus String   @default("TRIAL") // ACTIVE | INACTIVE | TRIAL (cache of Subscription.status)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile      BusinessProfile?
+  services     Service[]
+  hours        BusinessHour[]
+  gallery      GalleryImage[]
+  socials      SocialLink[]
+  sections     WebsiteSection[]
+  subscription Subscription?
+  testimonials Testimonial[]
+  areas        ServiceArea[]
+  faqItems     FaqItem[]
+  highlights   Highlight[]
+
+  @@index([userId])
+}
+
+model BusinessProfile {
+  websiteId    String  @id
+  phone        String?
+  whatsapp     String?
+  email        String?
+  address      String?
+  city         String?
+  ctaType      String  @default("WHATSAPP") // CALL | WHATSAPP | BOOKING | MESSAGE
+  openSaturday Boolean @default(false)
+  openHolidays Boolean @default(false)
+
+  // Emergency availability
+  emergency24x7    Boolean @default(false)
+  emergencyPhone   String?
+  emergencyMessage String?
+
+  // Booking button (not a booking system): WHATSAPP | PHONE | LINK
+  bookingMethod String  @default("WHATSAPP")
+  bookingUrl    String?
+  bookingText   String?
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id          String  @id @default(cuid())
+  websiteId   String
+  name        String
+  description String?
+  price       String?
+  category    String? // optional group, e.g. "Starters" (used by menu, price list and services)
+  order       Int     @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model BusinessHour {
+  id        String  @id @default(cuid())
+  websiteId String
+  day       Int // 0 = Sunday ... 6 = Saturday
+  isOpen    Boolean @default(true)
+  openTime  String? // "09:00"
+  closeTime String? // "18:00"
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, day])
+}
+
+model GalleryImage {
+  id        String @id @default(cuid())
+  websiteId String
+  url       String
+  order     Int    @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model SocialLink {
+  id        String @id @default(cuid())
+  websiteId String
+  platform  String // instagram | facebook | tiktok
+  url       String
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, platform])
+}
+
+model WebsiteSection {
+  id        String  @id @default(cuid())
+  websiteId String
+  type      String
+  enabled   Boolean @default(true)
+  order     Int
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, type])
+}
+
+model Subscription {
+  id               String    @id @default(cuid())
+  websiteId        String    @unique
+  status           String    @default("TRIAL") // ACTIVE | INACTIVE | TRIAL
+  currentPeriodEnd DateTime?
+  provider         String? // reserved for Phase 3 payments
+  providerRef      String?
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model Testimonial {
+  id        String  @id @default(cuid())
+  websiteId String
+  name      String
+  text      String
+  rating    Int? // 1-5, optional
+  imageUrl  String?
+  order     Int     @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model ServiceArea {
+  id        String @id @default(cuid())
+  websiteId String
+  name      String
+  order     Int    @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model FaqItem {
+  id        String @id @default(cuid())
+  websiteId String
+  question  String
+  answer    String
+  order     Int    @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
+
+model Highlight {
+  id        String @id @default(cuid())
+  websiteId String
+  label     String
+  value     String
+  order     Int    @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
+}
