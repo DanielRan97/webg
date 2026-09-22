@@ -30,21 +30,28 @@ async function main() {
 
   const dump = JSON.parse(readFileSync(file, "utf8"));
 
-  await db.$transaction(async (tx) => {
-    for (const u of dump.users) await tx.user.create({ data: u });
-    for (const w of dump.websites) await tx.website.create({ data: w });
-    for (const p of dump.profiles) await tx.businessProfile.create({ data: p });
-    for (const s of dump.services) await tx.service.create({ data: s });
-    for (const h of dump.hours) await tx.businessHour.create({ data: h });
-    for (const g of dump.gallery) await tx.galleryImage.create({ data: g });
-    for (const s of dump.socials) await tx.socialLink.create({ data: s });
-    for (const s of dump.sections) await tx.websiteSection.create({ data: s });
-    for (const s of dump.subscriptions) await tx.subscription.create({ data: s });
-    for (const t of dump.testimonials) await tx.testimonial.create({ data: t });
-    for (const a of dump.areas) await tx.serviceArea.create({ data: a });
-    for (const f of dump.faqItems) await tx.faqItem.create({ data: f });
-    for (const h of dump.highlights) await tx.highlight.create({ data: h });
-  });
+  // createMany (one round trip per table) rather than one create() per row:
+  // over a network connection (Neon), hundreds of sequential awaited round
+  // trips inside a single interactive transaction can outrun Prisma's
+  // default 5s transaction timeout well before all the data is written.
+  await db.$transaction(
+    async (tx) => {
+      for (const u of dump.users) await tx.user.create({ data: u }); // one-off, needs to exist before children reference it
+      if (dump.websites.length) await tx.website.createMany({ data: dump.websites });
+      if (dump.profiles.length) await tx.businessProfile.createMany({ data: dump.profiles });
+      if (dump.services.length) await tx.service.createMany({ data: dump.services });
+      if (dump.hours.length) await tx.businessHour.createMany({ data: dump.hours });
+      if (dump.gallery.length) await tx.galleryImage.createMany({ data: dump.gallery });
+      if (dump.socials.length) await tx.socialLink.createMany({ data: dump.socials });
+      if (dump.sections.length) await tx.websiteSection.createMany({ data: dump.sections });
+      if (dump.subscriptions.length) await tx.subscription.createMany({ data: dump.subscriptions });
+      if (dump.testimonials.length) await tx.testimonial.createMany({ data: dump.testimonials });
+      if (dump.areas.length) await tx.serviceArea.createMany({ data: dump.areas });
+      if (dump.faqItems.length) await tx.faqItem.createMany({ data: dump.faqItems });
+      if (dump.highlights.length) await tx.highlight.createMany({ data: dump.highlights });
+    },
+    { timeout: 60_000, maxWait: 15_000 },
+  );
 
   console.log(`Imported ${dump.users.length} user(s) and ${dump.websites.length} website(s) from ${file}.`);
   console.log("Everyone will need to log in again (sessions were not carried over) and reset their password if forgotten.");

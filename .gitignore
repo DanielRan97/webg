@@ -46,4 +46,5 @@ next-env.d.ts
 /prisma/*.bak
 /prisma/*.db-journal
 /prisma/backups/
+/prisma/migrations.sqlite-archive/
 /uploads

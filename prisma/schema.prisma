@@ -1,15 +1,17 @@
 // WEBG database schema.
 // Written to be provider-agnostic: no enums, no Json columns, no native types.
 // Status-like fields are plain strings whose allowed values live in src/lib/constants.ts.
-// To move to PostgreSQL see the README ("Switching to PostgreSQL").
+// PostgreSQL (Neon): DATABASE_URL is the pooled connection used at runtime by
+// Prisma Client; DIRECT_URL is the direct connection Prisma Migrate uses.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

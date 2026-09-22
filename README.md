@@ -2,22 +2,26 @@
 
 Fill in your business details, get a website. Hebrew / RTL-first SaaS for small businesses in Israel.
 
-Stack: Next.js (App Router) · TypeScript · Tailwind CSS 4 · Prisma · SQLite (dev) · cookie sessions (`jose` + `bcryptjs`).
+Stack: Next.js (App Router) · TypeScript · Tailwind CSS 4 · Prisma · **PostgreSQL (Neon)** · database-backed sessions (`bcryptjs`) · Resend (email) · Cloudflare R2 (uploads, production).
 
 ## Quick start
 
 ```bash
 npm install
-cp .env.example .env        # already present after setup; set a real SESSION_SECRET for production
-npm run db:migrate          # creates prisma/dev.db and applies migrations
-npm run db:seed             # optional: demo user + 2 sample sites
+cp .env.example .env        # fill in DATABASE_URL / DIRECT_URL (see below); everything else has a dev fallback
+npm run db:migrate          # applies migrations to whatever DATABASE_URL points at
+npm run db:seed             # optional: demo user + 2 sample sites - do NOT run against a database with real users
 npm run dev                 # http://localhost:3000
 ```
 
 Demo login after seeding: `demo@webg.co.il` / `demo1234`
 Sample public site: `/s/daniel-barber` (published). `cafe-hapina` is a draft.
 
-Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:reset` (wipes + reseeds).
+Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:reset` (wipes + reseeds - **never** run this against a database with real data).
+
+### Local development database
+
+The app now targets PostgreSQL everywhere, including local dev - there is no SQLite fallback. The simplest options: a free [Neon](https://neon.tech) or [Supabase](https://supabase.com) project (same as production, see below), or a local Postgres install / Docker container. Either way, set `DATABASE_URL` (and `DIRECT_URL` if your provider pools connections) in `.env`.
 
 ## How it works
 
@@ -30,31 +34,37 @@ Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db
 - **Section order** can be changed by dragging (`@dnd-kit`, works with mouse, touch and keyboard) or with the up/down buttons.
 - **Visibility rule** (one place): `isPubliclyVisible()` in `src/lib/subscription.ts` - published AND subscription `ACTIVE` or `TRIAL`. When a subscription lapses nothing is deleted; the public page shows "unavailable" and the dashboard shows "האתר לא פעיל" with "הפעל מחדש".
 - **Mock billing.** `activate/deactivateSubscriptionAction` (`src/server/actions/sites.ts`) flip `Subscription.status`. Real payments should call `setSubscriptionStatus()` from a webhook instead.
-- **Uploads** are saved to `./uploads` and served from `/api/files/[name]` (`src/lib/storage.ts`). Swap the adapter for S3/R2 in production.
+- **Uploads** go through an adapter (`src/lib/storage/`): local disk in dev, Cloudflare R2 in production (required whenever `NODE_ENV=production`, see `src/lib/env.ts`).
 
-## Switching from SQLite to PostgreSQL
+## Database: PostgreSQL (Neon)
 
-The schema is deliberately provider-neutral: no enums, no `Json`, no native `@db.*` types. Status fields are strings whose allowed values live in `src/lib/constants.ts`. All DB access goes through Prisma.
+The schema is deliberately provider-neutral (no enums, no `Json`, no native `@db.*` types - status fields are plain strings, see `src/lib/constants.ts`), but the app now targets PostgreSQL specifically, via [Neon](https://neon.tech). `DATABASE_URL` is Neon's **pooled** connection string (used by Prisma Client at runtime); `DIRECT_URL` is the **direct** connection string (used by Prisma Migrate). Both come from the Neon dashboard's Connection Details.
 
-1. Create a Postgres database (Neon, Supabase, RDS, local).
-2. In `prisma/schema.prisma` change the datasource:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-3. Set `DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/webg?schema=public"` in `.env`.
-4. The existing `prisma/migrations` folder was generated for SQLite, so start a fresh history:
-   ```bash
-   rm -rf prisma/migrations prisma/dev.db
-   npx prisma migrate dev --name init
-   npm run db:seed
-   ```
-   (For an existing production SQLite database with data you want to keep, export the rows and import them into the new database after step 4.)
-5. In production deploy migrations with `npx prisma migrate deploy`.
+```prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+```
 
-Optional hardening after moving: convert the status strings to Prisma enums, add `@db.Text` to long text, and add a DB `CHECK` on `Website.status`.
+Applying migrations: `npm run db:migrate` locally, `npx prisma migrate deploy` in production/CI. Both use `DIRECT_URL` for the migration itself and never touch data outside the intended change.
+
+**Setting up a new environment from scratch** (fresh Neon project, nothing on it yet): just `npx prisma migrate dev --name init`.
+
+**Moving an existing database's data to a new one** (e.g. this project's original SQLite → Postgres cutover): use the export/import pair in `prisma/`, which preserve every row's original id so relations and public URLs (slugs) stay identical.
+```bash
+npx tsx prisma/export-data.ts                          # dumps the CURRENT database to prisma/backups/export-<timestamp>.json (read-only, safe anytime)
+# point DATABASE_URL/DIRECT_URL at the new (empty) database, then:
+npx prisma migrate dev --name init                      # creates the schema there
+npx tsx prisma/import-data.ts prisma/backups/export-<timestamp>.json
+```
+Notes:
+- `import-data.ts` refuses to run against a database that already has users, unless you pass `--force` - it is meant for a one-time cutover onto an empty database, not for merging or syncing.
+- Sessions and one-time tokens are **not** carried over (they are short-lived by design); everyone needs to log in again after a cutover, and anyone mid-way through a password reset needs to request a new link. Passwords themselves (the `passwordHash` column) are copied exactly, so existing accounts log in with their existing password.
+- Over a network connection, wrap the whole import in one transaction with a generous `timeout` (see `import-data.ts`) and prefer `createMany` over many individual `create()` calls - Prisma's interactive-transaction default (5s) is easy to exceed once there are hundreds of sequential round trips to a remote database.
+
+Optional hardening once the schema has settled: convert the status strings to Prisma enums, add `@db.Text` to long text, and add a DB `CHECK` on `Website.status`.
 
 ## Roadmap
 
