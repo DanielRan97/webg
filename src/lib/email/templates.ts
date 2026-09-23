@@ -1,27 +1,39 @@
-/** Minimal, RTL-friendly Hebrew email templates. Kept plain (no heavy HTML/CSS) so they render well in every client. */
+/** Minimal, RTL-friendly Hebrew email templates. Kept plain (no heavy HTML/CSS, no external assets) so they render well in every client, including on a phone. */
 
 function wrap(title: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
-<html lang="he" dir="rtl"><body style="font-family:Arial,Helvetica,sans-serif;background:#f9fafb;padding:24px;margin:0">
-<table role="presentation" width="100%" style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:32px" dir="rtl">
-<tr><td>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+</head>
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f9fafb;padding:16px;margin:0;-webkit-text-size-adjust:100%">
+<table role="presentation" width="100%" style="max-width:480px;width:100%;margin:0 auto;background:#ffffff;border-radius:16px" dir="rtl">
+<tr><td style="padding:28px 24px">
 <p style="font-size:22px;font-weight:bold;color:#4338ca;margin:0 0 24px">WEBG</p>
-<h1 style="font-size:20px;margin:0 0 12px;color:#111827">${title}</h1>
+<h1 style="font-size:20px;line-height:1.4;margin:0 0 12px;color:#111827">${title}</h1>
 ${bodyHtml}
-<p style="font-size:12px;color:#9ca3af;margin-top:32px">אם לא ביקשתם את ההודעה הזו, אפשר להתעלם ממנה.</p>
+<p style="font-size:12px;color:#9ca3af;margin-top:32px;line-height:1.6">אם לא ביקשתם את ההודעה הזו, אפשר להתעלם ממנה.</p>
 </td></tr>
 </table>
-</body></html>`;
+</body>
+</html>`;
 }
 
 const btn = (href: string, label: string) =>
-  `<p style="margin:24px 0"><a href="${href}" style="display:inline-block;background:#4338ca;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 28px;border-radius:12px">${label}</a></p>`;
+  `<table role="presentation" style="margin:24px 0"><tr><td style="border-radius:12px;background:#4338ca">
+<a href="${href}" style="display:block;min-height:24px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;padding:14px 28px;text-align:center">${label}</a>
+</td></tr></table>`;
+
+const fallbackLink = (href: string) =>
+  `<p style="color:#9ca3af;font-size:13px;line-height:1.6">אם הכפתור לא עובד, אפשר להעתיק את הכתובת הזו לדפדפן:<br><span style="word-break:break-all">${href}</span></p>`;
 
 export function passwordResetEmail(resetUrl: string) {
   const subject = "איפוס סיסמה ל-WEBG";
   const html = wrap(
     "איפוס סיסמה",
-    `<p style="color:#374151;line-height:1.6">קיבלנו בקשה לאיפוס הסיסמה שלכם. לחצו על הכפתור כדי לבחור סיסמה חדשה. הקישור בתוקף לשעה אחת.</p>${btn(resetUrl, "איפוס סיסמה")}<p style="color:#9ca3af;font-size:13px">אם הכפתור לא עובד, אפשר להעתיק את הכתובת הזו לדפדפן:<br>${resetUrl}</p>`,
+    `<p style="color:#374151;line-height:1.6;font-size:15px">קיבלנו בקשה לאיפוס הסיסמה שלכם. לחצו על הכפתור כדי לבחור סיסמה חדשה. הקישור בתוקף לשעה אחת.</p>${btn(resetUrl, "איפוס סיסמה")}${fallbackLink(resetUrl)}`,
   );
   const text = `איפוס סיסמה ל-WEBG\n\nלחצו על הקישור כדי לבחור סיסמה חדשה (בתוקף לשעה אחת):\n${resetUrl}\n\nאם לא ביקשתם את זה, אפשר להתעלם מההודעה.`;
   return { subject, html, text };
@@ -31,7 +43,7 @@ export function verifyEmailEmail(verifyUrl: string) {
   const subject = "אימות כתובת האימייל ב-WEBG";
   const html = wrap(
     "אימות כתובת האימייל",
-    `<p style="color:#374151;line-height:1.6">כמעט סיימנו. לחצו על הכפתור כדי לאמת את כתובת האימייל שלכם. אימות נדרש לפני שאפשר לפרסם אתר. הקישור בתוקף ל-24 שעות.</p>${btn(verifyUrl, "אימות האימייל")}<p style="color:#9ca3af;font-size:13px">אם הכפתור לא עובד, אפשר להעתיק את הכתובת הזו לדפדפן:<br>${verifyUrl}</p>`,
+    `<p style="color:#374151;line-height:1.6;font-size:15px">כמעט סיימנו. לחצו על הכפתור כדי לאמת את כתובת האימייל שלכם. אימות נדרש לפני שאפשר לפרסם אתר. הקישור בתוקף ל-24 שעות.</p>${btn(verifyUrl, "אימות האימייל")}${fallbackLink(verifyUrl)}`,
   );
   const text = `אימות כתובת האימייל ב-WEBG\n\nלחצו על הקישור כדי לאמת את האימייל (בתוקף ל-24 שעות):\n${verifyUrl}`;
   return { subject, html, text };
