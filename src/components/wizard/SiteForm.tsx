@@ -163,12 +163,12 @@ export function SiteForm({ initial, siteId, liveUrl }: Props) {
 
   return (
     <ValidationContext.Provider value={{ submitted }}>
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* Mobile: switch between form and preview */}
         <div className="flex rounded-xl bg-gray-100 p-1 lg:hidden">
           {(["form", "preview"] as const).map((v) => (
             <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cx("min-h-12 flex-1 rounded-lg font-semibold", view === v ? "bg-white shadow" : "text-gray-700")}>
-              {v === "form" ? "הטופס" : "איך האתר נראה"}
+              {v === "form" ? "הטופס" : "תצוגה מקדימה"}
             </button>
           ))}
         </div>

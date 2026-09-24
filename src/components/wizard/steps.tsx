@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { COLOR_SWATCHES, isHexColor, readableOn } from "@/lib/color";
 import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS } from "@/lib/constants";
@@ -19,7 +20,10 @@ export interface StepProps {
 export const SLUG_BASE = "webg.co.il/s/";
 
 /* 1 ─ Business basics */
+const CATEGORY_SEARCH_THRESHOLD = 8;
+
 export function BasicsStep({ data, update, isNew, errors }: StepProps) {
+  const [categoryQuery, setCategoryQuery] = useState("");
   function pickCategory(id: string) {
     const cat = getCategory(id);
     update({
@@ -28,13 +32,15 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
       ...(isNew ? { sections: sectionsForCategory(id), primaryColor: cat.color, ctaType: cat.cta } : {}),
     });
   }
+  const q = categoryQuery.trim();
+  const visibleCategories = q ? CATEGORIES.filter((c) => c.label.includes(q)) : CATEGORIES;
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <StepTitle title="ספרו לנו על העסק" subtitle="רק הפרטים הבסיסיים. תמיד אפשר לשנות אחר כך." />
       <TextField
         label="איך קוראים לעסק?"
         required
-        hint="זה השם שיופיע בראש האתר."
+        hint="השם שיופיע בראש האתר."
         placeholder="לדוגמה: הסלון של דניאל"
         value={data.businessName}
         onChange={(v) => update({ businessName: v })}
@@ -44,7 +50,7 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
       />
       <TextField
         label="כותרת משנה / תפקיד (לא חובה)"
-        hint="שורה קצרה שתופיע ליד השם, למשל תפקיד או התמחות."
+        hint="שורה קצרה ליד השם, למשל תפקיד או התמחות."
         placeholder="לדוגמה: מפתחת Full-Stack"
         value={data.subtitle}
         onChange={(v) => update({ subtitle: v })}
@@ -52,15 +58,27 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
       />
       <div role="group" aria-labelledby="cat-label" className="space-y-2">
         <p id="cat-label" className="text-sm font-semibold text-gray-900">מה סוג העסק?</p>
-        <p className="text-sm text-gray-600">לפי הבחירה נציע לכם מה מתאים להופיע באתר.</p>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {CATEGORIES.map((c) => (
-            <ChoiceCard key={c.id} selected={data.category === c.id} onClick={() => pickCategory(c.id)}>
-              <span className="text-2xl" aria-hidden>{c.emoji}</span>
-              {c.label}
-            </ChoiceCard>
-          ))}
-        </div>
+        <p className="text-sm text-gray-600">לפי הבחירה נציע לכם חלקים שמתאימים לאתר.</p>
+        {CATEGORIES.length > CATEGORY_SEARCH_THRESHOLD && (
+          <TextField
+            label="חיפוש סוג עסק"
+            placeholder="לדוגמה: מספרה, עורך דין"
+            value={categoryQuery}
+            onChange={setCategoryQuery}
+          />
+        )}
+        {visibleCategories.length === 0 ? (
+          <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">לא נמצא סוג עסק תואם. אפשר לבחור ״אחר״.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {visibleCategories.map((c) => (
+              <ChoiceCard key={c.id} selected={data.category === c.id} onClick={() => pickCategory(c.id)}>
+                <span className="text-2xl" aria-hidden>{c.emoji}</span>
+                {c.label}
+              </ChoiceCard>
+            ))}
+          </div>
+        )}
       </div>
       <TextArea
         label="ספרו בקצרה מה אתם עושים"
@@ -74,9 +92,9 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
         <TextField label="טלפון" hint="לקוחות יוכלו להתקשר אליכם בלחיצה אחת." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.phone} onChange={(v) => update({ phone: v })} error={errors.phone} />
         <TextField label="מספר WhatsApp (לא חובה)" hint="אם זה אותו מספר, אפשר להשאיר ריק." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.whatsapp} onChange={(v) => update({ whatsapp: v })} error={errors.whatsapp} />
       </div>
-      <TextField label="אימייל (לא חובה)" hint="יופיע באתר כדי שלקוחות יוכלו לכתוב לכם." placeholder="לדוגמה: name@gmail.com" type="email" dir="ltr" value={data.email} onChange={(v) => update({ email: v })} error={errors.email} />
+      <TextField label="אימייל (לא חובה)" hint="יופיע באתר כדי שלקוחות יוכלו ליצור קשר." placeholder="לדוגמה: name@gmail.com" type="email" dir="ltr" value={data.email} onChange={(v) => update({ email: v })} error={errors.email} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="כתובת העסק (לא חובה)" hint="כדי שלקוחות ידעו איך להגיע. נוסיף גם מפה." placeholder="לדוגמה: דיזנגוף 100" value={data.address} onChange={(v) => update({ address: v })} />
+        <TextField label="כתובת העסק (לא חובה)" hint="כדי שלקוחות ידעו איך להגיע." placeholder="לדוגמה: דיזנגוף 100" value={data.address} onChange={(v) => update({ address: v })} />
         <TextField label="עיר (לא חובה)" placeholder="לדוגמה: תל אביב" value={data.city} onChange={(v) => update({ city: v })} />
       </div>
     </div>
