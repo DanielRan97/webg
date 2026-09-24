@@ -58,3 +58,19 @@ export const ExternalLinkIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M10 14 21 3" />
   </Svg>
 );
+
+export const GripIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p} viewBox="0 0 24 24" strokeWidth="0" fill="currentColor">
+    <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
+    <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+    <circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" />
+  </Svg>
+);
+
+export const WarningIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}>
+    <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+    <path d="M12 9v4" />
+    <path d="M12 17h.01" />
+  </Svg>
+);

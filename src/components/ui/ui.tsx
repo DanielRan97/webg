@@ -243,6 +243,7 @@ export function Toggle({
   checked,
   onChange,
   label,
+  labelClassName,
   hint,
   disabled,
   onText,
@@ -251,6 +252,8 @@ export function Toggle({
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  /** Override the visible label's styling (e.g. "sr-only" when the name is already shown elsewhere in the card). Accessible name is unaffected. */
+  labelClassName?: string;
   hint?: string;
   disabled?: boolean;
   /** Optional visible words next to the switch, so state is never shown by color alone. */
@@ -267,7 +270,7 @@ export function Toggle({
       className="flex min-h-11 w-full items-center justify-between gap-4 rounded-xl text-start disabled:opacity-60"
     >
       <span>
-        <span className="block font-semibold text-gray-900">{label}</span>
+        <span className={labelClassName ?? "block font-semibold text-gray-900"}>{label}</span>
         {hint && <span className="block text-sm text-gray-600">{hint}</span>}
       </span>
       <span className="flex shrink-0 items-center gap-2">
