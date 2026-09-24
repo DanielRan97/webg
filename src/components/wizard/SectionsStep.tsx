@@ -146,7 +146,10 @@ export function SectionsStep({ data, update }: StepProps) {
 
   return (
     <div className="space-y-6">
-      <StepTitle title="מה יופיע באתר?" subtitle="הדליקו את החלקים שרוצים. הסדר כאן הוא הסדר באתר, מלמעלה למטה." />
+      <StepTitle
+        title="מה יופיע באתר?"
+        subtitle="בחרו את החלקים שמתאימים לעסק שלכם וסדרו אותם איך שתרצו. לא חייבים להחליט הכול עכשיו — אפשר להוסיף, להסיר ולשנות חלקים גם בהמשך וגם אחרי שהאתר נוצר."
+      />
 
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-3">
         <span>
@@ -158,7 +161,7 @@ export function SectionsStep({ data, update }: StepProps) {
 
       <div className="space-y-2">
         <p className="text-sm font-semibold text-gray-900">החלקים באתר</p>
-        <p className="text-sm text-gray-600">גררו חלקים כדי לשנות את הסדר, או השתמשו בחצים.</p>
+        <p className="text-sm text-gray-600">גררו חלקים כדי לשנות את הסדר. אפשר גם להשתמש בחצים.</p>
 
         <DndContext
           sensors={sensors}
@@ -197,6 +200,7 @@ export function SectionsStep({ data, update }: StepProps) {
             עוד חלקים שאפשר להוסיף ({more.length})
             <ChevronDownIcon className="text-gray-500 transition group-open:rotate-180" />
           </summary>
+          <p className="mt-1 text-sm text-gray-500">לא חייבים להוסיף הכול עכשיו — החלקים האלה יהיו זמינים גם אחר כך בעריכת האתר.</p>
           <ul className="mt-2 divide-y divide-gray-100">
             {more.map((s) => (
               <li key={s.type} className="flex items-center justify-between gap-3 py-3">
