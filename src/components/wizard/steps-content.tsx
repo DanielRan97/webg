@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { BOOKING_LABELS, BOOKING_METHODS } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
-import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
+import { Button, ChoiceCard, Field, ImageUploader, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
+import { InfoIcon, TrashIcon } from "../ui/icons";
 import type { StepProps } from "./steps";
 
 /** Small helper: replace one item in a list by index. */
@@ -34,47 +35,70 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
   const list = data.testimonials;
   return (
     <div className="space-y-6">
-      <StepTitle title="מה לקוחות אומרים עליכם?" subtitle="המלצות אמיתיות מלקוחות מרוצים נותנות אמון. אפשר להוסיף כמה שרוצים, ואפשר לדלג." />
-      <Notice kind="info">כדאי לבקש מהלקוח רשות לפני שמפרסמים את שמו ואת התמונה שלו.</Notice>
-      {list.length === 0 && <EmptyBox title="עדיין לא הוספתם המלצות" text="לחצו על ״הוספת המלצה״ וכתבו מה הלקוח אמר." />}
-      {list.map((t, i) => {
-        const err = errors[`testimonial-${i}`];
-        return (
-          <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-            <legend className="px-2 text-sm font-semibold text-gray-700">המלצה {i + 1}</legend>
-            <TextField label="שם הלקוח" placeholder="לדוגמה: דנה כהן" value={t.name} onChange={(v) => update({ testimonials: setAt(list, i, { name: v }) })} error={!t.name.trim() ? err : undefined} maxLength={60} />
-            <TextArea label="מה הלקוח אמר?" placeholder="לדוגמה: שירות מעולה, הגיעו בזמן והכול נעשה מסודר." rows={3} value={t.text} onChange={(v) => update({ testimonials: setAt(list, i, { text: v }) })} error={t.name.trim() ? err : undefined} maxLength={500} />
-            <div role="group" aria-label="דירוג" className="space-y-1.5">
-              <p className="text-sm font-semibold text-gray-900">דירוג (לא חובה)</p>
-              <div className="flex flex-wrap items-center gap-1">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button key={n} type="button" aria-pressed={t.rating === n} aria-label={n === 1 ? "כוכב אחד" : `${n} כוכבים`} onClick={() => update({ testimonials: setAt(list, i, { rating: n }) })}
-                    className={cx("h-11 w-11 rounded-lg text-2xl", n <= t.rating ? "text-amber-700" : "text-gray-500")}>
-                    <span aria-hidden>{n <= t.rating ? "★" : "☆"}</span>
-                  </button>
-                ))}
-                {t.rating > 0 && <Button type="button" variant="ghost" className="min-h-11" onClick={() => update({ testimonials: setAt(list, i, { rating: 0 }) })}>ללא דירוג</Button>}
+      <StepTitle title="מה לקוחות אומרים עליכם?" subtitle="המלצות אמיתיות מלקוחות מחזקות אמון. אפשר להוסיף כמה שרוצים." />
+      <p className="flex items-start gap-1.5 text-xs text-gray-500">
+        <InfoIcon className="mt-0.5 shrink-0" width="14" height="14" />
+        כדאי לבקש מהלקוח רשות לפני שמפרסמים את שמו ואת התמונה שלו.
+      </p>
+      <div className="space-y-3">
+        {list.length === 0 && <EmptyBox title="עדיין לא הוספתם המלצות" text="לחצו על ״הוספת המלצה״ וכתבו מה הלקוח אמר." />}
+        {list.map((t, i) => {
+          const err = errors[`testimonial-${i}`];
+          return (
+            <fieldset key={i} aria-label={`המלצה ${i + 1}`} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-gray-500">המלצה {i + 1}</span>
+                <button
+                  type="button"
+                  aria-label={`מחיקת המלצה ${i + 1}`}
+                  onClick={() => update({ testimonials: removeAt(list, i) })}
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50"
+                >
+                  <TrashIcon />
+                </button>
               </div>
-              <p className="text-sm text-gray-700" aria-live="polite">{t.rating > 0 ? `${t.rating} מתוך 5` : "לא נבחר דירוג"}</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-900">תמונה של הלקוח (לא חובה)</p>
-              {t.imageUrl && (
-                <div className="flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={t.imageUrl} alt={`התמונה של ${t.name || "הלקוח"}`} className="h-14 w-14 rounded-full object-cover" />
-                  <Button type="button" variant="ghost" onClick={() => update({ testimonials: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
+              <TextField label="שם הלקוח" placeholder="לדוגמה: דנה כהן" value={t.name} onChange={(v) => update({ testimonials: setAt(list, i, { name: v }) })} error={!t.name.trim() ? err : undefined} maxLength={60} />
+              <TextArea label="מה הלקוח אמר?" placeholder="לדוגמה: שירות מעולה, הגיעו בזמן והכול נעשה מסודר." rows={3} value={t.text} onChange={(v) => update({ testimonials: setAt(list, i, { text: v }) })} error={t.name.trim() ? err : undefined} maxLength={500} />
+              <div role="group" aria-label={`דירוג: ${t.rating > 0 ? `${t.rating} מתוך 5 כוכבים` : "ללא דירוג"}`} className="space-y-1">
+                <p className="text-sm font-semibold text-gray-900">דירוג (לא חובה)</p>
+                <div className="flex flex-wrap items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      aria-pressed={t.rating === n}
+                      aria-label={n === 1 ? "כוכב אחד" : `${n} כוכבים`}
+                      onClick={() => update({ testimonials: setAt(list, i, { rating: n }) })}
+                      className={cx(
+                        "flex h-11 w-11 items-center justify-center rounded-lg text-2xl transition hover:bg-amber-50 focus-visible:bg-amber-50",
+                        n <= t.rating ? "text-amber-500" : "text-gray-300 hover:text-amber-400",
+                      )}
+                    >
+                      <span aria-hidden>{n <= t.rating ? "★" : "☆"}</span>
+                    </button>
+                  ))}
+                  {t.rating > 0 && <Button type="button" variant="ghost" className="min-h-11" onClick={() => update({ testimonials: setAt(list, i, { rating: 0 }) })}>ללא דירוג</Button>}
                 </div>
-              )}
-              <ImageUploader label={t.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונה קטנה ומרובעת, לפחות 200×200 פיקסלים. PNG, JPG או WEBP, עד 5MB." onUploaded={(u) => update({ testimonials: setAt(list, i, { imageUrl: u[0] }) })} />
-            </div>
-            <RemoveButton what={`המלצה ${i + 1}`} onClick={() => update({ testimonials: removeAt(list, i) })} />
-          </fieldset>
-        );
-      })}
-      <Button type="button" variant="secondary" disabled={list.length >= 20} onClick={() => update({ testimonials: [...list, { name: "", text: "", rating: 0, imageUrl: "" }] })}>
-        + הוספת המלצה
-      </Button>
+                <p className="text-xs text-gray-500" aria-live="polite">{t.rating > 0 ? `${t.rating} מתוך 5` : "לא נבחר דירוג"}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-gray-900">תמונה של הלקוח (לא חובה)</p>
+                {t.imageUrl && (
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={t.imageUrl} alt={`התמונה של ${t.name || "הלקוח"}`} className="h-12 w-12 rounded-full object-cover" />
+                    <Button type="button" variant="ghost" onClick={() => update({ testimonials: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
+                  </div>
+                )}
+                <ImageUploader label={t.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="JPG, PNG או WEBP, עד 5MB." onUploaded={(u) => update({ testimonials: setAt(list, i, { imageUrl: u[0] }) })} />
+              </div>
+            </fieldset>
+          );
+        })}
+        <Button type="button" variant="secondary" disabled={list.length >= 20} onClick={() => update({ testimonials: [...list, { name: "", text: "", rating: 0, imageUrl: "" }] })}>
+          + הוספת המלצה
+        </Button>
+      </div>
     </div>
   );
 }
