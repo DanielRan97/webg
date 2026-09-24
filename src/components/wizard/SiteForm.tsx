@@ -15,7 +15,7 @@ import {
   type StepProps,
 } from "./steps";
 import {
-  AreasStep, BookingStep, CertificationsStep, EducationStep, EmergencyStep, ExperienceStep,
+  AreasStep, BookingStep, CertificationsStep, DeliveryStep, EducationStep, EmergencyStep, ExperienceStep,
   FaqStep, HighlightsStep, ProjectsStep, SkillsStep, TestimonialsStep,
 } from "./steps-content";
 
@@ -43,6 +43,7 @@ const STEPS: StepDef[] = [
   },
   { id: "testimonials", label: () => "המלצות", Component: TestimonialsStep, show: (d) => sectionOn(d, "testimonials") },
   { id: "areas", label: () => "אזורי שירות", Component: AreasStep, show: (d) => sectionOn(d, "areas") },
+  { id: "delivery", label: () => "משלוחים", Component: DeliveryStep, show: (d) => sectionOn(d, "delivery") },
   { id: "emergency", label: () => "שירות חירום", Component: EmergencyStep, show: (d) => sectionOn(d, "emergency") },
   { id: "booking", label: () => "קביעת תור", Component: BookingStep, show: (d) => sectionOn(d, "booking") },
   { id: "faq", label: () => "שאלות נפוצות", Component: FaqStep, show: (d) => sectionOn(d, "faq") },

@@ -24,7 +24,9 @@ export type SectionType =
   | "education"
   | "skills"
   | "projects"
-  | "certifications";
+  | "certifications"
+  | "delivery"
+  | "inquiry";
 
 export const SECTION_META: Record<SectionType, { label: string; hint: string }> = {
   hero: { label: "פתיחה", hint: "החלק הראשון שהלקוחות רואים: שם העסק וכפתור גדול." },
@@ -41,13 +43,15 @@ export const SECTION_META: Record<SectionType, { label: string; hint: string }> 
   faq: { label: "שאלות נפוצות", hint: "תשובות לשאלות שלקוחות שואלים הרבה." },
   hours: { label: "שעות פתיחה", hint: "כדי שלקוחות ידעו מתי אפשר להגיע." },
   location: { label: "איך מגיעים", hint: "הכתובת שלכם ומפה עם כפתור ניווט." },
-  contact: { label: "יצירת קשר", hint: "כפתורים לחיוג, WhatsApp ואימייל." },
+  contact: { label: "פרטי קשר", hint: "כפתורים לחיוג, WhatsApp ואימייל." },
   social: { label: "רשתות חברתיות", hint: "קישורים לאינסטגרם, פייסבוק וטיקטוק." },
   experience: { label: "ניסיון תעסוקתי", hint: "תפקידים קודמים: איפה עבדתם, מה עשיתם ומתי." },
   education: { label: "השכלה", hint: "תארים, קורסים ולימודים שסיימתם." },
   skills: { label: "כישורים", hint: "רשימת יכולות וכלים שאתם שולטים בהם." },
   projects: { label: "פרויקטים", hint: "עבודות לדוגמה, עם תיאור ותמונה או קישור." },
   certifications: { label: "הסמכות וקורסים", hint: "תעודות, הסמכות והשלמות מקצועיות." },
+  delivery: { label: "משלוחים", hint: "אזורי משלוח, מחיר וזמן משוער." },
+  inquiry: { label: "שליחת הודעה", hint: "טופס פנייה שמגיע ישירות למייל שלכם." },
 };
 
 export const ALL_SECTIONS = Object.keys(SECTION_META) as SectionType[];

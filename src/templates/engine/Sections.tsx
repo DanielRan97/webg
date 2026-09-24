@@ -3,8 +3,9 @@ import { DAY_NAMES, SOCIAL_LABELS, SOCIAL_PLATFORMS } from "@/lib/constants";
 import { mapsEmbedSrc, mapsQueryHref, normalizeUrl, socialUrl, telHref, whatsappHref } from "@/lib/links";
 import { SECTION_META, type SectionType } from "@/lib/sections";
 import type { SiteData } from "@/types/site";
-import { BoltIcon, CalendarIcon, ChatIcon, MailIcon, PhoneIcon, PinIcon, PlusIcon, StarIcon } from "../shared/Icons";
+import { BoltIcon, CalendarIcon, ChatIcon, MailIcon, PhoneIcon, PinIcon, PlusIcon, StarIcon, TruckIcon } from "../shared/Icons";
 import { bookingCta, formatPrice, groupItems } from "../shared/helpers";
+import { ContactForm } from "./ContactForm";
 import { Gallery } from "./Gallery";
 import type { TemplateTheme } from "./types";
 
@@ -320,6 +321,36 @@ function Certifications({ d, t }: Ctx) {
   );
 }
 
+function Delivery({ d, t }: Ctx) {
+  const del = d.delivery;
+  const rows: { label: string; value: string }[] = [
+    del.areas.trim() && { label: "אזורי משלוח", value: del.areas },
+    del.fee.trim() && { label: "מחיר משלוח", value: del.fee },
+    del.minOrder.trim() && { label: "מינימום הזמנה", value: del.minOrder },
+    del.freeOver.trim() && { label: "משלוח חינם", value: del.freeOver },
+    del.time.trim() && { label: "זמן משלוח משוער", value: del.time },
+  ].filter((r): r is { label: string; value: string } => Boolean(r));
+  return (
+    <div className={`max-w-xl ${t.narrow} ${t.card}`}>
+      <div className="flex items-center gap-2 text-t-accent-text">
+        <TruckIcon />
+        <span className="text-lg font-semibold">משלוחים זמינים</span>
+      </div>
+      {rows.length > 0 && (
+        <dl className="mt-4 space-y-2 text-sm">
+          {rows.map((r) => (
+            <div key={r.label} className="flex justify-between gap-4">
+              <dt className="text-t-muted">{r.label}</dt>
+              <dd className="text-end font-medium">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {del.note.trim() && <p className="mt-4 whitespace-pre-line text-sm text-t-muted">{del.note}</p>}
+    </div>
+  );
+}
+
 /** The body of a section (without its title). The hero is rendered by each template. */
 export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
   const { d, t } = ctx;
@@ -345,6 +376,8 @@ export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
     case "skills": return <Skills {...ctx} />;
     case "projects": return <Projects {...ctx} />;
     case "certifications": return <Certifications {...ctx} />;
+    case "delivery": return <Delivery {...ctx} />;
+    case "inquiry": return <ContactForm slug={d.slug} t={t} />;
   }
 }
 

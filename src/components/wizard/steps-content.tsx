@@ -4,7 +4,7 @@ import { useState } from "react";
 import { BOOKING_LABELS, BOOKING_METHODS } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
 import { Button, ChoiceCard, Field, ImageUploader, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
-import { InfoIcon, TrashIcon } from "../ui/icons";
+import { InfoIcon, LocationIcon, TrashIcon } from "../ui/icons";
 import type { StepProps } from "./steps";
 
 /** Small helper: replace one item in a list by index. */
@@ -116,26 +116,55 @@ export function AreasStep({ data, update }: StepProps) {
   }
   return (
     <div className="space-y-6">
-      <StepTitle title="לאילו אזורים אתם מגיעים?" subtitle="כתבו עיר או אזור ולחצו על ״הוספה״. אפשר לכתוב כמה ערים יחד, עם פסיק ביניהן." />
-      <Field label="עיר או אזור" hint="לדוגמה: תל אביב, רמת גן, גוש דן">
+      <StepTitle title="לאילו אזורים אתם מגיעים?" subtitle="הוסיפו ערים או אזורים שבהם אתם נותנים שירות." />
+      <Field label="עיר או אזור">
         {(p) => (
           <div className="flex gap-2">
-            <input {...p} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} className={inputClass} maxLength={120} />
-            <Button type="button" onClick={add} disabled={!draft.trim()}>הוספה</Button>
+            <input {...p} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} placeholder="לדוגמה: תל אביב, רמת גן, גוש דן" className={inputClass} maxLength={120} />
+            <Button type="button" variant="secondary" onClick={add} disabled={!draft.trim()}>הוספה</Button>
           </div>
         )}
       </Field>
       {data.areas.length === 0 ? (
-        <EmptyBox title="עדיין לא הוספתם אזורים" text="הלקוחות יראו באילו ערים אתם עובדים." />
+        <p className="flex items-center gap-2 text-sm text-gray-500">
+          <LocationIcon className="shrink-0" />
+          עדיין לא הוספתם אזורים. הלקוחות יראו באילו ערים אתם עובדים.
+        </p>
       ) : (
         <ul className="flex flex-wrap gap-2" aria-label="האזורים שהוספתם">
           {data.areas.map((a, i) => (
-            <li key={a} className="flex items-center gap-1 rounded-full border border-gray-400 bg-white ps-4">
-              <span className="py-2">{a}</span>
-              <button type="button" aria-label={`הסרת ${a}`} onClick={() => update({ areas: removeAt(data.areas, i) })} className="h-11 w-11 rounded-full text-lg hover:bg-gray-100"><span aria-hidden>×</span></button>
+            <li key={a} className="flex items-center gap-1 rounded-full border border-gray-300 bg-gray-50 ps-4">
+              <span className="py-2 text-sm">{a}</span>
+              <button type="button" aria-label={`הסרת ${a}`} onClick={() => update({ areas: removeAt(data.areas, i) })} className="flex h-11 w-11 items-center justify-center rounded-full text-lg text-gray-500 hover:bg-gray-200"><span aria-hidden>×</span></button>
             </li>
           ))}
         </ul>
+      )}
+    </div>
+  );
+}
+
+/* ── Delivery ── */
+export function DeliveryStep({ data, update }: StepProps) {
+  const del = data.delivery;
+  const set = (patch: Partial<SiteData["delivery"]>) => update({ delivery: { ...del, ...patch } });
+  return (
+    <div className="space-y-6">
+      <StepTitle title="משלוחים" subtitle="מידע כללי בלבד - זה לא כפתור הזמנה או מעקב משלוח." />
+      <div className="rounded-2xl bg-gray-50 p-4">
+        <Toggle checked={del.available} onChange={(v) => set({ available: v })} label="יש לכם משלוחים?" onText="כן" offText="לא" />
+      </div>
+      {del.available && (
+        <>
+          <TextField label="אזורי משלוח (לא חובה)" placeholder="לדוגמה: חיפה והקריות" value={del.areas} onChange={(v) => set({ areas: v })} maxLength={120} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField label="מחיר משלוח (לא חובה)" placeholder="לדוגמה: 25 ₪" value={del.fee} onChange={(v) => set({ fee: v })} maxLength={30} />
+            <TextField label="מינימום הזמנה (לא חובה)" placeholder="לדוגמה: 80 ₪" value={del.minOrder} onChange={(v) => set({ minOrder: v })} maxLength={30} />
+          </div>
+          <TextField label="משלוח חינם מעל סכום (לא חובה)" placeholder="לדוגמה: משלוח חינם מעל 200 ₪" value={del.freeOver} onChange={(v) => set({ freeOver: v })} maxLength={30} />
+          <TextField label="זמן משלוח משוער (לא חובה)" placeholder="לדוגמה: 30–60 דקות" value={del.time} onChange={(v) => set({ time: v })} maxLength={40} />
+          <TextArea label="הערה קצרה (לא חובה)" placeholder="לדוגמה: משלוחים בימי חול בלבד." rows={2} value={del.note} onChange={(v) => set({ note: v })} maxLength={200} />
+        </>
       )}
     </div>
   );

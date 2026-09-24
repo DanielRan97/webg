@@ -52,6 +52,17 @@ export interface BookingData {
   buttonText: string;
 }
 
+/** Informational only - no checkout, no tracking, no address collection. */
+export interface DeliveryData {
+  available: boolean;
+  areas: string;
+  minOrder: string;
+  fee: string;
+  freeOver: string;
+  time: string;
+  note: string;
+}
+
 /** One gallery photo. Title/description/price are all optional - an image with none of them behaves exactly like a plain photo. */
 export interface GalleryImageData {
   url: string;
@@ -132,6 +143,7 @@ export interface SiteData {
   areas: string[];
   emergency: EmergencyData;
   booking: BookingData;
+  delivery: DeliveryData;
   faq: FaqData[];
   highlights: HighlightData[];
   experience: ExperienceData[];

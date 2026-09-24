@@ -69,3 +69,12 @@ export const CalendarIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M16 3v4M8 3v4M3 11h18" />
   </Svg>
 );
+
+export const TruckIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}>
+    <path d="M1 3h13v13H1z" />
+    <path d="M14 8h4l4 4v4h-8V8Z" />
+    <circle cx="6" cy="18.5" r="1.8" />
+    <circle cx="17.5" cy="18.5" r="1.8" />
+  </Svg>
+);

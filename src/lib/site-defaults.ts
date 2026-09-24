@@ -60,6 +60,7 @@ export function emptySiteData(categoryId = "other"): SiteData {
     areas: [],
     emergency: { available24x7: false, phone: "", message: "" },
     booking: { method: "WHATSAPP", url: "", buttonText: "" },
+    delivery: { available: false, areas: "", minOrder: "", fee: "", freeOver: "", time: "", note: "" },
     faq: [],
     highlights: [],
     experience: [],

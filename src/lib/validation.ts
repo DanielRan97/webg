@@ -78,6 +78,15 @@ export const siteSchema = z.object({
     url: text(300).refine((v) => v === "" || /^(https?:\/\/)?[^\s]+\.[^\s]+$/i.test(v), "הקישור לא נראה תקין"),
     buttonText: text(30),
   }),
+  delivery: z.object({
+    available: z.boolean(),
+    areas: text(120),
+    minOrder: text(30),
+    fee: text(30),
+    freeOver: text(30),
+    time: text(40),
+    note: text(200),
+  }),
   faq: z.array(z.object({ question: text(200), answer: text(800) })).max(30),
   highlights: z.array(z.object({ label: text(40), value: text(30) })).max(8),
   experience: z
@@ -97,6 +106,24 @@ export const siteSchema = z.object({
     .array(z.object({ type: z.enum(ALL_SECTIONS as [string, ...string[]]), enabled: z.boolean() }))
     .max(ALL_SECTIONS.length),
 });
+
+/** Public "צור קשר" form on a live website. Anonymous, so kept tight: short fields, and at least one way to reach the visitor back. */
+export const contactFormSchema = z
+  .object({
+    slug: text(80).min(1),
+    name: text(80).min(2, "נא לכתוב שם."),
+    phone: text(30),
+    email: text(120),
+    message: text(1000).min(2, "נא לכתוב הודעה."),
+  })
+  .refine((d) => d.phone.trim() !== "" || d.email.trim() !== "", {
+    message: "נא למלא טלפון או אימייל.",
+    path: ["phone"],
+  })
+  .refine((d) => d.email.trim() === "" || z.email().safeParse(d.email.trim()).success, {
+    message: "כתובת האימייל לא תקינה.",
+    path: ["email"],
+  });
 
 /** Trimmed, lowercased email, in one place so every entry point normalizes the same way (this is also what keeps one person from creating two accounts with "Name@Gmail.com" and "name@gmail.com"). */
 const emailField = z

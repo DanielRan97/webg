@@ -90,6 +90,10 @@ export function sectionHasContent(type: SectionType, d: SiteData): boolean {
       return d.projects.some((p) => p.title.trim());
     case "certifications":
       return d.certifications.some((c) => c.name.trim());
+    case "delivery":
+      return d.delivery.available;
+    case "inquiry":
+      return true;
   }
 }
 

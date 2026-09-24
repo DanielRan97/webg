@@ -1,5 +1,15 @@
 /** Minimal, RTL-friendly Hebrew email templates. Kept plain (no heavy HTML/CSS, no external assets) so they render well in every client, including on a phone. */
 
+/** Every value interpolated into an HTML email body must go through this - the sender of a contact-form message is an anonymous website visitor. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function wrap(title: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -46,5 +56,33 @@ export function verifyEmailEmail(verifyUrl: string) {
     `<p style="color:#374151;line-height:1.6;font-size:15px">כמעט סיימנו. לחצו על הכפתור כדי לאמת את כתובת האימייל שלכם. אימות נדרש לפני שאפשר לפרסם אתר. הקישור בתוקף ל-24 שעות.</p>${btn(verifyUrl, "אימות האימייל")}${fallbackLink(verifyUrl)}`,
   );
   const text = `אימות כתובת האימייל ב-WEBG\n\nלחצו על הקישור כדי לאמת את האימייל (בתוקף ל-24 שעות):\n${verifyUrl}`;
+  return { subject, html, text };
+}
+
+/** A visitor's message from a website's public "צור קשר" form, sent to the site's owner. Every field here comes from an anonymous browser - always escaped before it reaches the HTML body. */
+export function contactFormEmail(input: {
+  businessName: string;
+  siteUrl: string;
+  name: string;
+  phone: string;
+  email: string;
+  message: string;
+  submittedAt: string;
+}) {
+  const { businessName, siteUrl, name, phone, email, message, submittedAt } = input;
+  const subject = "פנייה חדשה מהאתר שלך ב-WEBG";
+  const row = (label: string, value: string) =>
+    value ? `<p style="margin:0 0 10px;color:#374151;font-size:15px"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>` : "";
+  const html = wrap(
+    `פנייה חדשה מ-${escapeHtml(businessName)}`,
+    `<p style="color:#374151;line-height:1.6;font-size:15px">מישהו מילא את טופס יצירת הקשר באתר שלכם:</p>
+${row("שם", name)}
+${row("טלפון", phone)}
+${row("אימייל", email)}
+<p style="margin:16px 0 4px;color:#374151;font-size:15px"><b>הודעה:</b></p>
+<p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f9fafb;border-radius:12px;padding:14px">${escapeHtml(message)}</p>
+<p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
+  );
+  const text = `פנייה חדשה מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone || "-"}\nאימייל: ${email || "-"}\n\nהודעה:\n${message}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }

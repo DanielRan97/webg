@@ -144,6 +144,15 @@ model BusinessProfile {
   bookingUrl    String?
   bookingText   String?
 
+  // Delivery info (informational only - no checkout, no tracking, no address collection).
+  deliveryAvailable Boolean @default(false)
+  deliveryAreas     String?
+  deliveryMinOrder  String?
+  deliveryFee       String?
+  deliveryFreeOver  String?
+  deliveryTime      String?
+  deliveryNote      String?
+
   website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 }
 

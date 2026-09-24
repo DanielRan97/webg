@@ -100,6 +100,15 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
         url: p?.bookingUrl ?? "",
         buttonText: p?.bookingText ?? "",
       },
+      delivery: {
+        available: p?.deliveryAvailable ?? false,
+        areas: p?.deliveryAreas ?? "",
+        minOrder: p?.deliveryMinOrder ?? "",
+        fee: p?.deliveryFee ?? "",
+        freeOver: p?.deliveryFreeOver ?? "",
+        time: p?.deliveryTime ?? "",
+        note: p?.deliveryNote ?? "",
+      },
       faq: row.faqItems.map((f) => ({ question: f.question, answer: f.answer })),
       highlights: row.highlights.map((h) => ({ label: h.label, value: h.value })),
       experience: row.experience.map((e) => ({
@@ -289,6 +298,13 @@ function profileColumns(d: SiteData) {
     bookingMethod: d.booking.method,
     bookingUrl: d.booking.url.trim() || null,
     bookingText: d.booking.buttonText.trim() || null,
+    deliveryAvailable: d.delivery.available,
+    deliveryAreas: d.delivery.areas.trim() || null,
+    deliveryMinOrder: d.delivery.minOrder.trim() || null,
+    deliveryFee: d.delivery.fee.trim() || null,
+    deliveryFreeOver: d.delivery.freeOver.trim() || null,
+    deliveryTime: d.delivery.time.trim() || null,
+    deliveryNote: d.delivery.note.trim() || null,
   };
 }
 
