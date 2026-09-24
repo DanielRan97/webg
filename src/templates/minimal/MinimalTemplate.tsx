@@ -54,8 +54,10 @@ function Hero({ d }: { d: SiteData }) {
           <HeroActions d={d} primary={`${theme.btn} ${theme.btnPrimary}`} secondary={`${theme.btn} ${theme.btnSecondary}`} />
         </div>
         {d.heroImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={d.heroImageUrl} alt={d.businessName} className="mt-12 aspect-[21/9] w-full object-cover" />
+          <div className="mt-12 flex aspect-[21/9] w-full items-center justify-center overflow-hidden bg-t-tint">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={d.heroImageUrl} alt={d.businessName} className="h-full w-full object-contain" />
+          </div>
         )}
       </div>
     </section>

@@ -285,8 +285,10 @@ export function ImagesStep({ data, update }: StepProps) {
         <p className="text-sm font-semibold text-gray-900">תמונה ראשית</p>
         <p className="text-sm text-gray-600">התמונה הגדולה בראש האתר. עדיף תמונה פשוטה בלי הרבה טקסט, כך שם העסק ייקרא היטב. בלי תמונה, נשתמש בצבע העסק.</p>
         {data.heroImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={data.heroImageUrl} alt="התמונה הראשית שבחרתם לאתר" className="h-40 w-full rounded-2xl object-cover sm:w-72" />
+          <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 sm:w-72">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={data.heroImageUrl} alt="התמונה הראשית שבחרתם לאתר" className="h-full w-full object-contain" />
+          </div>
         ) : (
           <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">עדיין לא נבחרה תמונה ראשית</p>
         )}

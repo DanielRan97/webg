@@ -63,8 +63,10 @@ function Hero({ d }: { d: SiteData }) {
           </div>
         </div>
         {d.heroImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={d.heroImageUrl} alt={d.businessName} className="aspect-[4/5] w-full max-w-sm rounded-md border-[3px] border-black object-cover shadow-[8px_8px_0_0_#000] md:justify-self-end" />
+          <div className="flex aspect-[4/5] w-full max-w-sm items-center justify-center overflow-hidden rounded-md border-[3px] border-black bg-t-tint shadow-[8px_8px_0_0_#000] md:justify-self-end">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={d.heroImageUrl} alt={d.businessName} className="h-full w-full object-contain" />
+          </div>
         )}
       </div>
     </section>
