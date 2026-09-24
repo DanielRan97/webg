@@ -34,4 +34,6 @@ export const RATE_LIMITS = {
   resendVerifyPerUser: { limit: 3, windowMs: 15 * 60 * 1000 },
   contactFormPerIp: { limit: 5, windowMs: 10 * 60 * 1000 },
   contactFormPerSite: { limit: 20, windowMs: 60 * 60 * 1000 },
+  leadFormPerIp: { limit: 5, windowMs: 10 * 60 * 1000 },
+  leadFormPerSite: { limit: 20, windowMs: 60 * 60 * 1000 },
 } as const;

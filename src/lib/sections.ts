@@ -26,7 +26,8 @@ export type SectionType =
   | "projects"
   | "certifications"
   | "delivery"
-  | "inquiry";
+  | "inquiry"
+  | "lead";
 
 export const SECTION_META: Record<SectionType, { label: string; hint: string }> = {
   hero: { label: "פתיחה", hint: "החלק הראשון שהלקוחות רואים: שם העסק וכפתור גדול." },
@@ -52,6 +53,7 @@ export const SECTION_META: Record<SectionType, { label: string; hint: string }> 
   certifications: { label: "הסמכות וקורסים", hint: "תעודות, הסמכות והשלמות מקצועיות." },
   delivery: { label: "משלוחים", hint: "אזורי משלוח, מחיר וזמן משוער." },
   inquiry: { label: "שליחת הודעה", hint: "טופס פנייה שמגיע ישירות למייל שלכם." },
+  lead: { label: "השאירו פרטים", hint: "טופס קצר לחזרה טלפונית - שם וטלפון בלבד." },
 };
 
 export const ALL_SECTIONS = Object.keys(SECTION_META) as SectionType[];

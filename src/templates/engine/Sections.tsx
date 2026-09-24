@@ -7,6 +7,7 @@ import { BoltIcon, CalendarIcon, ChatIcon, MailIcon, PhoneIcon, PinIcon, PlusIco
 import { bookingCta, formatPrice, groupItems } from "../shared/helpers";
 import { ContactForm } from "./ContactForm";
 import { Gallery } from "./Gallery";
+import { LeadForm } from "./LeadForm";
 import type { TemplateTheme } from "./types";
 
 /**
@@ -378,6 +379,7 @@ export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
     case "certifications": return <Certifications {...ctx} />;
     case "delivery": return <Delivery {...ctx} />;
     case "inquiry": return <ContactForm slug={d.slug} t={t} />;
+    case "lead": return <LeadForm slug={d.slug} t={t} />;
   }
 }
 

@@ -94,6 +94,8 @@ export function sectionHasContent(type: SectionType, d: SiteData): boolean {
       return d.delivery.available;
     case "inquiry":
       return true;
+    case "lead":
+      return true;
   }
 }
 

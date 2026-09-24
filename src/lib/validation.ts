@@ -125,6 +125,19 @@ export const contactFormSchema = z
     path: ["email"],
   });
 
+/** Public "השאירו פרטים" lead form on a live website - a short callback request, deliberately separate from the fuller contact form (no message field, phone is mandatory). */
+export const leadFormSchema = z
+  .object({
+    slug: text(80).min(1),
+    name: text(80).min(2, "נא לכתוב שם."),
+    phone: text(30).min(1, "נא למלא מספר טלפון."),
+    email: text(120),
+  })
+  .refine((d) => d.email.trim() === "" || z.email().safeParse(d.email.trim()).success, {
+    message: "כתובת האימייל לא תקינה.",
+    path: ["email"],
+  });
+
 /** Trimmed, lowercased email, in one place so every entry point normalizes the same way (this is also what keeps one person from creating two accounts with "Name@Gmail.com" and "name@gmail.com"). */
 const emailField = z
   .string()

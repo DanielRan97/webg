@@ -19,10 +19,10 @@ export interface CategoryPreset {
 
 const svc = (name: string, description = "", price = "", category = "") => ({ name, description, price, category });
 
-const SERVICE_TRADE: SectionType[] = ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry", "prices", "gallery", "about", "highlights", "hours", "social"];
-const APPOINTMENT: SectionType[] = ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry", "about", "social"];
+const SERVICE_TRADE: SectionType[] = ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry", "lead", "prices", "gallery", "about", "highlights", "hours", "social"];
+const APPOINTMENT: SectionType[] = ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry", "lead", "about", "social"];
 const FOOD: SectionType[] = ["hero", "menu", "delivery", "gallery", "testimonials", "hours", "location", "contact", "inquiry", "about", "social"];
-const PERSONAL_SERVICES: SectionType[] = ["hero", "about", "services", "areas", "prices", "testimonials", "faq", "contact", "inquiry", "gallery", "social", "highlights", "hours", "location", "booking"];
+const PERSONAL_SERVICES: SectionType[] = ["hero", "about", "services", "areas", "prices", "testimonials", "faq", "contact", "inquiry", "lead", "gallery", "social", "highlights", "hours", "location", "booking"];
 const PORTFOLIO: SectionType[] = ["hero", "about", "experience", "education", "skills", "projects", "certifications", "contact", "inquiry", "social"];
 
 /** Every existing category (all 12 below) keeps exactly this set - unchanged from before this field existed. */
@@ -38,7 +38,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "barber", label: "ספר", emoji: "💈",
     sections: APPOINTMENT,
-    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry", "lead"],
     cta: "BOOKING", tagline: "תספורת מדויקת, אווירה טובה", color: "#1f2937",
     sampleServices: [svc("תספורת גברים", "תספורת וסידור", "70"), svc("תספורת + זקן", "", "100")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -46,7 +46,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "beauty", label: "מכון יופי", emoji: "💅",
     sections: APPOINTMENT,
-    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry", "lead"],
     cta: "BOOKING", tagline: "כל מה שצריך כדי להרגיש יפה", color: "#be185d",
     sampleServices: [svc("מניקור ג'ל", "", "120"), svc("טיפול פנים", "", "250")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -70,7 +70,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "electrician", label: "חשמלאי", emoji: "⚡",
     sections: SERVICE_TRADE,
-    defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry", "lead"],
     cta: "CALL", tagline: "שירות מהיר, עבודה נקייה ואחריות", color: "#d97706",
     sampleServices: [svc("תיקון תקלות חשמל"), svc("התקנת נקודות ותאורה")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -78,7 +78,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "plumber", label: "אינסטלטור", emoji: "🔧",
     sections: SERVICE_TRADE,
-    defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry", "lead"],
     cta: "CALL", tagline: "פתרון מהיר לכל בעיית אינסטלציה", color: "#0369a1",
     sampleServices: [svc("פתיחת סתימות"), svc("תיקון נזילות")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -86,7 +86,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "technician", label: "טכנאי", emoji: "🛠️",
     sections: SERVICE_TRADE,
-    defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "inquiry", "lead"],
     cta: "CALL", tagline: "מגיעים אליכם ומתקנים במקום", color: "#0f766e",
     sampleServices: [svc("תיקון מכשירי חשמל"), svc("התקנה והתאמה")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -94,7 +94,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "cleaner", label: "שירותי ניקיון", emoji: "🧼",
     sections: SERVICE_TRADE,
-    defaultOn: ["hero", "services", "areas", "testimonials", "faq", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "areas", "testimonials", "faq", "contact", "inquiry", "lead"],
     cta: "WHATSAPP", tagline: "בית נקי, בלי מאמץ", color: "#0891b2",
     sampleServices: [svc("ניקיון דירות"), svc("ניקיון משרדים")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -109,24 +109,24 @@ export const CATEGORIES: CategoryPreset[] = [
   },
   {
     id: "trainer", label: "מאמן כושר", emoji: "🏋️",
-    sections: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry", "prices", "gallery", "highlights", "hours", "social"],
-    defaultOn: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry"],
+    sections: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry", "lead", "prices", "gallery", "highlights", "hours", "social"],
+    defaultOn: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry", "lead"],
     cta: "BOOKING", tagline: "מתאמנים חכם, רואים תוצאות", color: "#dc2626",
     sampleServices: [svc("אימון אישי", "", "200"), svc("אימון זוגי", "", "300")],
     socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "consultant", label: "יועץ", emoji: "💼",
-    sections: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry", "prices", "highlights", "hours", "social"],
-    defaultOn: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry"],
+    sections: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry", "lead", "prices", "highlights", "hours", "social"],
+    defaultOn: ["hero", "about", "services", "testimonials", "booking", "faq", "contact", "inquiry", "lead"],
     cta: "BOOKING", tagline: "ייעוץ מקצועי שמקדם את העסק שלך", color: "#0f766e",
     sampleServices: [svc("פגישת היכרות"), svc("ליווי חודשי")],
     socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "lawyer", label: "עורך דין", emoji: "⚖️",
-    sections: ["hero", "about", "services", "faq", "location", "contact", "inquiry", "highlights", "booking", "hours", "testimonials"],
-    defaultOn: ["hero", "about", "services", "faq", "location", "contact", "inquiry"],
+    sections: ["hero", "about", "services", "faq", "location", "contact", "inquiry", "lead", "highlights", "booking", "hours", "testimonials"],
+    defaultOn: ["hero", "about", "services", "faq", "location", "contact", "inquiry", "lead"],
     cta: "CALL", tagline: "ליווי משפטי מקצועי ואישי", color: "#1e3a8a",
     sampleServices: [svc("ייעוץ ראשוני"), svc("ליווי משפטי")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -142,7 +142,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "cosmetics", label: "קוסמטיקה", emoji: "💄",
     sections: APPOINTMENT,
-    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry"],
+    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "inquiry", "lead"],
     cta: "BOOKING", tagline: "טיפוח וטיפולי יופי מקצועיים", color: "#a21caf",
     sampleServices: [svc("טיפול פנים", "", "250"), svc("הרמת ריסים", "", "150"), svc("מניקור ג'ל", "", "120")],
     socialPlatforms: CLASSIC_SOCIALS,
@@ -150,7 +150,7 @@ export const CATEGORIES: CategoryPreset[] = [
   {
     id: "personal", label: "שירותים אישיים", emoji: "🧰",
     sections: PERSONAL_SERVICES,
-    defaultOn: ["hero", "about", "services", "areas", "prices", "testimonials", "faq", "contact", "inquiry"],
+    defaultOn: ["hero", "about", "services", "areas", "prices", "testimonials", "faq", "contact", "inquiry", "lead"],
     cta: "WHATSAPP", tagline: "שירות אישי, אמין וזמין", color: "#0891b2",
     sampleServices: [svc("שליחת חבילה"), svc("סידורים ועזרה בבית")],
     socialPlatforms: CLASSIC_SOCIALS,

@@ -39,6 +39,10 @@ const btn = (href: string, label: string) =>
 const fallbackLink = (href: string) =>
   `<p style="color:#9ca3af;font-size:13px;line-height:1.6">אם הכפתור לא עובד, אפשר להעתיק את הכתובת הזו לדפדפן:<br><span style="word-break:break-all">${href}</span></p>`;
 
+/** One "label: value" line in a visitor-submitted email, skipped when empty. The value always comes from an anonymous browser, so it is always escaped. */
+const row = (label: string, value: string) =>
+  value ? `<p style="margin:0 0 10px;color:#374151;font-size:15px"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>` : "";
+
 export function passwordResetEmail(resetUrl: string) {
   const subject = "איפוס סיסמה ל-WEBG";
   const html = wrap(
@@ -71,8 +75,6 @@ export function contactFormEmail(input: {
 }) {
   const { businessName, siteUrl, name, phone, email, message, submittedAt } = input;
   const subject = "פנייה חדשה מהאתר שלך ב-WEBG";
-  const row = (label: string, value: string) =>
-    value ? `<p style="margin:0 0 10px;color:#374151;font-size:15px"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>` : "";
   const html = wrap(
     `פנייה חדשה מ-${escapeHtml(businessName)}`,
     `<p style="color:#374151;line-height:1.6;font-size:15px">מישהו מילא את טופס יצירת הקשר באתר שלכם:</p>
@@ -84,5 +86,28 @@ ${row("אימייל", email)}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
   );
   const text = `פנייה חדשה מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone || "-"}\nאימייל: ${email || "-"}\n\nהודעה:\n${message}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
+  return { subject, html, text };
+}
+
+/** A visitor's callback request from a website's public "השאירו פרטים" lead form - short, no message. Every field here comes from an anonymous browser - always escaped before it reaches the HTML body. */
+export function leadFormEmail(input: {
+  businessName: string;
+  siteUrl: string;
+  name: string;
+  phone: string;
+  email: string;
+  submittedAt: string;
+}) {
+  const { businessName, siteUrl, name, phone, email, submittedAt } = input;
+  const subject = "ליד חדש מהאתר שלך ב-WEBG";
+  const html = wrap(
+    `ליד חדש מ-${escapeHtml(businessName)}`,
+    `<p style="color:#374151;line-height:1.6;font-size:15px">מישהו השאיר פרטים לחזרה באתר שלכם:</p>
+${row("שם", name)}
+${row("טלפון", phone)}
+${row("אימייל", email)}
+<p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
+  );
+  const text = `ליד חדש מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone}\nאימייל: ${email || "-"}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }

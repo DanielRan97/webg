@@ -1,7 +1,7 @@
 import "server-only";
 import { consoleAdapter } from "./console-adapter";
 import { createResendAdapter } from "./resend-adapter";
-import { contactFormEmail, passwordResetEmail, verifyEmailEmail } from "./templates";
+import { contactFormEmail, leadFormEmail, passwordResetEmail, verifyEmailEmail } from "./templates";
 import type { EmailAdapter } from "./types";
 
 /**
@@ -31,6 +31,15 @@ export async function sendContactFormEmail(
   input: { businessName: string; siteUrl: string; name: string; phone: string; email: string; message: string; submittedAt: string },
 ) {
   const { subject, html, text } = contactFormEmail(input);
+  await getAdapter().send({ to, subject, html, text });
+}
+
+/** `to` must always be resolved server-side from the website's owner - never accept a recipient from the browser. */
+export async function sendLeadFormEmail(
+  to: string,
+  input: { businessName: string; siteUrl: string; name: string; phone: string; email: string; submittedAt: string },
+) {
+  const { subject, html, text } = leadFormEmail(input);
   await getAdapter().send({ to, subject, html, text });
 }
 
