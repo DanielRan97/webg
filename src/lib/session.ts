@@ -9,6 +9,23 @@ const COOKIE = "webg_session";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 /**
+ * Expired Session rows and used/expired VerificationToken rows can never be
+ * used again, but nothing deletes them - left alone the tables grow forever.
+ * Mirrors the same opportunistic pattern RateLimitHit already uses (see
+ * rate-limit.ts): a small random chance per call, fire-and-forget, no cron
+ * job needed. Hooked into createSession() since logins/signups are frequent
+ * enough to keep both tables trimmed without a dedicated schedule.
+ */
+function maybeCleanupExpired() {
+  if (Math.random() >= 0.02) return;
+  const now = new Date();
+  db.session.deleteMany({ where: { expiresAt: { lt: now } } }).catch(() => {});
+  db.verificationToken
+    .deleteMany({ where: { OR: [{ expiresAt: { lt: now } }, { usedAt: { not: null } }] } })
+    .catch(() => {});
+}
+
+/**
  * Sessions are stored in the database (opaque random token in the cookie,
  * only its hash kept server-side). Unlike a self-contained JWT, this means
  * logout and "sign out everywhere after a password change" actually revoke
@@ -27,6 +44,7 @@ export async function createSession(userId: string) {
     path: "/",
     maxAge: MAX_AGE_SECONDS,
   });
+  maybeCleanupExpired();
 }
 
 /** Deletes the current session server-side (real revocation) and clears the cookie. */

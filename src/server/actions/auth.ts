@@ -15,6 +15,16 @@ export interface AuthState {
 
 const BCRYPT_COST = 12;
 
+/**
+ * A fixed, precomputed bcrypt hash of an arbitrary placeholder - not tied to any
+ * real account. Used only so bcrypt.compare() always runs, even when the email
+ * does not exist, so an unknown-email attempt and a wrong-password attempt take
+ * the same time. Without this, `!user ||` below short-circuits and skips
+ * bcrypt entirely for unknown emails, which responds measurably faster than a
+ * real account with a wrong password - an account-enumeration timing oracle.
+ */
+const DUMMY_HASH = "$2b$12$3gL4AH03D.G.ZvODcJxsyeh89omnxTtnpA.MgMr4OXhM.3J4ObsN2";
+
 export async function signupAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = signupSchema.safeParse({
     email: formData.get("email"),
@@ -52,8 +62,11 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   if (!okIp || !okEmail) return { error: "יותר מדי ניסיונות התחברות. נסו שוב בעוד כמה דקות." };
 
   const user = await db.user.findUnique({ where: { email } });
+  // Always compare against something, real hash or dummy, so timing does not
+  // reveal whether the email exists (see DUMMY_HASH above).
+  const validPassword = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   // Same message whether the email is unknown or the password is wrong - never reveal which.
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+  if (!user || !validPassword) {
     return { error: "האימייל או הסיסמה לא נכונים" };
   }
   await createSession(user.id);
