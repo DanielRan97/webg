@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/session";
 import { listWebsites } from "@/server/websites";
+import { getUnreadCounts } from "@/server/interactions";
 import { STATUS_INFO, SUBSCRIPTION_INFO } from "@/lib/status";
 import { SiteCard } from "@/components/SiteCard";
 import { VerificationBanner } from "@/components/VerificationBanner";
@@ -33,7 +34,7 @@ function Legend() {
 
 export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   const user = await requireUser();
-  const sites = await listWebsites(user.id);
+  const [sites, unreadCounts] = await Promise.all([listWebsites(user.id), getUnreadCounts(user.id)]);
   const { deleted } = await searchParams;
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-8">
@@ -61,7 +62,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       ) : (
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {sites.map((s) => <SiteCard key={s.id} site={s} />)}
+            {sites.map((s) => <SiteCard key={s.id} site={s} unreadCount={unreadCounts[s.id] ?? 0} />)}
           </div>
           <Legend />
         </>

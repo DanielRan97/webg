@@ -67,13 +67,14 @@ export function verifyEmailEmail(verifyUrl: string) {
 export function contactFormEmail(input: {
   businessName: string;
   siteUrl: string;
+  adminUrl: string;
   name: string;
   phone: string;
   email: string;
   message: string;
   submittedAt: string;
 }) {
-  const { businessName, siteUrl, name, phone, email, message, submittedAt } = input;
+  const { businessName, siteUrl, adminUrl, name, phone, email, message, submittedAt } = input;
   const subject = "פנייה חדשה מהאתר שלך ב-WEBG";
   const html = wrap(
     `פנייה חדשה מ-${escapeHtml(businessName)}`,
@@ -83,9 +84,11 @@ ${row("טלפון", phone)}
 ${row("אימייל", email)}
 <p style="margin:16px 0 4px;color:#374151;font-size:15px"><b>הודעה:</b></p>
 <p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f9fafb;border-radius:12px;padding:14px">${escapeHtml(message)}</p>
+${btn(adminUrl, "צפייה בפנייה ב-WEBG")}
+${fallbackLink(adminUrl)}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
   );
-  const text = `פנייה חדשה מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone || "-"}\nאימייל: ${email || "-"}\n\nהודעה:\n${message}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
+  const text = `פנייה חדשה מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone || "-"}\nאימייל: ${email || "-"}\n\nהודעה:\n${message}\n\nלצפייה בפנייה: ${adminUrl}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }
 
@@ -93,12 +96,13 @@ ${row("אימייל", email)}
 export function leadFormEmail(input: {
   businessName: string;
   siteUrl: string;
+  adminUrl: string;
   name: string;
   phone: string;
   email: string;
   submittedAt: string;
 }) {
-  const { businessName, siteUrl, name, phone, email, submittedAt } = input;
+  const { businessName, siteUrl, adminUrl, name, phone, email, submittedAt } = input;
   const subject = "ליד חדש מהאתר שלך ב-WEBG";
   const html = wrap(
     `ליד חדש מ-${escapeHtml(businessName)}`,
@@ -106,8 +110,10 @@ export function leadFormEmail(input: {
 ${row("שם", name)}
 ${row("טלפון", phone)}
 ${row("אימייל", email)}
+${btn(adminUrl, "צפייה בפנייה ב-WEBG")}
+${fallbackLink(adminUrl)}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
   );
-  const text = `ליד חדש מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone}\nאימייל: ${email || "-"}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
+  const text = `ליד חדש מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone}\nאימייל: ${email || "-"}\n\nלצפייה בפנייה: ${adminUrl}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }

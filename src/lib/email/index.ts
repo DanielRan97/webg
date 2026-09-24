@@ -28,7 +28,7 @@ export async function sendVerifyEmail(to: string, verifyUrl: string) {
 /** `to` must always be resolved server-side from the website's owner - never accept a recipient from the browser. */
 export async function sendContactFormEmail(
   to: string,
-  input: { businessName: string; siteUrl: string; name: string; phone: string; email: string; message: string; submittedAt: string },
+  input: { businessName: string; siteUrl: string; adminUrl: string; name: string; phone: string; email: string; message: string; submittedAt: string },
 ) {
   const { subject, html, text } = contactFormEmail(input);
   await getAdapter().send({ to, subject, html, text });
@@ -37,7 +37,7 @@ export async function sendContactFormEmail(
 /** `to` must always be resolved server-side from the website's owner - never accept a recipient from the browser. */
 export async function sendLeadFormEmail(
   to: string,
-  input: { businessName: string; siteUrl: string; name: string; phone: string; email: string; submittedAt: string },
+  input: { businessName: string; siteUrl: string; adminUrl: string; name: string; phone: string; email: string; submittedAt: string },
 ) {
   const { subject, html, text } = leadFormEmail(input);
   await getAdapter().send({ to, subject, html, text });

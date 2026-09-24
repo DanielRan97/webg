@@ -111,6 +111,7 @@ model Website {
   skills         Skill[]
   projects       Project[]
   certifications Certification[]
+  interactions   CustomerInteraction[]
 
   @@index([userId])
 }
@@ -364,4 +365,32 @@ model Certification {
   website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@index([websiteId])
+}
+
+/**
+ * One row per customer-initiated interaction from a website's public pages
+ * (contact form, lead form, and future forms such as native booking
+ * requests) - the single place an owner checks instead of searching their
+ * email inbox. `type` is a plain string (see INTERACTION_TYPES in
+ * src/lib/constants.ts), matching this schema's provider-agnostic
+ * convention. `metadata` is JSON-encoded text for the same reason (no
+ * native Json column) - free-form extra context such as which section
+ * produced the interaction.
+ */
+model CustomerInteraction {
+  id        String    @id @default(cuid())
+  websiteId String
+  type      String // CONTACT_MESSAGE | LEAD | BOOKING | CALLBACK | OTHER
+  name      String?
+  phone     String?
+  email     String?
+  message   String?
+  metadata  String?
+  createdAt DateTime  @default(now())
+  seenAt    DateTime?
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId, createdAt])
+  @@index([websiteId, seenAt])
 }

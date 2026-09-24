@@ -98,3 +98,9 @@ export const WarningIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M12 17h.01" />
   </Svg>
 );
+
+export const InboxIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}>
+    <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+    <path d="M5.4 5.3 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.4-6.7A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.3Z" /></Svg>
+);

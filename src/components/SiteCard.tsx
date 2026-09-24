@@ -19,7 +19,7 @@ import { getCategory } from "@/lib/categories";
 import type { WebsiteRecord } from "@/server/websites";
 import { Logo } from "@/templates/shared/Logo";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
-import { ExternalLinkIcon, LightbulbIcon, MoreIcon } from "./ui/icons";
+import { ExternalLinkIcon, InboxIcon, LightbulbIcon, MoreIcon } from "./ui/icons";
 import { CopyButton } from "./CopyButton";
 import { StatusBadge } from "./StatusBadge";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
@@ -32,7 +32,7 @@ const secondaryBtn = "inline-flex min-h-11 flex-1 items-center justify-center ro
 type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | null;
 
 /** One site's card on the dashboard: summary, primary actions, and quiet secondary info/settings. */
-export function SiteCard({ site }: { site: WebsiteRecord }) {
+export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCount: number }) {
   const d = site.data;
   const router = useRouter();
   const [isPending, start] = useTransition();
@@ -184,6 +184,20 @@ export function SiteCard({ site }: { site: WebsiteRecord }) {
             )}
           </div>
         </div>
+
+        <Link
+          href={`/sites/${site.id}/admin`}
+          aria-label={unreadCount > 0 ? `מרכז פניות, ${unreadCount} פניות חדשות` : "מרכז פניות"}
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
+        >
+          <InboxIcon />
+          מרכז פניות
+          {unreadCount > 0 && (
+            <span aria-hidden className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white">
+              {unreadCount}
+            </span>
+          )}
+        </Link>
 
         {notice && <Notice kind={notice.kind}>{notice.text}</Notice>}
 

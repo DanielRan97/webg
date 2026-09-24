@@ -46,6 +46,24 @@ export const BOOKING_LABELS: Record<BookingMethod, { label: string; hint: string
   LINK: { label: "בקישור", hint: "למשל יומן תורים אונליין" },
 };
 
+/** A customer-initiated event from a website's public pages, recorded in CustomerInteraction. BOOKING/CALLBACK exist for future native forms - nothing produces them yet, see src/server/interactions.ts. */
+export const INTERACTION_TYPES = {
+  CONTACT_MESSAGE: "CONTACT_MESSAGE",
+  LEAD: "LEAD",
+  BOOKING: "BOOKING",
+  CALLBACK: "CALLBACK",
+  OTHER: "OTHER",
+} as const;
+export type InteractionType = (typeof INTERACTION_TYPES)[keyof typeof INTERACTION_TYPES];
+
+export const INTERACTION_LABELS: Record<InteractionType, string> = {
+  CONTACT_MESSAGE: "הודעה",
+  LEAD: "ליד",
+  BOOKING: "קביעת תור",
+  CALLBACK: "בקשה לחזרה",
+  OTHER: "פנייה",
+};
+
 /** Purpose of a row in VerificationToken - keeps password-reset and email-verify tokens in one table without mixing them up. */
 export const TOKEN_PURPOSE = {
   PASSWORD_RESET: "PASSWORD_RESET",
