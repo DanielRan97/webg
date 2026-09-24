@@ -9,6 +9,7 @@ import type { SiteData } from "@/types/site";
 import { Logo } from "@/templates/shared/Logo";
 import { TemplatePicker } from "./TemplatePicker";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
+import { TrashIcon } from "../ui/icons";
 
 export interface StepProps {
   data: SiteData;
@@ -231,32 +232,45 @@ export function ServicesStep({ data, update, errors }: StepProps) {
     <div className="space-y-6">
       <StepTitle
         title={menuOnly ? "מה יש בתפריט?" : on("prices") ? "מה אתם מציעים ומה המחירים?" : "מה אתם מציעים?"}
-        subtitle={`הוסיפו ${noun}ים אחד אחד. המחיר לא חובה, ואפשר גם לדלג על השלב. אפשר לחלק לקבוצות, למשל ״ראשונות״ ו״קינוחים״.`}
+        subtitle={
+          menuOnly
+            ? `הוסיפו ${noun}ים אחד אחד. המחיר לא חובה, ואפשר גם לדלג על השלב. אפשר לחלק לקבוצות, למשל ״ראשונות״ ו״קינוחים״.`
+            : "הוסיפו את השירותים שלכם. מחיר ותיאור הם לא חובה, ואפשר לקבץ שירותים לפי קטגוריה."
+        }
       />
-      {data.services.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center">
-          <p className="font-semibold">עדיין לא הוספתם {noun}ים</p>
-          <p className="mt-1 text-sm text-gray-700">{menuOnly ? "תפריט עם מחירים עוזר ללקוחות להחליט מה להזמין." : "רשימה ברורה עוזרת ללקוחות להבין מה אתם עושים."}</p>
-        </div>
-      )}
-      <datalist id="group-suggestions">{groups.map((g) => <option key={g} value={g} />)}</datalist>
-      {data.services.map((s, i) => (
-        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-          <legend className="px-2 text-sm font-semibold text-gray-700">{noun} {i + 1}</legend>
-          <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
-            <TextField label={`שם ה${noun}`} placeholder={example ? `לדוגמה: ${example.name}` : undefined} value={s.name} onChange={(v) => setItem(i, { name: v })} error={errors[`service-${i}`]} maxLength={80} />
-            <TextField label="מחיר בשקלים" hint="מספר בלבד." placeholder="לדוגמה: 70" inputMode="decimal" value={s.price} onChange={(v) => setItem(i, { price: v })} maxLength={30} />
+      <div className="space-y-3">
+        {data.services.length === 0 && (
+          <div className="rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center">
+            <p className="font-semibold">עדיין לא הוספתם {noun}ים</p>
+            <p className="mt-1 text-sm text-gray-700">{menuOnly ? "תפריט עם מחירים עוזר ללקוחות להחליט מה להזמין." : "רשימה ברורה עוזרת ללקוחות להבין מה אתם עושים."}</p>
           </div>
-          <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: תספורת, שטיפה וסידור" value={s.description} onChange={(v) => setItem(i, { description: v })} maxLength={300} />
-          <TextField label="קבוצה (לא חובה)" hint="פריטים באותה קבוצה יוצגו יחד, תחת כותרת." placeholder={menuOnly ? "לדוגמה: ראשונות" : "לדוגמה: תספורות"} list="group-suggestions" value={s.category} onChange={(v) => setItem(i, { category: v })} maxLength={40} />
-          <Button type="button" variant="danger" className="min-h-11" aria-label={`מחיקת ${noun} ${i + 1}`} onClick={() => update({ services: data.services.filter((_, idx) => idx !== i) })}>
-            🗑 מחיקת ה{noun}
-          </Button>
-        </fieldset>
-      ))}
-      <Button type="button" variant="secondary" onClick={() => update({ services: [...data.services, { name: "", description: "", price: "", category: "" }] })}>
-        + הוספת {noun}
-      </Button>
+        )}
+        <datalist id="group-suggestions">{groups.map((g) => <option key={g} value={g} />)}</datalist>
+        {data.services.map((s, i) => (
+          <fieldset key={i} aria-label={`${noun} ${i + 1}`} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-gray-500">{noun} {i + 1}</span>
+              <button
+                type="button"
+                aria-label={`מחיקת ${noun} ${i + 1}`}
+                onClick={() => update({ services: data.services.filter((_, idx) => idx !== i) })}
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50"
+              >
+                <TrashIcon />
+              </button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
+              <TextField label={`שם ה${noun}`} placeholder={example ? `לדוגמה: ${example.name}` : undefined} value={s.name} onChange={(v) => setItem(i, { name: v })} error={errors[`service-${i}`]} maxLength={80} />
+              <TextField label="מחיר (לא חובה)" hint="אפשר גם טקסט חופשי." placeholder="לדוגמה: 70 ₪" value={s.price} onChange={(v) => setItem(i, { price: v })} maxLength={30} />
+            </div>
+            <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: כולל ייעוץ, טיפול וסידור." value={s.description} onChange={(v) => setItem(i, { description: v })} maxLength={300} />
+            <TextField label="קבוצה (לא חובה)" hint="שירותים באותה קבוצה יוצגו יחד, תחת כותרת. לדוגמה: תספורות, טיפולי פנים, משלוחים." placeholder={menuOnly ? "לדוגמה: ראשונות" : "לדוגמה: תספורות"} list="group-suggestions" value={s.category} onChange={(v) => setItem(i, { category: v })} maxLength={40} />
+          </fieldset>
+        ))}
+        <Button type="button" variant="secondary" onClick={() => update({ services: [...data.services, { name: "", description: "", price: "", category: "" }] })}>
+          + הוספת {noun}
+        </Button>
+      </div>
     </div>
   );
 }
