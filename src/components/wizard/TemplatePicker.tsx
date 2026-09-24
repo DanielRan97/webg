@@ -5,7 +5,7 @@ import { sectionHasContent } from "@/templates/shared/helpers";
 import { withPreviewPlaceholders } from "@/lib/site-defaults";
 import { TEMPLATES, getTemplate } from "@/templates/registry";
 import type { SiteData } from "@/types/site";
-import { Notice, cx } from "../ui/ui";
+import { cx } from "../ui/ui";
 
 const RENDER_WIDTH = 1000;
 
@@ -48,19 +48,24 @@ export function TemplatePicker({ data, onPick }: { data: SiteData; onPick: (id: 
     <div role="group" aria-labelledby="tpl-label" className="space-y-2">
       <p id="tpl-label" className="text-sm font-semibold text-gray-900">סגנון עיצוב</p>
       <p className="text-sm text-gray-600">בחרו איך האתר ייראה. אפשר להחליף בכל רגע.</p>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((t) => {
           const selected = data.templateId === t.id;
           return (
             <div
               key={t.id}
               className={cx(
-                "relative flex flex-col gap-2 rounded-2xl border-2 p-2 text-center transition",
-                selected ? "border-indigo-700 bg-indigo-50" : "border-gray-300 bg-white hover:border-gray-400",
+                "relative flex h-full flex-col gap-2 rounded-2xl border-2 p-2 text-center transition",
+                selected ? "border-indigo-700 bg-indigo-50 ring-2 ring-indigo-200" : "border-gray-300 bg-white hover:border-gray-400",
               )}
             >
-              <Thumbnail templateId={t.id} data={data} />
-              <span className="font-semibold">{selected && <span aria-hidden>✓ </span>}{t.label}</span>
+              <div className="relative">
+                <Thumbnail templateId={t.id} data={data} />
+                {selected && (
+                  <span aria-hidden className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-700 text-sm text-white shadow">✓</span>
+                )}
+              </div>
+              <span className="font-semibold">{t.label}</span>
               <span className="text-xs text-gray-700">{t.description}</span>
               {/* The whole card is one button, kept separate from the preview so no links sit inside it. */}
               <button
@@ -74,7 +79,10 @@ export function TemplatePicker({ data, onPick }: { data: SiteData; onPick: (id: 
           );
         })}
       </div>
-      <Notice kind="info">החלפת סגנון לא מוחקת שום מידע. כל הפרטים על העסק נשארים כמו שהם.</Notice>
+      <p className="flex items-center gap-1.5 text-xs text-gray-500">
+        <span aria-hidden>ℹ</span>
+        החלפת סגנון לא מוחקת מידע — כל פרטי העסק נשארים.
+      </p>
     </div>
   );
 }

@@ -103,15 +103,23 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
 
 /* 2 ─ Branding & design */
 function ColorPicker({ label, hint, value, onChange, allowNone }: { label: string; hint: string; value: string; onChange: (v: string) => void; allowNone?: boolean }) {
-  const swatch = COLOR_SWATCHES.find((c) => c.hex === value.toLowerCase());
   return (
     <div role="group" aria-label={label} className="space-y-2">
       <p className="text-sm font-semibold text-gray-900">{label}</p>
       <p className="text-sm text-gray-600">{hint}</p>
       <div className="flex flex-wrap items-center gap-2">
         {allowNone && (
-          <button type="button" aria-pressed={value === ""} onClick={() => onChange("")} className={cx("min-h-11 rounded-full border-2 px-4 text-sm font-semibold", value === "" ? "border-indigo-700 bg-indigo-50" : "border-gray-300")}>
-            ללא
+          <button
+            type="button"
+            aria-pressed={value === ""}
+            aria-label="ללא צבע משני"
+            onClick={() => onChange("")}
+            className={cx(
+              "flex h-11 w-11 items-center justify-center rounded-full border-2 bg-white text-xs font-bold text-gray-600",
+              value === "" ? "border-gray-900 ring-2 ring-gray-900 ring-offset-2" : "border-gray-300",
+            )}
+          >
+            {value === "" ? <span aria-hidden>✓</span> : "ללא"}
           </button>
         )}
         {COLOR_SWATCHES.map((c) => {
@@ -135,9 +143,6 @@ function ColorPicker({ label, hint, value, onChange, allowNone }: { label: strin
           <input type="color" aria-label={`${label}: צבע אחר`} value={isHexColor(value) ? value : "#2563eb"} onChange={(e) => onChange(e.target.value)} className="h-7 w-7 cursor-pointer border-0 bg-transparent p-0" />
         </label>
       </div>
-      <p className="text-sm text-gray-700" aria-live="polite">
-        {value === "" ? "לא נבחר צבע משני." : `נבחר: ${swatch?.name ?? "צבע מותאם אישית"}`}
-      </p>
     </div>
   );
 }
@@ -145,15 +150,16 @@ function ColorPicker({ label, hint, value, onChange, allowNone }: { label: strin
 export function BrandingStep({ data, update }: StepProps) {
   return (
     <div className="space-y-8">
-      <StepTitle title="המראה של האתר" subtitle="בחרו לוגו וצבעים. אם אין לוגו, ניצור לכם אחד פשוט עם האות הראשונה של העסק." />
-      <div className="space-y-3">
+      <StepTitle title="המראה של האתר" subtitle="בחרו לוגו וצבעים. בלי לוגו, ניצור לכם אחד פשוט מהאות הראשונה של העסק." />
+      <div className="space-y-2">
         <p className="text-sm font-semibold text-gray-900">לוגו (לא חובה)</p>
-        <div className="flex flex-wrap items-start gap-4">
+        <p className="text-sm text-gray-600">אפשר להעלות לוגו או להשאיר ריק — ניצור סימן פשוט לפי שם העסק.</p>
+        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
           <Logo logoUrl={data.logoUrl} name={data.businessName || "עסק"} color={data.primaryColor} size={72} />
-          <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
             <ImageUploader
               label={data.logoUrl ? "החלפת לוגו" : "העלאת לוגו"}
-              hint="קובץ PNG, JPG או WEBP, עד 5MB. מומלץ תמונה מרובעת, לפחות 200×200 פיקסלים."
+              hint="PNG, JPG או WEBP, עד 5MB."
               onUploaded={(u) => update({ logoUrl: u[0] })}
             />
             {data.logoUrl && <Button type="button" variant="ghost" onClick={() => update({ logoUrl: "" })}>הסרת הלוגו</Button>}
