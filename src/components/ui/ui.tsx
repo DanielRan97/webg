@@ -144,6 +144,76 @@ export function TextField({
   );
 }
 
+function EyeIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" {...props}>
+      <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" {...props}>
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c7 0 10.5 7 10.5 7a13.6 13.6 0 0 1-3.1 3.9M6.6 6.6C3.4 8.6 1.5 12 1.5 12s3.5 7 10.5 7a10.4 10.4 0 0 0 5.4-1.5" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
+  );
+}
+
+/** A password field with a show/hide toggle. Same Field/inputClass foundation as TextField, so it looks and behaves identically otherwise. */
+export function PasswordField({
+  label,
+  hint,
+  error,
+  required,
+  value,
+  onChange,
+  name,
+  autoComplete,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  name: string;
+  autoComplete?: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  // Same visual result as `inputClass`, just with room on the end side for the toggle button.
+  const fieldClass = inputClass.replace("px-4", "ps-4 pe-12");
+  return (
+    <Field label={label} hint={hint} error={error} required={required}>
+      {(p) => (
+        <div dir="ltr" className="relative">
+          <input
+            {...p}
+            name={name}
+            type={visible ? "text" : "password"}
+            dir="ltr"
+            autoComplete={autoComplete}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={fieldClass}
+          />
+          <button
+            type="button"
+            onClick={() => setVisible((v) => !v)}
+            aria-label={visible ? "הסתרת הסיסמה" : "הצגת הסיסמה"}
+            className="absolute end-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-gray-500 transition hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+          >
+            {visible ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
+        </div>
+      )}
+    </Field>
+  );
+}
+
 export function TextArea({
   label,
   hint,
