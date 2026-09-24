@@ -182,19 +182,19 @@ export function HoursStep({ data, update, errors }: StepProps) {
   return (
     <div className="space-y-6">
       <StepTitle title="מתי אתם פתוחים?" subtitle="הדליקו את הימים שבהם אתם עובדים, ובחרו שעות." />
-      <ul className="space-y-3">
+      <ul className="space-y-2">
         {data.hours.map((h) => {
           const err = errors[`hours-${h.day}`];
           return (
-            <li key={h.day} className={cx("rounded-2xl border-2 p-3", h.isOpen ? "border-green-600 bg-green-50" : "border-gray-300 bg-gray-100")}>
+            <li key={h.day} className={cx("rounded-2xl border p-3", h.isOpen ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50")}>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-44 flex-1">
-                  <Toggle checked={h.isOpen} onChange={(v) => setDay(h.day, { isOpen: v })} label={`יום ${DAY_NAMES[h.day]}`} onText="✓ פתוח" offText="✕ סגור" />
+                  <Toggle checked={h.isOpen} onChange={(v) => setDay(h.day, { isOpen: v })} label={`יום ${DAY_NAMES[h.day]}`} onText="פתוח" offText="סגור" />
                 </div>
                 {h.isOpen && (
                   <div className="flex items-center gap-2" dir="ltr">
                     <input aria-label={`שעת פתיחה ביום ${DAY_NAMES[h.day]}`} aria-invalid={err ? true : undefined} type="time" value={h.openTime} onChange={(e) => setDay(h.day, { openTime: e.target.value })} className={`${inputClass} w-32`} />
-                    <span aria-hidden>–</span>
+                    <span aria-hidden className="text-gray-400">–</span>
                     <input aria-label={`שעת סגירה ביום ${DAY_NAMES[h.day]}`} aria-invalid={err ? true : undefined} type="time" value={h.closeTime} onChange={(e) => setDay(h.day, { closeTime: e.target.value })} className={`${inputClass} w-32`} />
                   </div>
                 )}
@@ -204,9 +204,13 @@ export function HoursStep({ data, update, errors }: StepProps) {
           );
         })}
       </ul>
-      <div className="space-y-2 rounded-2xl bg-gray-50 p-4">
+      <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <div>
+          <p className="text-sm font-semibold text-gray-900">שבת וחגים</p>
+          <p className="text-sm text-gray-600">המידע יוצג באתר לצד שעות הפתיחה.</p>
+        </div>
         <Toggle checked={data.openSaturday} onChange={(v) => setDay(6, { isOpen: v })} label="פתוחים בשבת?" onText="כן" offText="לא" />
-        <Toggle checked={data.openHolidays} onChange={(v) => update({ openHolidays: v })} label="פתוחים בחגים?" hint="יופיע באתר מתחת לשעות הפתיחה." onText="כן" offText="לא" />
+        <Toggle checked={data.openHolidays} onChange={(v) => update({ openHolidays: v })} label="פתוחים בחגים?" onText="כן" offText="לא" />
       </div>
     </div>
   );
