@@ -56,6 +56,7 @@ function Hero({ d }: { d: SiteData }) {
       <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[1.2fr_1fr]">
         <div>
           <h1 className="font-[family-name:var(--font-secular)] text-5xl leading-[1.05] md:text-8xl">{d.businessName}</h1>
+          {d.subtitle && <p className="mt-3 text-xl font-bold">{d.subtitle}</p>}
           {d.description && <p className="mt-5 max-w-xl text-lg font-medium md:text-xl">{excerpt(d.description)}</p>}
           <div className="mt-8 flex flex-wrap gap-4">
             <HeroActions d={d} primary={`${theme.btn} bg-black text-white`} secondary={`${theme.btn} bg-white text-black`} />

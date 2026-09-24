@@ -2,7 +2,7 @@
 
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { COLOR_SWATCHES, isHexColor, readableOn } from "@/lib/color";
-import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS, SOCIAL_PLATFORMS } from "@/lib/constants";
+import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS } from "@/lib/constants";
 import { sectionsForCategory } from "@/lib/site-defaults";
 import type { SiteData } from "@/types/site";
 import { Logo } from "@/templates/shared/Logo";
@@ -41,6 +41,14 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
         error={errors.name}
         maxLength={80}
         autoFocus
+      />
+      <TextField
+        label="כותרת משנה / תפקיד (לא חובה)"
+        hint="שורה קצרה שתופיע ליד השם, למשל תפקיד או התמחות."
+        placeholder="לדוגמה: מפתחת Full-Stack"
+        value={data.subtitle}
+        onChange={(v) => update({ subtitle: v })}
+        maxLength={80}
       />
       <div role="group" aria-labelledby="cat-label" className="space-y-2">
         <p id="cat-label" className="text-sm font-semibold text-gray-900">מה סוג העסק?</p>
@@ -251,16 +259,21 @@ export function ImagesStep({ data, update }: StepProps) {
       </div>
       <div className="space-y-3">
         <p className="text-sm font-semibold text-gray-900">גלריה ({data.gallery.length} מתוך 12)</p>
-        <p className="text-sm text-gray-600">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה.</p>
+        <p className="text-sm text-gray-600">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה. לכל תמונה אפשר להוסיף שם ומחיר, אם רוצים - זה לא חובה.</p>
         {data.gallery.length === 0 ? (
           <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">עדיין אין תמונות בגלריה</p>
         ) : (
-          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {data.gallery.map((url, i) => (
-              <li key={url} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-xl object-cover" />
-                <button type="button" aria-label={`הסרת תמונה ${i + 1} מהגלריה`} onClick={() => update({ gallery: data.gallery.filter((_, idx) => idx !== i) })} className="absolute end-1 top-1 h-10 w-10 rounded-full bg-black/80 text-lg text-white">×</button>
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {data.gallery.map((g, i) => (
+              <li key={g.url} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={g.url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-xl object-cover" />
+                  <button type="button" aria-label={`הסרת תמונה ${i + 1} מהגלריה`} onClick={() => update({ gallery: data.gallery.filter((_, idx) => idx !== i) })} className="absolute end-1 top-1 h-10 w-10 rounded-full bg-black/80 text-lg text-white">×</button>
+                </div>
+                <TextField label="שם / כותרת (לא חובה)" placeholder="לדוגמה: המבורגר הבית" value={g.title} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, title: v } : x)) })} maxLength={80} />
+                <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: 200 גרם בקר, צ'דר וביצת עין" value={g.description} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, description: v } : x)) })} maxLength={300} />
+                <TextField label="מחיר (לא חובה)" placeholder="לדוגמה: 68 ₪, החל מ-250 ₪" value={g.price} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, price: v } : x)) })} maxLength={30} />
               </li>
             ))}
           </ul>
@@ -270,7 +283,7 @@ export function ImagesStep({ data, update }: StepProps) {
           hint="אפשר לבחור כמה תמונות יחד. PNG, JPG או WEBP, עד 5MB לתמונה. מומלץ לפחות 800×800 פיקסלים."
           multiple
           disabled={room <= 0}
-          onUploaded={(u) => update({ gallery: [...data.gallery, ...u].slice(0, 12) })}
+          onUploaded={(u) => update({ gallery: [...data.gallery, ...u.map((url) => ({ url, title: "", description: "", price: "" }))].slice(0, 12) })}
         />
       </div>
     </div>
@@ -279,6 +292,8 @@ export function ImagesStep({ data, update }: StepProps) {
 
 /* 7 ─ Social & contact */
 export function SocialStep({ data, update }: StepProps) {
+  const cat = getCategory(data.category);
+  const isPortfolio = cat.id === "portfolio";
   return (
     <div className="space-y-6">
       <StepTitle title="איך לקוחות יגיעו אליכם?" />
@@ -298,10 +313,13 @@ export function SocialStep({ data, update }: StepProps) {
           <p className="text-sm font-semibold text-gray-900">רשתות חברתיות (לא חובה)</p>
           <p className="text-sm text-gray-600">כתבו את שם המשתמש או הדביקו את הקישור לעמוד. מה שתשאירו ריק לא יופיע.</p>
         </div>
-        {SOCIAL_PLATFORMS.map((p) => (
+        {cat.socialPlatforms.map((p) => (
           <TextField key={p} label={SOCIAL_LABELS[p]} dir="ltr" placeholder={p === "facebook" ? "לדוגמה: facebook.com/העסק-שלי" : "לדוגמה: @danielbarber"} value={data.socials[p]} onChange={(v) => update({ socials: { ...data.socials, [p]: v } })} />
         ))}
       </div>
+      {isPortfolio && (
+        <TextField label="קישור להורדת קורות חיים (לא חובה)" hint="קישור לקובץ PDF שהעליתם לאחסון חיצוני (Google Drive וכדומה)." dir="ltr" placeholder="לדוגמה: drive.google.com/..." value={data.resumeUrl} onChange={(v) => update({ resumeUrl: v })} maxLength={300} />
+      )}
     </div>
   );
 }

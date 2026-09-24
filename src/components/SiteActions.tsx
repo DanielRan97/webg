@@ -5,24 +5,28 @@ import { useRouter } from "next/navigation";
 import {
   activateSubscriptionAction,
   deactivateSubscriptionAction,
+  deleteSiteAction,
   publishSiteAction,
   unpublishSiteAction,
   type SimpleResult,
 } from "@/server/actions/sites";
 import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
+import { DeleteSiteDialog } from "./DeleteSiteDialog";
 
-type Pending = "publish" | "unpublish" | "activate" | "deactivate" | null;
+type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | null;
 
 /** Publish / take offline / reactivate, with a short explanation, confirmation for risky actions, and clear feedback. */
 export function SiteActions({
   id,
   slug,
+  businessName,
   status,
   subscriptionStatus,
 }: {
   id: string;
   slug: string;
+  businessName: string;
   status: string;
   subscriptionStatus: string;
 }) {
@@ -30,6 +34,7 @@ export function SiteActions({
   const [isPending, start] = useTransition();
   const [running, setRunning] = useState<Pending>(null);
   const [confirm, setConfirm] = useState<"unpublish" | "deactivate" | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [notice, setNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
   const inactive = subscriptionStatus === SUBSCRIPTION_STATUS.INACTIVE;
@@ -52,6 +57,25 @@ export function SiteActions({
   }
 
   const publishedText = `האתר פורסם! הלקוחות יכולים לראות אותו ב-webg.co.il/s/${slug}`;
+
+  function runDelete() {
+    setNotice(null);
+    setRunning("delete");
+    start(async () => {
+      try {
+        const res: SimpleResult = await deleteSiteAction(id);
+        if (res.ok) {
+          router.push("/dashboard?deleted=1");
+          return;
+        }
+        setNotice({ kind: "error", text: res.error ?? "משהו השתבש. נסו שוב." });
+      } catch {
+        setNotice({ kind: "error", text: "לא הצלחנו למחוק את האתר. בדקו את החיבור לאינטרנט ונסו שוב." });
+      }
+      setRunning(null);
+      setDeleteOpen(false);
+    });
+  }
 
   return (
     <div className="space-y-3">
@@ -107,6 +131,20 @@ export function SiteActions({
         pending={running === "deactivate"}
         onCancel={() => setConfirm(null)}
         onConfirm={() => run("deactivate", deactivateSubscriptionAction, "המנוי סומן כלא פעיל. האתר לא מוצג ללקוחות, והמידע שמור.")}
+      />
+
+      <div className="mt-2 border-t-2 border-dashed border-red-200 pt-4">
+        <Button type="button" variant="danger" className="w-full sm:w-auto" disabled={isPending} onClick={() => setDeleteOpen(true)}>
+          🗑 מחיקת האתר
+        </Button>
+        <p className="mt-2 text-sm text-red-700">פעולה בלתי הפיכה: מוחקת את האתר, התמונות והמידע שלו לצמיתות.</p>
+      </div>
+      <DeleteSiteDialog
+        open={deleteOpen}
+        businessName={businessName}
+        pending={running === "delete"}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={runDelete}
       />
     </div>
   );

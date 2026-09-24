@@ -19,7 +19,12 @@ export type SectionType =
   | "hours"
   | "location"
   | "contact"
-  | "social";
+  | "social"
+  | "experience"
+  | "education"
+  | "skills"
+  | "projects"
+  | "certifications";
 
 export const SECTION_META: Record<SectionType, { label: string; hint: string }> = {
   hero: { label: "פתיחה", hint: "החלק הראשון שהלקוחות רואים: שם העסק וכפתור גדול." },
@@ -38,6 +43,11 @@ export const SECTION_META: Record<SectionType, { label: string; hint: string }> 
   location: { label: "איך מגיעים", hint: "הכתובת שלכם ומפה עם כפתור ניווט." },
   contact: { label: "יצירת קשר", hint: "כפתורים לחיוג, WhatsApp ואימייל." },
   social: { label: "רשתות חברתיות", hint: "קישורים לאינסטגרם, פייסבוק וטיקטוק." },
+  experience: { label: "ניסיון תעסוקתי", hint: "תפקידים קודמים: איפה עבדתם, מה עשיתם ומתי." },
+  education: { label: "השכלה", hint: "תארים, קורסים ולימודים שסיימתם." },
+  skills: { label: "כישורים", hint: "רשימת יכולות וכלים שאתם שולטים בהם." },
+  projects: { label: "פרויקטים", hint: "עבודות לדוגמה, עם תיאור ותמונה או קישור." },
+  certifications: { label: "הסמכות וקורסים", hint: "תעודות, הסמכות והשלמות מקצועיות." },
 };
 
 export const ALL_SECTIONS = Object.keys(SECTION_META) as SectionType[];

@@ -52,6 +52,49 @@ export interface BookingData {
   buttonText: string;
 }
 
+/** One gallery photo. Title/description/price are all optional - an image with none of them behaves exactly like a plain photo. */
+export interface GalleryImageData {
+  url: string;
+  title: string;
+  description: string;
+  price: string;
+}
+
+export interface ExperienceData {
+  organization: string;
+  role: string;
+  startDate: string;
+  /** Empty means "עד היום" (still there). */
+  endDate: string;
+  description: string;
+}
+
+export interface EducationData {
+  institution: string;
+  field: string;
+  dates: string;
+  description: string;
+}
+
+export interface SkillData {
+  name: string;
+}
+
+/** A portfolio work sample. Deliberately has no price field. */
+export interface ProjectData {
+  title: string;
+  description: string;
+  imageUrl: string;
+  link: string;
+}
+
+export interface CertificationData {
+  name: string;
+  issuer: string;
+  date: string;
+  link: string;
+}
+
 /**
  * Everything a template needs to render a business website.
  * Plain, serializable, and shared by the DB layer, the wizard/editor, the
@@ -67,6 +110,8 @@ export interface SiteData {
   logoUrl: string;
   heroImageUrl: string;
   templateId: string;
+  /** Short subtitle/role under the name in the hero, e.g. "מפתחת Full-Stack". Any category. */
+  subtitle: string;
 
   phone: string;
   whatsapp: string;
@@ -76,10 +121,12 @@ export interface SiteData {
   ctaType: CtaType;
   openSaturday: boolean;
   openHolidays: boolean;
+  /** Optional CV/resume download link (portfolio category). */
+  resumeUrl: string;
 
   services: ServiceData[];
   hours: HourData[];
-  gallery: string[];
+  gallery: GalleryImageData[];
   socials: Record<SocialPlatform, string>;
   testimonials: TestimonialData[];
   areas: string[];
@@ -87,6 +134,11 @@ export interface SiteData {
   booking: BookingData;
   faq: FaqData[];
   highlights: HighlightData[];
+  experience: ExperienceData[];
+  education: EducationData[];
+  skills: SkillData[];
+  projects: ProjectData[];
+  certifications: CertificationData[];
   /** Display order = array order. Contains every section type; `enabled` says which are shown. */
   sections: SectionData[];
 }

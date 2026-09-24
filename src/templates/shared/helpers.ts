@@ -80,6 +80,16 @@ export function sectionHasContent(type: SectionType, d: SiteData): boolean {
       return Boolean(d.phone || d.whatsapp || d.email);
     case "social":
       return Object.values(d.socials).some((v) => v.trim());
+    case "experience":
+      return d.experience.some((e) => e.organization.trim() && e.role.trim());
+    case "education":
+      return d.education.some((e) => e.institution.trim());
+    case "skills":
+      return d.skills.some((s) => s.name.trim());
+    case "projects":
+      return d.projects.some((p) => p.title.trim());
+    case "certifications":
+      return d.certifications.some((c) => c.name.trim());
   }
 }
 

@@ -30,7 +30,7 @@ export const SAMPLE_SITES: Record<string, SiteData> = {
     testimonials: [t("יובל", "המספרה הכי טובה שהייתי בה. מקצועי ומדויק."), t("איתי", "אווירה מעולה ותספורת בדיוק כמו שביקשתי.", 4), t("נועם", "מגיע כבר שנים, לא מחליף.", 0)],
     booking: { method: "WHATSAPP", url: "", buttonText: "קבעו תור בוואטסאפ" },
     highlights: [{ label: "שנות ניסיון", value: "9" }, { label: "לקוחות מרוצים", value: "1,200+" }],
-    socials: { instagram: "@danielbarber", facebook: "", tiktok: "" },
+    socials: { instagram: "@danielbarber", facebook: "", tiktok: "", linkedin: "", github: "" },
   }),
   restaurant: make("restaurant", {
     businessName: "המסעדה של רוני", slug: "roni-restaurant",
@@ -72,7 +72,7 @@ export const SAMPLE_SITES: Record<string, SiteData> = {
       { name: "צילומי אירועים", description: "", price: "", category: "" },
     ],
     testimonials: [t("משפחת לוי", "תמונות מרגשות, ממליצים בחום.")],
-    socials: { instagram: "@noaphoto", facebook: "", tiktok: "" },
+    socials: { instagram: "@noaphoto", facebook: "", tiktok: "", linkedin: "", github: "" },
   }),
   trainer: make("trainer", {
     businessName: "אימונים עם גל", slug: "gal-training",

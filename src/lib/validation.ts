@@ -21,6 +21,9 @@ const imageUrl = z.string().superRefine((v, ctx) => {
   if (!okLocal && !okR2) ctx.addIssue({ code: "custom", message: "קובץ התמונה לא תקין" });
 });
 
+/** A bare link such as "calendly.com/daniel" or a full https:// URL - same laxness as the existing booking-link check. */
+const looseUrl = (max: number) => text(max).refine((v) => v === "" || /^(https?:\/\/)?[^\s]+\.[^\s]+$/i.test(v), "הקישור לא נראה תקין");
+
 export const siteSchema = z.object({
   businessName: text(80).min(2, "נא למלא את שם העסק"),
   slug: text(40),
@@ -31,6 +34,7 @@ export const siteSchema = z.object({
   logoUrl: imageUrl,
   heroImageUrl: imageUrl,
   templateId: z.enum(TEMPLATE_IDS),
+  subtitle: text(80),
 
   phone: text(30),
   whatsapp: text(30),
@@ -40,6 +44,7 @@ export const siteSchema = z.object({
   ctaType: z.enum(Object.values(CTA_TYPES) as [string, ...string[]]),
   openSaturday: z.boolean(),
   openHolidays: z.boolean(),
+  resumeUrl: looseUrl(300),
 
   services: z
     .array(z.object({ name: text(80), description: text(300), price: text(30), category: text(40) }))
@@ -54,7 +59,9 @@ export const siteSchema = z.object({
       }),
     )
     .max(7),
-  gallery: z.array(imageUrl).max(12),
+  gallery: z
+    .array(z.object({ url: imageUrl, title: text(80), description: text(300), price: text(30) }))
+    .max(12),
   socials: z.object(
     Object.fromEntries(SOCIAL_PLATFORMS.map((p) => [p, text(200)])) as Record<
       (typeof SOCIAL_PLATFORMS)[number],
@@ -73,9 +80,22 @@ export const siteSchema = z.object({
   }),
   faq: z.array(z.object({ question: text(200), answer: text(800) })).max(30),
   highlights: z.array(z.object({ label: text(40), value: text(30) })).max(8),
+  experience: z
+    .array(z.object({ organization: text(100), role: text(100), startDate: text(30), endDate: text(30), description: text(400) }))
+    .max(30),
+  education: z
+    .array(z.object({ institution: text(100), field: text(100), dates: text(40), description: text(400) }))
+    .max(20),
+  skills: z.array(z.object({ name: text(40) })).max(40),
+  projects: z
+    .array(z.object({ title: text(100), description: text(500), imageUrl, link: looseUrl(300) }))
+    .max(30),
+  certifications: z
+    .array(z.object({ name: text(120), issuer: text(100), date: text(30), link: looseUrl(300) }))
+    .max(30),
   sections: z
     .array(z.object({ type: z.enum(ALL_SECTIONS as [string, ...string[]]), enabled: z.boolean() }))
-    .max(20),
+    .max(ALL_SECTIONS.length),
 });
 
 /** Trimmed, lowercased email, in one place so every entry point normalizes the same way (this is also what keeps one person from creating two accounts with "Name@Gmail.com" and "name@gmail.com"). */

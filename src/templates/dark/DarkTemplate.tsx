@@ -68,6 +68,7 @@ function Hero({ d }: { d: SiteData }) {
       <div className="relative mx-auto w-full max-w-5xl">
         <span aria-hidden className="mb-6 block h-1 w-16 rounded-full bg-t-accent shadow-[0_0_20px_var(--t-accent)]" />
         <h1 className="max-w-3xl text-5xl font-light leading-[1.05] tracking-tight md:text-7xl">{d.businessName}</h1>
+        {d.subtitle && <p className="mt-3 text-lg text-t-fg">{d.subtitle}</p>}
         {d.description && <p className="mt-6 max-w-xl text-lg text-t-muted md:text-xl">{excerpt(d.description)}</p>}
         <div className="mt-9 flex flex-wrap gap-3">
           <HeroActions d={d} primary={`${theme.btn} ${theme.btnPrimary}`} secondary={`${theme.btn} ${theme.btnSecondary}`} />

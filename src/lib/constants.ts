@@ -25,12 +25,14 @@ export const CTA_OPTIONS: { value: CtaType; label: string; button: string }[] = 
 
 export const DAY_NAMES = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
-export const SOCIAL_PLATFORMS = ["instagram", "facebook", "tiktok"] as const;
+export const SOCIAL_PLATFORMS = ["instagram", "facebook", "tiktok", "linkedin", "github"] as const;
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
 export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   instagram: "Instagram",
   facebook: "Facebook",
   tiktok: "TikTok",
+  linkedin: "LinkedIn",
+  github: "GitHub",
 };
 
 export const TEMPLATE_IDS = ["modern", "elegant", "minimal", "bold", "dark"] as const;

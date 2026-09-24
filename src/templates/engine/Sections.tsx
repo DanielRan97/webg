@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { DAY_NAMES, SOCIAL_LABELS, SOCIAL_PLATFORMS } from "@/lib/constants";
-import { mapsEmbedSrc, mapsQueryHref, socialUrl, telHref, whatsappHref } from "@/lib/links";
+import { mapsEmbedSrc, mapsQueryHref, normalizeUrl, socialUrl, telHref, whatsappHref } from "@/lib/links";
 import { SECTION_META, type SectionType } from "@/lib/sections";
 import type { SiteData } from "@/types/site";
 import { BoltIcon, CalendarIcon, ChatIcon, MailIcon, PhoneIcon, PinIcon, PlusIcon, StarIcon } from "../shared/Icons";
@@ -116,6 +116,7 @@ function Contact({ d, t }: Ctx) {
       {d.phone && <a href={telHref(d.phone)} className={`${t.btn} ${t.btnPrimary}`}><PhoneIcon /> {d.phone}</a>}
       {wa && <a href={whatsappHref(wa)} {...ext(true)} className={`${t.btn} ${t.btnWhatsApp}`}><ChatIcon /> WhatsApp</a>}
       {d.email && <a href={`mailto:${d.email}`} className={`${t.btn} ${t.btnSecondary}`}><MailIcon /> <span dir="ltr">{d.email}</span></a>}
+      {d.resumeUrl && <a href={normalizeUrl(d.resumeUrl)} {...ext(true)} className={`${t.btn} ${t.btnSecondary}`}>הורדת קורות חיים</a>}
     </div>
   );
 }
@@ -231,6 +232,94 @@ function Highlights({ d, t }: Ctx) {
   );
 }
 
+function ExperienceList({ d, t }: Ctx) {
+  const items = d.experience.filter((e) => e.organization.trim() && e.role.trim());
+  return (
+    <ul className={`space-y-4 ${t.narrow}`}>
+      {items.map((e, i) => (
+        <li key={i} className={t.card}>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h4 className={`text-lg font-semibold ${t.heading}`}>{e.role} · {e.organization}</h4>
+            {(e.startDate || e.endDate) && (
+              <span className="shrink-0 text-sm text-t-muted" dir="ltr">{e.startDate || "…"} – {e.endDate || "היום"}</span>
+            )}
+          </div>
+          {e.description && <p className="mt-2 whitespace-pre-line text-sm text-t-muted">{e.description}</p>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function EducationList({ d, t }: Ctx) {
+  const items = d.education.filter((e) => e.institution.trim());
+  return (
+    <ul className={`space-y-4 ${t.narrow}`}>
+      {items.map((e, i) => (
+        <li key={i} className={t.card}>
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h4 className={`text-lg font-semibold ${t.heading}`}>{e.institution}{e.field ? ` · ${e.field}` : ""}</h4>
+            {e.dates && <span className="shrink-0 text-sm text-t-muted" dir="ltr">{e.dates}</span>}
+          </div>
+          {e.description && <p className="mt-2 whitespace-pre-line text-sm text-t-muted">{e.description}</p>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Skills({ d, t }: Ctx) {
+  return (
+    <ul className={`flex flex-wrap gap-2 ${t.center ? "justify-center" : ""}`}>
+      {d.skills.filter((s) => s.name.trim()).map((s, i) => <li key={i} className={t.chip}>{s.name}</li>)}
+    </ul>
+  );
+}
+
+function Projects({ d, t }: Ctx) {
+  const items = d.projects.filter((p) => p.title.trim());
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((p, i) => (
+        <div key={i} className={`${t.card} flex flex-col gap-3`}>
+          {p.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.imageUrl} alt={p.title} loading="lazy" className={`aspect-video w-full object-cover ${t.media}`} />
+          )}
+          <h4 className={`text-lg font-semibold ${t.heading}`}>{p.title}</h4>
+          {p.description && <p className="flex-1 text-sm text-t-muted">{p.description}</p>}
+          {p.link && (
+            <a href={normalizeUrl(p.link)} {...ext(true)} className={`${t.btn} ${t.btnSecondary} self-start`}>לצפייה בפרויקט</a>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Certifications({ d, t }: Ctx) {
+  const items = d.certifications.filter((c) => c.name.trim());
+  return (
+    <div className={t.narrow}>
+      <ul className={t.rowList}>
+        {items.map((c, i) => (
+          <li key={i} className={t.row}>
+            <div>
+              <p className="font-semibold">{c.name}</p>
+              {(c.issuer || c.date) && (
+                <p className="text-sm font-normal text-t-muted">{[c.issuer, c.date].filter(Boolean).join(" · ")}</p>
+              )}
+            </div>
+            {c.link && (
+              <a href={normalizeUrl(c.link)} {...ext(true)} className="shrink-0 font-semibold text-t-accent-text underline">אימות</a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** The body of a section (without its title). The hero is rendered by each template. */
 export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
   const { d, t } = ctx;
@@ -251,6 +340,11 @@ export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
     case "location": return <Location {...ctx} />;
     case "contact": return <Contact {...ctx} />;
     case "social": return <Social {...ctx} />;
+    case "experience": return <ExperienceList {...ctx} />;
+    case "education": return <EducationList {...ctx} />;
+    case "skills": return <Skills {...ctx} />;
+    case "projects": return <Projects {...ctx} />;
+    case "certifications": return <Certifications {...ctx} />;
   }
 }
 

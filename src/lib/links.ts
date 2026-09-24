@@ -31,6 +31,8 @@ export function socialUrl(platform: string, value: string): string {
     instagram: "https://instagram.com/",
     facebook: "https://facebook.com/",
     tiktok: "https://tiktok.com/@",
+    linkedin: "https://linkedin.com/in/",
+    github: "https://github.com/",
   };
   return (base[platform] ?? "https://") + handle;
 }

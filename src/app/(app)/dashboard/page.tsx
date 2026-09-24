@@ -76,7 +76,7 @@ function SiteCard({ site }: { site: WebsiteRecord }) {
         </div>
 
         <div className="border-t border-gray-200 pt-4">
-          <SiteActions id={site.id} slug={site.slug} status={site.status} subscriptionStatus={site.subscriptionStatus} />
+          <SiteActions id={site.id} slug={site.slug} businessName={d.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} />
           <p className="mt-3 text-sm text-gray-700">
             <span className="font-semibold">{subscriptionInfo(site.subscriptionStatus).label}:</span>{" "}
             {subscriptionInfo(site.subscriptionStatus).meaning}
@@ -109,12 +109,19 @@ function Legend() {
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   const user = await requireUser();
   const sites = await listWebsites(user.id);
+  const { deleted } = await searchParams;
   return (
     <main className="mx-auto max-w-7xl space-y-6 px-4 py-8">
       {!user.emailVerifiedAt && <VerificationBanner />}
+      {deleted && (
+        <p role="status" className="flex gap-2 rounded-xl border border-green-300 bg-green-50 p-3 text-sm font-medium text-green-900">
+          <span aria-hidden className="font-bold">✓</span>
+          <span>האתר נמחק לצמיתות.</span>
+        </p>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold">האתרים שלי</h1>
         <Link href="/create" className="inline-flex min-h-12 items-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">

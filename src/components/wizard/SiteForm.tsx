@@ -14,7 +14,10 @@ import {
   AddressStep, BasicsStep, BrandingStep, HoursStep, ImagesStep, ServicesStep, SocialStep,
   type StepProps,
 } from "./steps";
-import { AreasStep, BookingStep, EmergencyStep, FaqStep, HighlightsStep, TestimonialsStep } from "./steps-content";
+import {
+  AreasStep, BookingStep, CertificationsStep, EducationStep, EmergencyStep, ExperienceStep,
+  FaqStep, HighlightsStep, ProjectsStep, SkillsStep, TestimonialsStep,
+} from "./steps-content";
 
 const sectionOn = (d: SiteData, type: string) => d.sections.some((s) => s.type === type && s.enabled);
 
@@ -44,6 +47,11 @@ const STEPS: StepDef[] = [
   { id: "booking", label: () => "קביעת תור", Component: BookingStep, show: (d) => sectionOn(d, "booking") },
   { id: "faq", label: () => "שאלות נפוצות", Component: FaqStep, show: (d) => sectionOn(d, "faq") },
   { id: "highlights", label: () => "למה לבחור בנו", Component: HighlightsStep, show: (d) => sectionOn(d, "highlights") },
+  { id: "experience", label: () => "ניסיון תעסוקתי", Component: ExperienceStep, show: (d) => sectionOn(d, "experience") },
+  { id: "education", label: () => "השכלה", Component: EducationStep, show: (d) => sectionOn(d, "education") },
+  { id: "skills", label: () => "כישורים", Component: SkillsStep, show: (d) => sectionOn(d, "skills") },
+  { id: "projects", label: () => "פרויקטים", Component: ProjectsStep, show: (d) => sectionOn(d, "projects") },
+  { id: "certifications", label: () => "הסמכות וקורסים", Component: CertificationsStep, show: (d) => sectionOn(d, "certifications") },
   { id: "images", label: () => "תמונות", Component: ImagesStep },
   { id: "social", label: () => "יצירת קשר", Component: SocialStep },
   { id: "address", label: () => "כתובת האתר", Component: AddressStep, editOnly: true },

@@ -1,4 +1,4 @@
-import type { CtaType } from "./constants";
+import type { CtaType, SocialPlatform } from "./constants";
 import type { SectionType } from "./sections";
 
 export interface CategoryPreset {
@@ -13,6 +13,8 @@ export interface CategoryPreset {
   tagline: string;
   color: string;
   sampleServices: { name: string; description: string; price: string; category: string }[];
+  /** Which social platforms the "יצירת קשר" step offers. Defaults to the original 3 for every existing category. */
+  socialPlatforms: SocialPlatform[];
 }
 
 const svc = (name: string, description = "", price = "", category = "") => ({ name, description, price, category });
@@ -20,6 +22,12 @@ const svc = (name: string, description = "", price = "", category = "") => ({ na
 const SERVICE_TRADE: SectionType[] = ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact", "prices", "gallery", "about", "highlights", "hours", "social"];
 const APPOINTMENT: SectionType[] = ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact", "about", "social"];
 const FOOD: SectionType[] = ["hero", "menu", "gallery", "testimonials", "hours", "location", "contact", "about", "social"];
+const PERSONAL_SERVICES: SectionType[] = ["hero", "about", "services", "areas", "prices", "testimonials", "faq", "contact", "gallery", "social", "highlights", "hours", "location", "booking"];
+const PORTFOLIO: SectionType[] = ["hero", "about", "experience", "education", "skills", "projects", "certifications", "contact", "social"];
+
+/** Every existing category (all 12 below) keeps exactly this set - unchanged from before this field existed. */
+const CLASSIC_SOCIALS: SocialPlatform[] = ["instagram", "facebook", "tiktok"];
+const PORTFOLIO_SOCIALS: SocialPlatform[] = ["instagram", "facebook", "tiktok", "linkedin", "github"];
 
 /**
  * A category only decides which sections are suggested, in what order, and
@@ -33,6 +41,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact"],
     cta: "BOOKING", tagline: "תספורת מדויקת, אווירה טובה", color: "#1f2937",
     sampleServices: [svc("תספורת גברים", "תספורת וסידור", "70"), svc("תספורת + זקן", "", "100")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "beauty", label: "מכון יופי", emoji: "💅",
@@ -40,6 +49,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact"],
     cta: "BOOKING", tagline: "כל מה שצריך כדי להרגיש יפה", color: "#be185d",
     sampleServices: [svc("מניקור ג'ל", "", "120"), svc("טיפול פנים", "", "250")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "restaurant", label: "מסעדה", emoji: "🍽️",
@@ -47,6 +57,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "menu", "gallery", "testimonials", "hours", "location", "contact"],
     cta: "CALL", tagline: "אוכל טוב, אנשים טובים", color: "#b45309",
     sampleServices: [svc("סלט ירקות", "", "38", "ראשונות"), svc("סטייק אנטריקוט", "", "98", "עיקריות")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "cafe", label: "בית קפה", emoji: "☕",
@@ -54,6 +65,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "menu", "gallery", "testimonials", "hours", "location", "contact"],
     cta: "CALL", tagline: "הקפה הכי טוב בשכונה", color: "#92400e",
     sampleServices: [svc("אספרסו", "", "10", "שתייה חמה"), svc("קרואסון חמאה", "", "16", "מאפים")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "electrician", label: "חשמלאי", emoji: "⚡",
@@ -61,6 +73,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact"],
     cta: "CALL", tagline: "שירות מהיר, עבודה נקייה ואחריות", color: "#d97706",
     sampleServices: [svc("תיקון תקלות חשמל"), svc("התקנת נקודות ותאורה")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "plumber", label: "אינסטלטור", emoji: "🔧",
@@ -68,6 +81,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact"],
     cta: "CALL", tagline: "פתרון מהיר לכל בעיית אינסטלציה", color: "#0369a1",
     sampleServices: [svc("פתיחת סתימות"), svc("תיקון נזילות")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "technician", label: "טכנאי", emoji: "🛠️",
@@ -75,6 +89,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "services", "areas", "emergency", "testimonials", "faq", "contact"],
     cta: "CALL", tagline: "מגיעים אליכם ומתקנים במקום", color: "#0f766e",
     sampleServices: [svc("תיקון מכשירי חשמל"), svc("התקנה והתאמה")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "cleaner", label: "שירותי ניקיון", emoji: "🧼",
@@ -82,6 +97,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "services", "areas", "testimonials", "faq", "contact"],
     cta: "WHATSAPP", tagline: "בית נקי, בלי מאמץ", color: "#0891b2",
     sampleServices: [svc("ניקיון דירות"), svc("ניקיון משרדים")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "photographer", label: "צלם", emoji: "📷",
@@ -89,6 +105,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "gallery", "services", "testimonials", "about", "contact"],
     cta: "MESSAGE", tagline: "רגעים שנשארים לתמיד", color: "#111827",
     sampleServices: [svc("צילומי משפחה"), svc("צילומי אירועים")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "trainer", label: "מאמן כושר", emoji: "🏋️",
@@ -96,6 +113,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "about", "services", "testimonials", "booking", "faq", "contact"],
     cta: "BOOKING", tagline: "מתאמנים חכם, רואים תוצאות", color: "#dc2626",
     sampleServices: [svc("אימון אישי", "", "200"), svc("אימון זוגי", "", "300")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "consultant", label: "יועץ", emoji: "💼",
@@ -103,6 +121,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "about", "services", "testimonials", "booking", "faq", "contact"],
     cta: "BOOKING", tagline: "ייעוץ מקצועי שמקדם את העסק שלך", color: "#0f766e",
     sampleServices: [svc("פגישת היכרות"), svc("ליווי חודשי")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "lawyer", label: "עורך דין", emoji: "⚖️",
@@ -110,6 +129,7 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "about", "services", "faq", "location", "contact"],
     cta: "CALL", tagline: "ליווי משפטי מקצועי ואישי", color: "#1e3a8a",
     sampleServices: [svc("ייעוץ ראשוני"), svc("ליווי משפטי")],
+    socialPlatforms: CLASSIC_SOCIALS,
   },
   {
     id: "other", label: "אחר", emoji: "🏪",
@@ -117,6 +137,31 @@ export const CATEGORIES: CategoryPreset[] = [
     defaultOn: ["hero", "about", "services", "hours", "location", "contact"],
     cta: "WHATSAPP", tagline: "שירות אישי ומקצועי", color: "#2563eb",
     sampleServices: [],
+    socialPlatforms: CLASSIC_SOCIALS,
+  },
+  {
+    id: "cosmetics", label: "קוסמטיקה", emoji: "💄",
+    sections: APPOINTMENT,
+    defaultOn: ["hero", "services", "prices", "gallery", "testimonials", "booking", "hours", "location", "contact"],
+    cta: "BOOKING", tagline: "טיפוח וטיפולי יופי מקצועיים", color: "#a21caf",
+    sampleServices: [svc("טיפול פנים", "", "250"), svc("הרמת ריסים", "", "150"), svc("מניקור ג'ל", "", "120")],
+    socialPlatforms: CLASSIC_SOCIALS,
+  },
+  {
+    id: "personal", label: "שירותים אישיים", emoji: "🧰",
+    sections: PERSONAL_SERVICES,
+    defaultOn: ["hero", "about", "services", "areas", "prices", "testimonials", "faq", "contact"],
+    cta: "WHATSAPP", tagline: "שירות אישי, אמין וזמין", color: "#0891b2",
+    sampleServices: [svc("שליחת חבילה"), svc("סידורים ועזרה בבית")],
+    socialPlatforms: CLASSIC_SOCIALS,
+  },
+  {
+    id: "portfolio", label: "פורטפוליו אישי", emoji: "🧑‍💻",
+    sections: PORTFOLIO,
+    defaultOn: PORTFOLIO,
+    cta: "MESSAGE", tagline: "קורות חיים ותיק עבודות דיגיטלי", color: "#111827",
+    sampleServices: [],
+    socialPlatforms: PORTFOLIO_SOCIALS,
   },
 ];
 

@@ -210,3 +210,156 @@ export function HighlightsStep({ data, update, errors }: StepProps) {
     </div>
   );
 }
+
+/* ── Experience (portfolio) ── */
+export function ExperienceStep({ data, update }: StepProps) {
+  const list = data.experience;
+  return (
+    <div className="space-y-6">
+      <StepTitle title="ניסיון תעסוקתי" subtitle="תפקידים קודמים: איפה עבדתם, מה עשיתם ומתי. אם התפקיד עדיין נוכחי, אפשר להשאיר את תאריך הסיום ריק." />
+      {list.length === 0 && <EmptyBox title="עדיין לא הוספתם ניסיון תעסוקתי" text="הוסיפו תפקיד אחד לפחות, עם הארגון והתפקיד." />}
+      {list.map((e, i) => (
+        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-gray-700">תפקיד {i + 1}</legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextField label="ארגון / חברה" placeholder="לדוגמה: וויקס" value={e.organization} onChange={(v) => update({ experience: setAt(list, i, { organization: v }) })} maxLength={100} />
+            <TextField label="תפקיד" placeholder="לדוגמה: מפתחת Full-Stack" value={e.role} onChange={(v) => update({ experience: setAt(list, i, { role: v }) })} maxLength={100} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextField label="תאריך התחלה (לא חובה)" placeholder="לדוגמה: 2021" value={e.startDate} onChange={(v) => update({ experience: setAt(list, i, { startDate: v }) })} maxLength={30} />
+            <TextField label="תאריך סיום (לא חובה)" hint="השאירו ריק אם זה התפקיד הנוכחי שלכם." placeholder="לדוגמה: 2023" value={e.endDate} onChange={(v) => update({ experience: setAt(list, i, { endDate: v }) })} maxLength={30} />
+          </div>
+          <TextArea label="תיאור קצר (לא חובה)" rows={3} value={e.description} onChange={(v) => update({ experience: setAt(list, i, { description: v }) })} maxLength={400} />
+          <RemoveButton what={`תפקיד ${i + 1}`} onClick={() => update({ experience: removeAt(list, i) })} />
+        </fieldset>
+      ))}
+      <Button type="button" variant="secondary" disabled={list.length >= 30} onClick={() => update({ experience: [...list, { organization: "", role: "", startDate: "", endDate: "", description: "" }] })}>
+        + הוספת תפקיד
+      </Button>
+    </div>
+  );
+}
+
+/* ── Education (portfolio) ── */
+export function EducationStep({ data, update }: StepProps) {
+  const list = data.education;
+  return (
+    <div className="space-y-6">
+      <StepTitle title="השכלה" subtitle="תארים, קורסים ולימודים שסיימתם." />
+      {list.length === 0 && <EmptyBox title="עדיין לא הוספתם השכלה" text="הוסיפו מוסד לימודים אחד לפחות." />}
+      {list.map((e, i) => (
+        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-gray-700">לימודים {i + 1}</legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextField label="מוסד לימודים" placeholder="לדוגמה: האוניברסיטה העברית" value={e.institution} onChange={(v) => update({ education: setAt(list, i, { institution: v }) })} maxLength={100} />
+            <TextField label="תחום / תואר (לא חובה)" placeholder="לדוגמה: מדעי המחשב, B.Sc" value={e.field} onChange={(v) => update({ education: setAt(list, i, { field: v }) })} maxLength={100} />
+          </div>
+          <TextField label="תאריכים (לא חובה)" placeholder="לדוגמה: 2018 - 2021" value={e.dates} onChange={(v) => update({ education: setAt(list, i, { dates: v }) })} maxLength={40} />
+          <TextArea label="תיאור קצר (לא חובה)" rows={2} value={e.description} onChange={(v) => update({ education: setAt(list, i, { description: v }) })} maxLength={400} />
+          <RemoveButton what={`לימודים ${i + 1}`} onClick={() => update({ education: removeAt(list, i) })} />
+        </fieldset>
+      ))}
+      <Button type="button" variant="secondary" disabled={list.length >= 20} onClick={() => update({ education: [...list, { institution: "", field: "", dates: "", description: "" }] })}>
+        + הוספת לימודים
+      </Button>
+    </div>
+  );
+}
+
+/* ── Skills (portfolio) ── */
+export function SkillsStep({ data, update }: StepProps) {
+  const [draft, setDraft] = useState("");
+  function add() {
+    const names = draft.split(/[,،\n]/).map((s) => s.trim()).filter(Boolean);
+    if (!names.length) return;
+    const merged = [...data.skills];
+    for (const n of names) if (!merged.some((s) => s.name === n) && merged.length < 40) merged.push({ name: n });
+    update({ skills: merged });
+    setDraft("");
+  }
+  return (
+    <div className="space-y-6">
+      <StepTitle title="כישורים" subtitle="כתבו כישור ולחצו על ״הוספה״. אפשר לכתוב כמה כישורים יחד, עם פסיק ביניהם." />
+      <Field label="כישור" hint="לדוגמה: React, ניהול פרויקטים, עיצוב גרפי">
+        {(p) => (
+          <div className="flex gap-2">
+            <input {...p} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} className={inputClass} maxLength={40} />
+            <Button type="button" onClick={add} disabled={!draft.trim()}>הוספה</Button>
+          </div>
+        )}
+      </Field>
+      {data.skills.length === 0 ? (
+        <EmptyBox title="עדיין לא הוספתם כישורים" text="הלקוחות יראו במבט אחד מה אתם יודעים לעשות." />
+      ) : (
+        <ul className="flex flex-wrap gap-2" aria-label="הכישורים שהוספתם">
+          {data.skills.map((s, i) => (
+            <li key={s.name} className="flex items-center gap-1 rounded-full border border-gray-400 bg-white ps-4">
+              <span className="py-2">{s.name}</span>
+              <button type="button" aria-label={`הסרת ${s.name}`} onClick={() => update({ skills: removeAt(data.skills, i) })} className="h-11 w-11 rounded-full text-lg hover:bg-gray-100"><span aria-hidden>×</span></button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/* ── Projects (portfolio) ── */
+export function ProjectsStep({ data, update }: StepProps) {
+  const list = data.projects;
+  return (
+    <div className="space-y-6">
+      <StepTitle title="פרויקטים" subtitle="עבודות לדוגמה שממחישות מה אתם יודעים לעשות." />
+      {list.length === 0 && <EmptyBox title="עדיין לא הוספתם פרויקטים" text="הוסיפו כותרת ותיאור קצר לכל פרויקט." />}
+      {list.map((p, i) => (
+        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-gray-700">פרויקט {i + 1}</legend>
+          <TextField label="כותרת" placeholder="לדוגמה: אתר להזמנת תורים" value={p.title} onChange={(v) => update({ projects: setAt(list, i, { title: v }) })} maxLength={100} />
+          <TextArea label="תיאור קצר (לא חובה)" rows={3} value={p.description} onChange={(v) => update({ projects: setAt(list, i, { description: v }) })} maxLength={500} />
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-gray-900">תמונה (לא חובה)</p>
+            {p.imageUrl && (
+              <div className="flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.imageUrl} alt={p.title || "הפרויקט"} className="h-16 w-24 rounded-lg object-cover" />
+                <Button type="button" variant="ghost" onClick={() => update({ projects: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
+              </div>
+            )}
+            <ImageUploader label={p.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="PNG, JPG או WEBP, עד 5MB." onUploaded={(u) => update({ projects: setAt(list, i, { imageUrl: u[0] }) })} />
+          </div>
+          <TextField label="קישור (לא חובה)" dir="ltr" placeholder="לדוגמה: github.com/yourname/project" value={p.link} onChange={(v) => update({ projects: setAt(list, i, { link: v }) })} maxLength={300} />
+          <RemoveButton what={`פרויקט ${i + 1}`} onClick={() => update({ projects: removeAt(list, i) })} />
+        </fieldset>
+      ))}
+      <Button type="button" variant="secondary" disabled={list.length >= 30} onClick={() => update({ projects: [...list, { title: "", description: "", imageUrl: "", link: "" }] })}>
+        + הוספת פרויקט
+      </Button>
+    </div>
+  );
+}
+
+/* ── Certifications (portfolio) ── */
+export function CertificationsStep({ data, update }: StepProps) {
+  const list = data.certifications;
+  return (
+    <div className="space-y-6">
+      <StepTitle title="הסמכות וקורסים" subtitle="תעודות, הסמכות והשלמות מקצועיות." />
+      {list.length === 0 && <EmptyBox title="עדיין לא הוספתם הסמכות" text="הוסיפו שם התעודה והגורם המנפיק." />}
+      {list.map((c, i) => (
+        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-gray-700">הסמכה {i + 1}</legend>
+          <TextField label="שם ההסמכה" placeholder="לדוגמה: AWS Certified Developer" value={c.name} onChange={(v) => update({ certifications: setAt(list, i, { name: v }) })} maxLength={120} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextField label="גורם מנפיק (לא חובה)" placeholder="לדוגמה: Amazon" value={c.issuer} onChange={(v) => update({ certifications: setAt(list, i, { issuer: v }) })} maxLength={100} />
+            <TextField label="תאריך (לא חובה)" placeholder="לדוגמה: 2023" value={c.date} onChange={(v) => update({ certifications: setAt(list, i, { date: v }) })} maxLength={30} />
+          </div>
+          <TextField label="קישור לאימות (לא חובה)" dir="ltr" value={c.link} onChange={(v) => update({ certifications: setAt(list, i, { link: v }) })} maxLength={300} />
+          <RemoveButton what={`הסמכה ${i + 1}`} onClick={() => update({ certifications: removeAt(list, i) })} />
+        </fieldset>
+      ))}
+      <Button type="button" variant="secondary" disabled={list.length >= 30} onClick={() => update({ certifications: [...list, { name: "", issuer: "", date: "", link: "" }] })}>
+        + הוספת הסמכה
+      </Button>
+    </div>
+  );
+}

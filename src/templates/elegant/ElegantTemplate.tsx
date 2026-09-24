@@ -52,6 +52,7 @@ function Hero({ d }: { d: SiteData }) {
     <section id="sec-hero" className="bg-t-tint px-5 pb-16 pt-16 text-center md:pb-24 md:pt-24">
       <div className="mx-auto max-w-3xl">
         <h1 className="font-[family-name:var(--font-frank)] text-5xl font-medium leading-tight md:text-7xl">{d.businessName}</h1>
+        {d.subtitle && <p className="mt-3 text-lg tracking-wide text-t-muted">{d.subtitle}</p>}
         <span aria-hidden className="mx-auto mt-6 flex w-40 items-center gap-3">
           <span className="h-px flex-1 bg-t-line" />
           <span className="h-1.5 w-1.5 rotate-45 bg-t-accent" />

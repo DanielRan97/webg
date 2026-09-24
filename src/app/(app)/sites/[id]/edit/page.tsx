@@ -24,7 +24,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
             <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← האתרים שלי</Link>
             <h1 className="text-2xl font-extrabold">{site.data.businessName}</h1>
           </div>
-          <SiteActions id={site.id} slug={site.slug} status={site.status} subscriptionStatus={site.subscriptionStatus} />
+          <SiteActions id={site.id} slug={site.slug} businessName={site.data.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} />
         </div>
       </div>
       <SiteForm

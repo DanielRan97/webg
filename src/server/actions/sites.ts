@@ -8,6 +8,7 @@ import type { SiteData } from "@/types/site";
 import {
   SlugError,
   createWebsite,
+  deleteWebsite,
   getOwnedWebsite,
   setSubscriptionStatus,
   setWebsiteStatus,
@@ -104,5 +105,13 @@ export async function deactivateSubscriptionAction(id: string): Promise<SimpleRe
   return withOwnedSite(id, async (user) => {
     await setSubscriptionStatus(user.id, id, SUBSCRIPTION_STATUS.INACTIVE);
     return { ok: true };
+  });
+}
+
+/** Permanently deletes the site: the row, all child data (cascade) and its exclusively-owned images. Irreversible. */
+export async function deleteSiteAction(id: string): Promise<SimpleResult> {
+  return withOwnedSite(id, async (user) => {
+    const slug = await deleteWebsite(user.id, id);
+    return slug ? { ok: true } : { ok: false, error: "האתר לא נמצא" };
   });
 }

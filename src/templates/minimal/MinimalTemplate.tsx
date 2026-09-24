@@ -48,6 +48,7 @@ function Hero({ d }: { d: SiteData }) {
     <section id="sec-hero" className="px-5 pb-14 pt-10 md:pb-20 md:pt-20">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl">{d.businessName}</h1>
+        {d.subtitle && <p className="mt-2 text-lg text-t-muted">{d.subtitle}</p>}
         {d.description && <p className="mt-6 max-w-xl text-lg leading-relaxed text-t-muted md:text-xl">{excerpt(d.description)}</p>}
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <HeroActions d={d} primary={`${theme.btn} ${theme.btnPrimary}`} secondary={`${theme.btn} ${theme.btnSecondary}`} />

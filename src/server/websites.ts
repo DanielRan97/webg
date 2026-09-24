@@ -19,6 +19,11 @@ const include = {
   areas: { orderBy: { order: "asc" } },
   faqItems: { orderBy: { order: "asc" } },
   highlights: { orderBy: { order: "asc" } },
+  experience: { orderBy: { order: "asc" } },
+  education: { orderBy: { order: "asc" } },
+  skills: { orderBy: { order: "asc" } },
+  projects: { orderBy: { order: "asc" } },
+  certifications: { orderBy: { order: "asc" } },
 } satisfies Prisma.WebsiteInclude;
 
 type WebsiteRow = Prisma.WebsiteGetPayload<{ include: typeof include }>;
@@ -34,7 +39,7 @@ export interface WebsiteRecord {
 }
 
 function toRecord(row: WebsiteRow): WebsiteRecord {
-  const socials = { instagram: "", facebook: "", tiktok: "" };
+  const socials = { instagram: "", facebook: "", tiktok: "", linkedin: "", github: "" };
   for (const s of row.socials) {
     if ((SOCIAL_PLATFORMS as readonly string[]).includes(s.platform)) {
       socials[s.platform as keyof typeof socials] = s.url;
@@ -64,6 +69,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
       logoUrl: row.logoUrl ?? "",
       heroImageUrl: row.heroImageUrl ?? "",
       templateId: row.templateId,
+      subtitle: p?.subtitle ?? "",
       phone: p?.phone ?? "",
       whatsapp: p?.whatsapp ?? "",
       email: p?.email ?? "",
@@ -72,6 +78,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
       ctaType: (p?.ctaType ?? "WHATSAPP") as CtaType,
       openSaturday: p?.openSaturday ?? false,
       openHolidays: p?.openHolidays ?? false,
+      resumeUrl: p?.resumeUrl ?? "",
       services: row.services.map((s) => ({
         name: s.name,
         description: s.description ?? "",
@@ -79,7 +86,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
         category: s.category ?? "",
       })),
       hours,
-      gallery: row.gallery.map((g) => g.url),
+      gallery: row.gallery.map((g) => ({ url: g.url, title: g.title ?? "", description: g.description ?? "", price: g.price ?? "" })),
       socials,
       testimonials: row.testimonials.map((t) => ({ name: t.name, text: t.text, rating: t.rating ?? 0, imageUrl: t.imageUrl ?? "" })),
       areas: row.areas.map((a) => a.name),
@@ -95,6 +102,20 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
       },
       faq: row.faqItems.map((f) => ({ question: f.question, answer: f.answer })),
       highlights: row.highlights.map((h) => ({ label: h.label, value: h.value })),
+      experience: row.experience.map((e) => ({
+        organization: e.organization, role: e.role,
+        startDate: e.startDate ?? "", endDate: e.endDate ?? "", description: e.description ?? "",
+      })),
+      education: row.education.map((e) => ({
+        institution: e.institution, field: e.field ?? "", dates: e.dates ?? "", description: e.description ?? "",
+      })),
+      skills: row.skills.map((s) => ({ name: s.name })),
+      projects: row.projects.map((p) => ({
+        title: p.title, description: p.description ?? "", imageUrl: p.imageUrl ?? "", link: p.link ?? "",
+      })),
+      certifications: row.certifications.map((c) => ({
+        name: c.name, issuer: c.issuer ?? "", date: c.date ?? "", link: c.link ?? "",
+      })),
       // Sites saved before newer sections existed get them appended, switched off.
       sections: withAllSections(
         row.sections
@@ -133,55 +154,108 @@ async function writeChildren(tx: Prisma.TransactionClient, websiteId: string, d:
     tx.serviceArea.deleteMany({ where: { websiteId } }),
     tx.faqItem.deleteMany({ where: { websiteId } }),
     tx.highlight.deleteMany({ where: { websiteId } }),
+    tx.experience.deleteMany({ where: { websiteId } }),
+    tx.education.deleteMany({ where: { websiteId } }),
+    tx.skill.deleteMany({ where: { websiteId } }),
+    tx.project.deleteMany({ where: { websiteId } }),
+    tx.certification.deleteMany({ where: { websiteId } }),
   ]);
 
   const services = d.services.filter((s) => s.name.trim());
-  await tx.service.createMany({
-    data: services.map((s, order) => ({
-      websiteId, order, name: s.name.trim(),
-      description: s.description.trim() || null,
-      price: s.price.trim() || null,
-      category: s.category.trim() || null,
-    })),
-  });
-  await tx.testimonial.createMany({
-    data: d.testimonials
-      .filter((t) => t.name.trim() && t.text.trim())
-      .map((t, order) => ({
-        websiteId, order, name: t.name.trim(), text: t.text.trim(),
-        rating: t.rating >= 1 && t.rating <= 5 ? t.rating : null,
-        imageUrl: t.imageUrl || null,
+  // Independent tables, no ordering dependency between them - run as one
+  // batch of round-trips instead of sequentially, for the same reason the
+  // deletes above already run in parallel.
+  await Promise.all([
+    tx.service.createMany({
+      data: services.map((s, order) => ({
+        websiteId, order, name: s.name.trim(),
+        description: s.description.trim() || null,
+        price: s.price.trim() || null,
+        category: s.category.trim() || null,
       })),
-  });
-  await tx.serviceArea.createMany({
-    data: d.areas.map((a) => a.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
-  });
-  await tx.faqItem.createMany({
-    data: d.faq
-      .filter((f) => f.question.trim() && f.answer.trim())
-      .map((f, order) => ({ websiteId, order, question: f.question.trim(), answer: f.answer.trim() })),
-  });
-  await tx.highlight.createMany({
-    data: d.highlights
-      .filter((h) => h.label.trim() && h.value.trim())
-      .map((h, order) => ({ websiteId, order, label: h.label.trim(), value: h.value.trim() })),
-  });
-  await tx.businessHour.createMany({
-    data: d.hours.map((h) => ({
-      websiteId, day: h.day, isOpen: h.isOpen,
-      openTime: h.isOpen ? h.openTime || null : null,
-      closeTime: h.isOpen ? h.closeTime || null : null,
-    })),
-  });
-  await tx.galleryImage.createMany({ data: d.gallery.map((url, order) => ({ websiteId, url, order })) });
-  await tx.socialLink.createMany({
-    data: SOCIAL_PLATFORMS.filter((p) => d.socials[p].trim()).map((p) => ({
-      websiteId, platform: p, url: d.socials[p].trim(),
-    })),
-  });
-  await tx.websiteSection.createMany({
-    data: normalizeSections(d.sections).map((s, order) => ({ websiteId, type: s.type, enabled: s.enabled, order })),
-  });
+    }),
+    tx.testimonial.createMany({
+      data: d.testimonials
+        .filter((t) => t.name.trim() && t.text.trim())
+        .map((t, order) => ({
+          websiteId, order, name: t.name.trim(), text: t.text.trim(),
+          rating: t.rating >= 1 && t.rating <= 5 ? t.rating : null,
+          imageUrl: t.imageUrl || null,
+        })),
+    }),
+    tx.serviceArea.createMany({
+      data: d.areas.map((a) => a.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
+    }),
+    tx.faqItem.createMany({
+      data: d.faq
+        .filter((f) => f.question.trim() && f.answer.trim())
+        .map((f, order) => ({ websiteId, order, question: f.question.trim(), answer: f.answer.trim() })),
+    }),
+    tx.highlight.createMany({
+      data: d.highlights
+        .filter((h) => h.label.trim() && h.value.trim())
+        .map((h, order) => ({ websiteId, order, label: h.label.trim(), value: h.value.trim() })),
+    }),
+    tx.businessHour.createMany({
+      data: d.hours.map((h) => ({
+        websiteId, day: h.day, isOpen: h.isOpen,
+        openTime: h.isOpen ? h.openTime || null : null,
+        closeTime: h.isOpen ? h.closeTime || null : null,
+      })),
+    }),
+    tx.galleryImage.createMany({
+      data: d.gallery.map((g, order) => ({
+        websiteId, order, url: g.url,
+        title: g.title.trim() || null,
+        description: g.description.trim() || null,
+        price: g.price.trim() || null,
+      })),
+    }),
+    tx.socialLink.createMany({
+      data: SOCIAL_PLATFORMS.filter((p) => d.socials[p].trim()).map((p) => ({
+        websiteId, platform: p, url: d.socials[p].trim(),
+      })),
+    }),
+    tx.websiteSection.createMany({
+      data: normalizeSections(d.sections).map((s, order) => ({ websiteId, type: s.type, enabled: s.enabled, order })),
+    }),
+    tx.experience.createMany({
+      data: d.experience
+        .filter((e) => e.organization.trim() && e.role.trim())
+        .map((e, order) => ({
+          websiteId, order, organization: e.organization.trim(), role: e.role.trim(),
+          startDate: e.startDate.trim() || null, endDate: e.endDate.trim() || null,
+          description: e.description.trim() || null,
+        })),
+    }),
+    tx.education.createMany({
+      data: d.education
+        .filter((e) => e.institution.trim())
+        .map((e, order) => ({
+          websiteId, order, institution: e.institution.trim(),
+          field: e.field.trim() || null, dates: e.dates.trim() || null, description: e.description.trim() || null,
+        })),
+    }),
+    tx.skill.createMany({
+      data: d.skills.map((s) => s.name.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
+    }),
+    tx.project.createMany({
+      data: d.projects
+        .filter((p) => p.title.trim())
+        .map((p, order) => ({
+          websiteId, order, title: p.title.trim(),
+          description: p.description.trim() || null, imageUrl: p.imageUrl || null, link: p.link.trim() || null,
+        })),
+    }),
+    tx.certification.createMany({
+      data: d.certifications
+        .filter((c) => c.name.trim())
+        .map((c, order) => ({
+          websiteId, order, name: c.name.trim(),
+          issuer: c.issuer.trim() || null, date: c.date.trim() || null, link: c.link.trim() || null,
+        })),
+    }),
+  ]);
 }
 
 function websiteColumns(d: SiteData) {
@@ -207,6 +281,8 @@ function profileColumns(d: SiteData) {
     ctaType: d.ctaType,
     openSaturday: d.openSaturday,
     openHolidays: d.openHolidays,
+    subtitle: d.subtitle.trim() || null,
+    resumeUrl: d.resumeUrl.trim() || null,
     emergency24x7: d.emergency.available24x7,
     emergencyPhone: d.emergency.phone.trim() || null,
     emergencyMessage: d.emergency.message.trim() || null,
@@ -218,6 +294,10 @@ function profileColumns(d: SiteData) {
 
 export async function createWebsite(userId: string, d: SiteData): Promise<WebsiteRecord> {
   const slug = await uniqueSlug(d.slug || d.businessName);
+  // writeChildren does many sequential round-trips (one per child table); the
+  // default 5s interactive-transaction timeout is comfortably exceeded over
+  // real network latency once there are this many tables (see the identical
+  // fix in prisma/import-data.ts for the same root cause).
   const id = await db.$transaction(async (tx) => {
     const site = await tx.website.create({
       data: {
@@ -232,7 +312,7 @@ export async function createWebsite(userId: string, d: SiteData): Promise<Websit
     });
     await writeChildren(tx, site.id, d);
     return site.id;
-  });
+  }, { timeout: 20_000 });
   return (await getOwnedWebsite(userId, id))!;
 }
 
@@ -240,34 +320,41 @@ export class SlugError extends Error {}
 
 /** Every image URL a site can reference, so we can tell which ones a save just stopped using. */
 function collectImageUrls(d: SiteData): string[] {
-  return [d.logoUrl, d.heroImageUrl, ...d.gallery, ...d.testimonials.map((t) => t.imageUrl)].filter((u): u is string => Boolean(u));
+  return [d.logoUrl, d.heroImageUrl, ...d.gallery.map((g) => g.url), ...d.testimonials.map((t) => t.imageUrl)].filter(
+    (u): u is string => Boolean(u),
+  );
 }
 
 /**
- * Deletes images that a save just dropped (replaced logo, removed a
- * gallery photo, ...) from storage - but only after confirming no other
+ * Deletes each given URL from storage, but only after confirming no other
  * website row references that exact URL. Nothing about our editor lets a
  * user type an arbitrary URL into an image field (only our own uploader
  * sets them), so a collision is not expected in practice; this check is
- * the safety net that keeps a bug from ever deleting something still in
- * use. Failures here are logged and swallowed - a missed cleanup wastes a
- * little storage, it must never fail the save the user is waiting on.
+ * the safety net that keeps a bug (or a delete) from ever removing
+ * something still in use elsewhere. Failures here are logged and
+ * swallowed - a missed cleanup wastes a little storage, it must never
+ * fail the save/delete the user is waiting on.
  */
-async function cleanupRemovedImages(websiteId: string, before: SiteData, after: SiteData) {
-  const stillUsedHere = new Set(collectImageUrls(after));
-  const dropped = [...new Set(collectImageUrls(before).filter((u) => !stillUsedHere.has(u)))];
-  for (const url of dropped) {
+async function cleanupOrphanedImages(excludeWebsiteId: string, urls: string[]) {
+  for (const url of [...new Set(urls)]) {
     try {
       const [onWebsite, inGallery, onTestimonial] = await Promise.all([
-        db.website.count({ where: { id: { not: websiteId }, OR: [{ logoUrl: url }, { heroImageUrl: url }] } }),
-        db.galleryImage.count({ where: { url, websiteId: { not: websiteId } } }),
-        db.testimonial.count({ where: { imageUrl: url, websiteId: { not: websiteId } } }),
+        db.website.count({ where: { id: { not: excludeWebsiteId }, OR: [{ logoUrl: url }, { heroImageUrl: url }] } }),
+        db.galleryImage.count({ where: { url, websiteId: { not: excludeWebsiteId } } }),
+        db.testimonial.count({ where: { imageUrl: url, websiteId: { not: excludeWebsiteId } } }),
       ]);
       if (onWebsite + inGallery + onTestimonial === 0) await removeUploadedImage(url);
     } catch (e) {
       console.error("image cleanup check failed (non-fatal):", e instanceof Error ? e.message : e);
     }
   }
+}
+
+/** Images a save just dropped (replaced logo, removed a gallery photo, ...). */
+async function cleanupRemovedImages(websiteId: string, before: SiteData, after: SiteData) {
+  const stillUsedHere = new Set(collectImageUrls(after));
+  const dropped = collectImageUrls(before).filter((u) => !stillUsedHere.has(u));
+  await cleanupOrphanedImages(websiteId, dropped);
 }
 
 export async function updateWebsite(userId: string, id: string, d: SiteData): Promise<WebsiteRecord | null> {
@@ -291,7 +378,7 @@ export async function updateWebsite(userId: string, id: string, d: SiteData): Pr
       update: profileColumns(d),
     });
     await writeChildren(tx, id, d);
-  });
+  }, { timeout: 20_000 });
   const after = await getOwnedWebsite(userId, id);
   if (after) await cleanupRemovedImages(id, before.data, after.data);
   return after;
@@ -300,6 +387,27 @@ export async function updateWebsite(userId: string, id: string, d: SiteData): Pr
 export async function setWebsiteStatus(userId: string, id: string, status: string) {
   const { count } = await db.website.updateMany({ where: { id, userId }, data: { status } });
   return count > 0;
+}
+
+/**
+ * Permanently deletes a website: the row, every child record (cascade,
+ * enforced at the DB level - see the `onDelete: Cascade` relations in
+ * schema.prisma, nothing here deletes children manually), and any of its
+ * images that no other website still references. Scoped by `{ id, userId }`
+ * so this can never touch a site owned by someone else. Returns the site's
+ * slug (for the caller to revalidate the now-gone public page), or null if
+ * no matching site was found.
+ */
+export async function deleteWebsite(userId: string, id: string): Promise<string | null> {
+  const before = await getOwnedWebsite(userId, id);
+  if (!before) return null;
+
+  const urls = collectImageUrls(before.data);
+  const { count } = await db.website.deleteMany({ where: { id, userId } });
+  if (count === 0) return null;
+
+  await cleanupOrphanedImages(id, urls);
+  return before.slug;
 }
 
 /** Mock billing: flips Subscription.status and its Website cache together. Nothing is ever deleted. */
