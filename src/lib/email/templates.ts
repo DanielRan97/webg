@@ -63,11 +63,11 @@ export function verifyEmailEmail(verifyUrl: string) {
   return { subject, html, text };
 }
 
-/** A visitor's message from a website's public "צור קשר" form, sent to the site's owner. Every field here comes from an anonymous browser - always escaped before it reaches the HTML body. */
+/** A visitor's message from a website's public "צור קשר" form, sent to the site's owner. Every field here comes from an anonymous browser - always escaped before it reaches the HTML body. `adminUrl` is null for a Basic-plan owner (no inbox to link to) - every submitted field is already inlined above, so the email is still complete without it. */
 export function contactFormEmail(input: {
   businessName: string;
   siteUrl: string;
-  adminUrl: string;
+  adminUrl: string | null;
   name: string;
   phone: string;
   email: string;
@@ -84,19 +84,18 @@ ${row("טלפון", phone)}
 ${row("אימייל", email)}
 <p style="margin:16px 0 4px;color:#374151;font-size:15px"><b>הודעה:</b></p>
 <p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f9fafb;border-radius:12px;padding:14px">${escapeHtml(message)}</p>
-${btn(adminUrl, "צפייה בפנייה ב-WEBG")}
-${fallbackLink(adminUrl)}
+${adminUrl ? `${btn(adminUrl, "צפייה בפנייה ב-WEBG")}${fallbackLink(adminUrl)}` : ""}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
   );
-  const text = `פנייה חדשה מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone || "-"}\nאימייל: ${email || "-"}\n\nהודעה:\n${message}\n\nלצפייה בפנייה: ${adminUrl}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
+  const text = `פנייה חדשה מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone || "-"}\nאימייל: ${email || "-"}\n\nהודעה:\n${message}\n${adminUrl ? `\nלצפייה בפנייה: ${adminUrl}\n` : ""}\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }
 
-/** A visitor's callback request from a website's public "השאירו פרטים" lead form - short, no message. Every field here comes from an anonymous browser - always escaped before it reaches the HTML body. */
+/** A visitor's callback request from a website's public "השאירו פרטים" lead form - short, no message. Every field here comes from an anonymous browser - always escaped before it reaches the HTML body. `adminUrl` is null for a Basic-plan owner, see contactFormEmail(). */
 export function leadFormEmail(input: {
   businessName: string;
   siteUrl: string;
-  adminUrl: string;
+  adminUrl: string | null;
   name: string;
   phone: string;
   email: string;
@@ -110,10 +109,9 @@ export function leadFormEmail(input: {
 ${row("שם", name)}
 ${row("טלפון", phone)}
 ${row("אימייל", email)}
-${btn(adminUrl, "צפייה בפנייה ב-WEBG")}
-${fallbackLink(adminUrl)}
+${adminUrl ? `${btn(adminUrl, "צפייה בפנייה ב-WEBG")}${fallbackLink(adminUrl)}` : ""}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
   );
-  const text = `ליד חדש מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone}\nאימייל: ${email || "-"}\n\nלצפייה בפנייה: ${adminUrl}\n\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
+  const text = `ליד חדש מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone}\nאימייל: ${email || "-"}\n${adminUrl ? `\nלצפייה בפנייה: ${adminUrl}\n` : ""}\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }

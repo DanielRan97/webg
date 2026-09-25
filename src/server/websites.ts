@@ -1,6 +1,6 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { AUTOSAVE_DOMAINS, SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type CtaType, type SubscriptionStatus } from "@/lib/constants";
+import { AUTOSAVE_DOMAINS, PLAN, SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, TEMPLATE_TIERS, WEBSITE_STATUS, type AutosaveDomain, type CtaType, type Plan, type SubscriptionStatus, type TemplateId } from "@/lib/constants";
 import { isSectionType } from "@/lib/sections";
 import { isValidSlug, uniqueSlug } from "@/lib/slug";
 import { defaultHours, emptySiteData, normalizeSections, withAllSections } from "@/lib/site-defaults";
@@ -34,6 +34,7 @@ export interface WebsiteRecord {
   slug: string;
   status: string;
   subscriptionStatus: string;
+  plan: string;
   /** Non-null while still mid-wizard (holds the last-visited step id); null once the wizard has been completed. */
   wizardStep: string | null;
   updatedAt: Date;
@@ -60,6 +61,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
     slug: row.slug,
     status: row.status,
     subscriptionStatus: row.subscriptionStatus,
+    plan: row.plan,
     wizardStep: row.wizardStep,
     updatedAt: row.updatedAt,
     data: {
@@ -327,6 +329,7 @@ const CHILD_WRITERS: Record<AutosaveDomain, ((tx: Prisma.TransactionClient, webs
   certifications: [writeCertifications],
   images: [writeGallery],
   social: [writeSocials],
+  address: [],
 };
 
 /** Writes every owned child record for a website - the full, unconditional rewrite used by a complete/explicit save. Runs inside the caller's transaction. */
@@ -339,6 +342,12 @@ async function writeChildrenForDomains(tx: Prisma.TransactionClient, websiteId: 
   await Promise.all(
     [...domains].flatMap((domain) => CHILD_WRITERS[domain].map((write) => write(tx, websiteId, d))),
   );
+}
+
+/** A Basic site can never switch to a premium template by submitting one directly - falls back to whatever it already had. Defense-in-depth: the picker already prevents this in the UI (see TemplatePicker), but a template is only ever a fake premium demo away from mattering for real. */
+function effectiveTemplateId(requested: string, current: string, plan: string): string {
+  const tier = TEMPLATE_TIERS[requested as TemplateId] ?? "standard";
+  return tier === "premium" && plan !== PLAN.PRO ? current : requested;
 }
 
 function websiteColumns(d: SiteData) {
@@ -458,6 +467,15 @@ export async function createDraftWebsite(userId: string): Promise<WebsiteRecord>
 
 export class SlugError extends Error {}
 
+const SLUG_INVALID_MESSAGE = "הכתובת יכולה להכיל אותיות באנגלית, מספרים ומקפים בלבד (לפחות 3 תווים)";
+const SLUG_TAKEN_MESSAGE = "הכתובת הזאת כבר תפוסה, נסו כתובת אחרת";
+
+/** True if `slug` is free to use (ignoring the site currently being edited/created). Used both for the live client-side availability check and the authoritative pre-write check below. */
+export async function isSlugAvailable(slug: string, excludeWebsiteId?: string): Promise<boolean> {
+  const taken = await db.website.findUnique({ where: { slug }, select: { id: true } });
+  return !taken || taken.id === excludeWebsiteId;
+}
+
 /**
  * Every image URL a site can reference, so we can tell which ones a save
  * just stopped using (and, on delete, which ones to remove entirely). Keep
@@ -519,17 +537,26 @@ export async function updateWebsite(
   let slug = before.slug;
   const wanted = d.slug.trim().toLowerCase();
   if (wanted && wanted !== before.slug) {
-    if (!isValidSlug(wanted)) throw new SlugError("הכתובת יכולה להכיל אותיות באנגלית, מספרים ומקפים בלבד (לפחות 3 תווים)");
-    const taken = await db.website.findUnique({ where: { slug: wanted }, select: { id: true } });
-    if (taken && taken.id !== id) throw new SlugError("הכתובת הזאת כבר תפוסה, נסו כתובת אחרת");
+    if (!isValidSlug(wanted)) throw new SlugError(SLUG_INVALID_MESSAGE);
+    if (!(await isSlugAvailable(wanted, id))) throw new SlugError(SLUG_TAKEN_MESSAGE);
     slug = wanted;
   }
 
   await db.$transaction(async (tx) => {
-    // `wizardStep: undefined` is Prisma's own "leave this column alone" convention -
-    // callers outside the wizard (e.g. a normal edit-mode save) omit `opts.wizardStep`
-    // entirely and never touch it either way.
-    await tx.website.update({ where: { id }, data: { slug, ...websiteColumns(d), wizardStep: opts.wizardStep } });
+    try {
+      // `wizardStep: undefined` is Prisma's own "leave this column alone" convention -
+      // callers outside the wizard (e.g. a normal edit-mode save) omit `opts.wizardStep`
+      // entirely and never touch it either way.
+      const templateId = effectiveTemplateId(d.templateId, before.data.templateId, before.plan);
+      await tx.website.update({ where: { id }, data: { slug, ...websiteColumns(d), templateId, wizardStep: opts.wizardStep } });
+    } catch (e) {
+      // The pre-check above can still lose a genuine race to another request
+      // that grabbed the same slug in between - the `slug` column's unique
+      // constraint is the real source of truth, this just turns that into
+      // the same friendly error instead of a raw Prisma exception.
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") throw new SlugError(SLUG_TAKEN_MESSAGE);
+      throw e;
+    }
     await tx.businessProfile.upsert({
       where: { websiteId: id },
       create: { websiteId: id, ...profileColumns(d) },
@@ -548,8 +575,9 @@ export async function updateWebsite(
  * columns and child tables that belong to `domains` (see `AUTOSAVE_DOMAINS`),
  * so typing a business name never rewrites services/testimonials/sections/etc,
  * and a pure step change with no other edits can skip writeChildren entirely.
- * Never touches `slug` - the address step is unreachable during the wizard,
- * so there is nothing for it to change.
+ * The "address" domain (slug) is handled in its own validated branch below,
+ * not the generic column-picker, since it needs format + uniqueness checks
+ * (mirroring `updateWebsite`'s slug handling) rather than a plain copy.
  *
  * Deliberately does not return a full `WebsiteRecord`: callers only need to
  * know whether the write happened, which avoids a second full multi-join
@@ -576,10 +604,29 @@ export async function autosaveWebsiteDraft(
     const pKeys = PROFILE_DOMAIN_KEYS[domain];
     if (pKeys) profileUpdate = { ...profileUpdate, ...pick(fullProfileCols, pKeys) };
   }
+  if (websiteUpdate.templateId !== undefined) {
+    websiteUpdate.templateId = effectiveTemplateId(d.templateId, before.data.templateId, before.plan);
+  }
+
+  let slug: string | undefined;
+  if (domainSet.has("address")) {
+    const wanted = d.slug.trim().toLowerCase();
+    if (wanted && wanted !== before.slug) {
+      if (!isValidSlug(wanted)) throw new SlugError(SLUG_INVALID_MESSAGE);
+      if (!(await isSlugAvailable(wanted, id))) throw new SlugError(SLUG_TAKEN_MESSAGE);
+      slug = wanted;
+    }
+  }
 
   await db.$transaction(async (tx) => {
-    if (Object.keys(websiteUpdate).length > 0 || wizardStep !== undefined) {
-      await tx.website.update({ where: { id }, data: { ...websiteUpdate, wizardStep } });
+    if (Object.keys(websiteUpdate).length > 0 || wizardStep !== undefined || slug !== undefined) {
+      try {
+        await tx.website.update({ where: { id }, data: { ...websiteUpdate, ...(slug !== undefined ? { slug } : {}), wizardStep } });
+      } catch (e) {
+        // Same genuine-race guard as updateWebsite() - the pre-check above can still lose to a concurrent request.
+        if (slug !== undefined && e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") throw new SlugError(SLUG_TAKEN_MESSAGE);
+        throw e;
+      }
     }
     if (Object.keys(profileUpdate).length > 0) {
       await tx.businessProfile.update({ where: { websiteId: id }, data: profileUpdate });
@@ -638,4 +685,10 @@ export async function setSubscriptionStatus(userId: string, id: string, status: 
     db.website.update({ where: { id }, data: { subscriptionStatus: status } }),
   ]);
   return true;
+}
+
+/** Mock plan tier (no payment provider yet): flips Website.plan directly. Nothing is ever deleted or hidden. */
+export async function setPlan(userId: string, id: string, plan: Plan) {
+  const { count } = await db.website.updateMany({ where: { id, userId }, data: { plan } });
+  return count > 0;
 }

@@ -4,9 +4,14 @@ import { useState } from "react";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { COLOR_SWATCHES, isHexColor, readableOn } from "@/lib/color";
 import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS } from "@/lib/constants";
+import { isPro } from "@/lib/plan";
 import { sectionsForCategory } from "@/lib/site-defaults";
+import { SLUG_BASE } from "@/lib/slug-format";
 import type { SiteData } from "@/types/site";
 import { Logo } from "@/templates/shared/Logo";
+import { PlanComparisonModal } from "../PlanComparisonModal";
+import { UrlPreview } from "./UrlPreview";
+import type { SlugCheck } from "./SiteForm";
 import { TemplatePicker } from "./TemplatePicker";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
 import { TrashIcon } from "../ui/icons";
@@ -16,15 +21,18 @@ export interface StepProps {
   update: (patch: Partial<SiteData>) => void;
   isNew: boolean;
   errors: Record<string, string>;
+  /** The site's plan (BASIC/PRO) - only used by BasicsStep (banner), BrandingStep (premium template gating) and AddressStep (Pro URL preview, dual-plan awareness). */
+  plan?: string;
+  /** Live slug-availability feedback - only used by AddressStep. */
+  slugCheck?: SlugCheck;
 }
-
-export const SLUG_BASE = "webg.co.il/s/";
 
 /* 1 ─ Business basics */
 const CATEGORY_SEARCH_THRESHOLD = 8;
 
-export function BasicsStep({ data, update, isNew, errors }: StepProps) {
+export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
   const [categoryQuery, setCategoryQuery] = useState("");
+  const [planModalOpen, setPlanModalOpen] = useState(false);
   function pickCategory(id: string) {
     const cat = getCategory(id);
     update({
@@ -37,6 +45,16 @@ export function BasicsStep({ data, update, isNew, errors }: StepProps) {
   const visibleCategories = q ? CATEGORIES.filter((c) => c.label.includes(q)) : CATEGORIES;
   return (
     <div className="space-y-5">
+      {isNew && plan !== undefined && !isPro({ plan }) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+          <div>
+            <p className="font-bold text-indigo-950">אתם בונים אתר עם WEBG Basic</p>
+            <p className="mt-1 text-sm text-indigo-900">כל הכלים הדרושים לאתר מקצועי כלולים. תכונות Pro יסומנו במנעול 🔒 ותוכלו לשדרג בכל שלב.</p>
+          </div>
+          <Button type="button" variant="secondary" onClick={() => setPlanModalOpen(true)}>מה כולל Pro?</Button>
+        </div>
+      )}
+      <PlanComparisonModal open={planModalOpen} onClose={() => setPlanModalOpen(false)} />
       <StepTitle title="ספרו לנו על העסק" subtitle="רק הפרטים הבסיסיים. תמיד אפשר לשנות אחר כך." />
       <TextField
         label="איך קוראים לעסק?"
@@ -148,7 +166,7 @@ function ColorPicker({ label, hint, value, onChange, allowNone }: { label: strin
   );
 }
 
-export function BrandingStep({ data, update }: StepProps) {
+export function BrandingStep({ data, update, plan }: StepProps) {
   return (
     <div className="space-y-8">
       <StepTitle title="המראה של האתר" subtitle="בחרו לוגו וצבעים. בלי לוגו, ניצור לכם אחד פשוט מהאות הראשונה של העסק." />
@@ -169,7 +187,7 @@ export function BrandingStep({ data, update }: StepProps) {
       </div>
       <ColorPicker label="הצבע הראשי של העסק" hint="הצבע הזה יופיע בכפתורים, בכותרת ובלוגו." value={data.primaryColor} onChange={(v) => update({ primaryColor: v })} />
       <ColorPicker label="צבע משני (לא חובה)" hint="לקישוטים קטנים כמו קווים ומחירים. אפשר לוותר." value={data.secondaryColor} onChange={(v) => update({ secondaryColor: v })} allowNone />
-      <TemplatePicker data={data} onPick={(id) => update({ templateId: id })} />
+      <TemplatePicker data={data} plan={plan ?? "BASIC"} onPick={(id) => update({ templateId: id })} />
     </div>
   );
 }
@@ -369,10 +387,19 @@ export function SocialStep({ data, update }: StepProps) {
 }
 
 /* Edit mode only ─ site address */
-export function AddressStep({ data, update, errors }: StepProps) {
+function SlugAvailability({ status }: { status: SlugCheck["status"] }) {
+  if (status === "checking") return <p className="flex items-center gap-1.5 text-sm text-gray-600"><span aria-hidden>…</span> בודקים זמינות...</p>;
+  if (status === "available") return <p className="flex items-center gap-1.5 text-sm font-semibold text-green-700"><span aria-hidden>✓</span> הכתובת זמינה</p>;
+  if (status === "taken") return <p className="flex items-center gap-1.5 text-sm font-semibold text-red-700"><span aria-hidden>✗</span> הכתובת הזו כבר תפוסה</p>;
+  if (status === "invalid") return <p className="flex items-center gap-1.5 text-sm font-semibold text-red-700"><span aria-hidden>✗</span> אפשר להשתמש באותיות באנגלית, מספרים ומקפים בלבד</p>;
+  return null;
+}
+
+export function AddressStep({ data, update, errors, plan, slugCheck }: StepProps) {
+  const pro = plan !== undefined && isPro({ plan });
   return (
     <div className="space-y-6">
-      <StepTitle title="כתובת האתר" subtitle="זו הכתובת שבה הלקוחות שלך יוכלו לראות את האתר." />
+      <StepTitle title="מה תהיה כתובת האתר?" subtitle="בחרו כתובת קצרה שקל לזכור. תוכלו לראות איך היא תיראה בכל חבילה." />
       <Field label="הכתובת שלכם" hint="באנגלית, מספרים ומקפים בלבד. לדוגמה: daniel-barber" error={errors.slug}>
         {(p) => (
           <div className="flex flex-wrap items-center gap-2" dir="ltr">
@@ -381,11 +408,9 @@ export function AddressStep({ data, update, errors }: StepProps) {
           </div>
         )}
       </Field>
-      <div className="rounded-2xl bg-gray-50 p-4 text-sm">
-        <p className="font-semibold">הלקוחות ייכנסו ל:</p>
-        <p className="mt-1 break-all text-base font-bold text-indigo-800" dir="ltr">{SLUG_BASE}{data.slug || "…"}</p>
-      </div>
-      <Notice kind="info">אם תשנו את הכתובת, הכתובת הקודמת תפסיק לעבוד. עדכנו אותה בכרטיסי ביקור והודעות.</Notice>
+      {slugCheck && slugCheck.slug === data.slug.trim().toLowerCase() && <SlugAvailability status={slugCheck.status} />}
+      <UrlPreview slug={data.slug} pro={pro} />
+      <Notice kind="info">אם תשנו את הכתובת אחר כך, הכתובת הקודמת תפסיק לעבוד. עדכנו אותה בכרטיסי ביקור והודעות.</Notice>
     </div>
   );
 }

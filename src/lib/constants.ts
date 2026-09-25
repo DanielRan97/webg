@@ -8,6 +8,10 @@ export const SUBSCRIPTION_STATUS = {
 } as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSCRIPTION_STATUS];
 
+/** Product tier, independent of billing state (SUBSCRIPTION_STATUS) - which features a site's owner can use. */
+export const PLAN = { BASIC: "BASIC", PRO: "PRO" } as const;
+export type Plan = (typeof PLAN)[keyof typeof PLAN];
+
 export const CTA_TYPES = {
   CALL: "CALL",
   WHATSAPP: "WHATSAPP",
@@ -38,6 +42,20 @@ export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
 export const TEMPLATE_IDS = ["modern", "elegant", "minimal", "bold", "dark"] as const;
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
 
+/**
+ * Which plan a template requires - pure data, kept here (not just in
+ * templates/registry.ts) so server-side write paths can enforce it without
+ * importing the template React components. Every template shipped so far is
+ * "standard"; this is metadata-only until a real premium template exists.
+ */
+export const TEMPLATE_TIERS: Record<TemplateId, "standard" | "premium"> = {
+  modern: "standard",
+  elegant: "standard",
+  minimal: "standard",
+  bold: "standard",
+  dark: "standard",
+};
+
 export const BOOKING_METHODS = ["WHATSAPP", "PHONE", "LINK"] as const;
 export type BookingMethod = (typeof BOOKING_METHODS)[number];
 export const BOOKING_LABELS: Record<BookingMethod, { label: string; hint: string }> = {
@@ -66,17 +84,18 @@ export const INTERACTION_LABELS: Record<InteractionType, string> = {
 
 /**
  * The independent, self-contained pieces a wizard draft autosave can touch -
- * one per wizard step (minus "address", which is never reachable during the
- * wizard). Autosave sends only the domains that actually changed since the
- * last successful save, so typing a business name never rewrites services,
- * testimonials, sections, etc. Server-side, this is also the whitelist an
- * incoming autosave request's `domains` are validated against - see
- * `autosaveWebsiteDraft` in src/server/websites.ts.
+ * one per wizard step. Autosave sends only the domains that actually changed
+ * since the last successful save, so typing a business name never rewrites
+ * services, testimonials, sections, etc. Server-side, this is also the
+ * whitelist an incoming autosave request's `domains` are validated against -
+ * see `autosaveWebsiteDraft` in src/server/websites.ts. "address" (the
+ * slug) is handled there in its own validated branch, not the generic
+ * column-picker, since it needs format + uniqueness checks, not a plain copy.
  */
 export const AUTOSAVE_DOMAINS = [
   "basics", "branding", "hours", "sections", "services", "testimonials", "areas",
   "delivery", "emergency", "booking", "faq", "highlights", "experience", "education",
-  "skills", "projects", "certifications", "images", "social",
+  "skills", "projects", "certifications", "images", "social", "address",
 ] as const;
 export type AutosaveDomain = (typeof AUTOSAVE_DOMAINS)[number];
 

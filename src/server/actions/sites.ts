@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
-import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain } from "@/lib/constants";
-import { uniqueSlug } from "@/lib/slug";
+import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
+import { isValidSlug } from "@/lib/slug";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
 import type { SiteData } from "@/types/site";
 import {
@@ -12,6 +12,8 @@ import {
   createDraftWebsite,
   deleteWebsite,
   getOwnedWebsite,
+  isSlugAvailable,
+  setPlan,
   setSubscriptionStatus,
   setWebsiteStatus,
   updateWebsite,
@@ -56,18 +58,11 @@ export async function updateSiteAction(id: string, input: SiteData): Promise<Act
   try {
     const before = await getOwnedWebsite(user.id, id);
     if (!before) return { ok: false, error: "האתר לא נמצא" };
-    // The address/slug step is hidden while still mid-wizard, so `data.slug`
-    // just passively carries the placeholder assigned the instant the draft
-    // was created - it is never reachable for the owner to edit until the
-    // wizard is done. Finishing it is therefore the one moment to replace
-    // that placeholder with one derived from the now-final business name,
-    // same as the old one-shot creation flow used to produce. Any other
-    // save (free-edit mode, where the address step - and a real owner edit
-    // to the slug - is reachable) leaves the slug exactly as submitted.
-    const data = before.wizardStep
-      ? { ...v.data, slug: await uniqueSlug(v.data.businessName, id) }
-      : v.data;
-    const site = await updateWebsite(user.id, id, data, { wizardStep: null });
+    // The address step is now a real, reachable step in both the first-time
+    // wizard and free-edit mode (see AddressStep) - by the time this save
+    // runs, `v.data.slug` already holds whatever the owner deliberately
+    // chose/confirmed there, so it is authoritative either way.
+    const site = await updateWebsite(user.id, id, v.data, { wizardStep: null });
     if (!site) return { ok: false, error: "האתר לא נמצא" };
     revalidatePath("/dashboard");
     revalidatePath(`/s/${site.slug}`);
@@ -178,4 +173,37 @@ export async function deleteSiteAction(id: string): Promise<SimpleResult> {
     const slug = await deleteWebsite(user.id, id);
     return slug ? { ok: true } : { ok: false, error: "האתר לא נמצא" };
   });
+}
+
+/** Mock: flips Website.plan directly. Real payments will call the same server function from a webhook. Dev-only UI trigger, see SiteCard. */
+export async function setPlanAction(id: string, plan: Plan): Promise<SimpleResult> {
+  return withOwnedSite(id, async (user) => {
+    const ok = await setPlan(user.id, id, plan);
+    return ok ? { ok: true } : { ok: false, error: "האתר לא נמצא" };
+  });
+}
+
+export interface SlugAvailabilityResult {
+  available: boolean;
+  normalized: string;
+  error?: string;
+}
+
+/**
+ * Live client-side feedback while typing in the address step - not the
+ * source of truth. The actual write (autosaveSiteAction / updateSiteAction)
+ * re-validates and re-checks uniqueness itself right before persisting, so a
+ * stale "available" result here can never let a taken slug through.
+ */
+export async function checkSlugAvailabilityAction(id: string, slugInput: string): Promise<SlugAvailabilityResult> {
+  const user = await requireUser();
+  const site = await getOwnedWebsite(user.id, id);
+  if (!site) return { available: false, normalized: "", error: "האתר לא נמצא" };
+  const normalized = slugInput.trim().toLowerCase();
+  if (!isValidSlug(normalized)) {
+    return { available: false, normalized, error: "אפשר להשתמש באותיות באנגלית, מספרים ומקפים, לפחות 3 תווים." };
+  }
+  if (normalized === site.slug) return { available: true, normalized };
+  const available = await isSlugAvailable(normalized, id);
+  return available ? { available: true, normalized } : { available: false, normalized, error: "הכתובת הזו כבר תפוסה" };
 }

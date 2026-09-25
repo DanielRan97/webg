@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { autosaveSiteAction, updateSiteAction } from "@/server/actions/sites";
+import { autosaveSiteAction, checkSlugAvailabilityAction, updateSiteAction } from "@/server/actions/sites";
 import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
+import { isValidSlug, slugify } from "@/lib/slug-format";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, ValidationContext, cx } from "../ui/ui";
@@ -22,20 +23,25 @@ import {
 
 const sectionOn = (d: SiteData, type: string) => d.sections.some((s) => s.type === type && s.enabled);
 
+/** Live, debounced slug-availability feedback - see the effect below. Purely informational; the server re-checks on every real save. */
+export interface SlugCheck {
+  slug: string;
+  status: "idle" | "checking" | "available" | "taken" | "invalid";
+}
+
 interface StepDef {
   id: string;
   label: (d: SiteData) => string;
   Component: (p: StepProps) => React.JSX.Element;
   /** Steps for optional sections only appear when that section is switched on. */
   show?: (d: SiteData) => boolean;
-  editOnly?: boolean;
 }
 
 const STEPS: StepDef[] = [
   { id: "basics", label: () => "פרטי העסק", Component: BasicsStep },
   { id: "branding", label: () => "עיצוב", Component: BrandingStep },
-  { id: "hours", label: () => "שעות פתיחה", Component: HoursStep },
   { id: "sections", label: () => "מה יופיע באתר", Component: SectionsStep },
+  { id: "hours", label: () => "שעות פתיחה", Component: HoursStep, show: (d) => sectionOn(d, "hours") },
   {
     id: "services",
     label: (d) => (sectionOn(d, "menu") && !sectionOn(d, "services") && !sectionOn(d, "prices") ? "תפריט" : "שירותים ומחירים"),
@@ -55,8 +61,8 @@ const STEPS: StepDef[] = [
   { id: "projects", label: () => "פרויקטים", Component: ProjectsStep, show: (d) => sectionOn(d, "projects") },
   { id: "certifications", label: () => "הסמכות וקורסים", Component: CertificationsStep, show: (d) => sectionOn(d, "certifications") },
   { id: "images", label: () => "תמונות", Component: ImagesStep },
+  { id: "address", label: () => "כתובת האתר", Component: AddressStep },
   { id: "social", label: () => "יצירת קשר", Component: SocialStep },
-  { id: "address", label: () => "כתובת האתר", Component: AddressStep, editOnly: true },
 ];
 
 const stepHasError = (stepId: string, errors: Record<string, string>) =>
@@ -87,6 +93,7 @@ const DOMAIN_SELECTORS: Record<AutosaveDomain, (d: SiteData) => unknown> = {
   certifications: (d) => d.certifications,
   images: (d) => [d.heroImageUrl, d.gallery],
   social: (d) => [d.ctaType, d.socials, d.resumeUrl],
+  address: (d) => d.slug,
 };
 
 /** Which domains differ between two snapshots - only these get written on autosave. */
@@ -109,20 +116,22 @@ interface Props {
    * `null` for an already-finished site.
    */
   wizardStep: string | null;
+  /** The site's current plan (BASIC/PRO) - drives the wizard's plan-awareness banner and premium-template gating in the template picker. */
+  plan: string;
   liveUrl?: string | null;
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 800;
 
-export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
+export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) {
   const router = useRouter();
   const isNew = wizardStep !== null;
   const [data, setData] = useState<SiteData>(initial);
   // Only ask about the sections the owner actually switched on.
   const steps = useMemo(
-    () => STEPS.filter((s) => (!s.editOnly || !isNew) && (!s.show || s.show(data))),
+    () => STEPS.filter((s) => !s.show || s.show(data)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isNew, data.sections],
+    [data.sections],
   );
   // Resume on the last step the owner was on, resolved once against the
   // steps available for their current data - if that step no longer exists
@@ -142,9 +151,66 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
   const [created, setCreated] = useState<{ id: string; slug: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const errors = useMemo(() => validateSite(data, { checkSlug: !isNew }), [data, isNew]);
+  const errors = useMemo(() => validateSite(data, { checkSlug: true }), [data]);
   const step = steps[stepIndex];
   const last = stepIndex === steps.length - 1;
+
+  const update = (patch: Partial<SiteData>) => {
+    setSaved(false);
+    setData((d) => ({ ...d, ...patch }));
+  };
+
+  // --- Live slug-availability check: purely informational (renders the
+  // "✓ הכתובת זמינה" / "✗ תפוסה" line in AddressStep) - the authoritative
+  // check happens server-side on every actual save (autosave/updateSiteAction),
+  // this only stops an obviously-taken slug from being clicked past. Only the
+  // async server round-trip result (`slugResult`) lives in state; "idle" /
+  // "invalid" / "checking" are derived below, so the effect never calls
+  // setState synchronously - only from its debounced, async callback.
+  const [slugResult, setSlugResult] = useState<{ slug: string; available: boolean } | null>(null);
+  const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current);
+    const slug = data.slug.trim().toLowerCase();
+    if (!slug || !isValidSlug(slug)) return;
+    slugDebounceRef.current = setTimeout(() => {
+      checkSlugAvailabilityAction(siteId, slug).then((res) => {
+        setSlugResult({ slug, available: res.available });
+      });
+    }, 400);
+    return () => {
+      if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current);
+    };
+  }, [data.slug, siteId]);
+
+  const slugCheck: SlugCheck = useMemo(() => {
+    const slug = data.slug.trim().toLowerCase();
+    if (!slug) return { slug, status: "idle" };
+    if (!isValidSlug(slug)) return { slug, status: "invalid" };
+    if (slugResult?.slug !== slug) return { slug, status: "checking" };
+    return { slug, status: slugResult.available ? "available" : "taken" };
+  }, [data.slug, slugResult]);
+
+  // --- Suggest a slug from the business name while the owner hasn't picked
+  // their own yet. Adjusted during render, not in an effect (React's own
+  // recommended pattern for "derive this piece of state from that one" -
+  // avoids an extra render pass, and is idempotent by construction: once
+  // `data.slug` matches the suggestion, `suggested === data.slug` and this
+  // becomes a no-op). `autoSlug` tracks "the slug value we last suggested"
+  // (seeded once from the server-assigned placeholder) and lives here, not
+  // in AddressStep, so it survives navigating between wizard steps -
+  // AddressStep itself remounts every time the owner leaves and returns to
+  // it. The moment the owner types their own value, `data.slug` no longer
+  // matches `autoSlug` and this stops touching it for good - it never
+  // overwrites an already-valid chosen slug.
+  const [autoSlug, setAutoSlug] = useState<string | null>(() => (isNew ? initial.slug : null));
+  if (isNew && data.slug === autoSlug) {
+    const suggested = slugify(data.businessName);
+    if (suggested && suggested !== data.slug) {
+      setAutoSlug(suggested);
+      update({ slug: suggested });
+    }
+  }
 
   // --- Autosave: persists the draft in the background as the owner types/
   // toggles, so a refresh, closed tab or lost connection never loses
@@ -254,11 +320,6 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
     };
   }, [isNew, autosave]);
 
-  const update = (patch: Partial<SiteData>) => {
-    setSaved(false);
-    setData((d) => ({ ...d, ...patch }));
-  };
-
   function focusFirstInvalid() {
     setTimeout(() => document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(), 60);
   }
@@ -266,6 +327,15 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
   function fail(message: string, validation: boolean) {
     setError(message);
     setErrorIsValidation(validation);
+  }
+
+  /** Blocks leaving/finishing the address step while the live availability check hasn't confirmed the slug is usable. */
+  function slugBlockMessage(stepId: string): string | null {
+    if (stepId !== "address") return null;
+    if (slugCheck.status === "checking") return "בודקים את זמינות הכתובת... רגע בבקשה.";
+    if (slugCheck.status === "taken") return "הכתובת הזו כבר תפוסה. בחרו כתובת אחרת.";
+    if (slugCheck.status === "invalid") return "הכתובת לא תקינה. אפשר להשתמש באותיות באנגלית, מספרים ומקפים בלבד.";
+    return null;
   }
 
   function go(i: number) {
@@ -291,6 +361,13 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
       focusFirstInvalid();
       return;
     }
+    const slugMsg = slugBlockMessage(step.id);
+    if (slugMsg) {
+      setSubmitted(true);
+      fail(slugMsg, true);
+      focusFirstInvalid();
+      return;
+    }
     go(stepIndex + 1);
   }
 
@@ -304,12 +381,21 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
       focusFirstInvalid();
       return;
     }
+    const addressIdx = steps.findIndex((s) => s.id === "address");
+    const slugMsg = addressIdx >= 0 ? slugBlockMessage("address") : null;
+    if (slugMsg) {
+      setStepIndex(addressIdx);
+      setSubmitted(true);
+      fail(slugMsg, true);
+      focusFirstInvalid();
+      return;
+    }
     startTransition(async () => {
       try {
         const res = await updateSiteAction(siteId, data);
         if (!res.ok) {
           fail(res.error, false);
-          if (!isNew && /כתובת/.test(res.error)) {
+          if (/כתובת/.test(res.error)) {
             const i = steps.findIndex((s) => s.id === "address");
             if (i >= 0) setStepIndex(i);
           }
@@ -370,11 +456,11 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
           )}
 
           <div className="rounded-3xl border border-gray-300 bg-white p-5 shadow-sm sm:p-8">
-            <step.Component data={data} update={update} isNew={isNew} errors={errors} />
+            <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} />
           </div>
 
           <div className="mt-4 space-y-3" aria-live="polite">
-            {error && (!errorIsValidation || Object.keys(errors).length > 0) && <Notice kind="error">{error}</Notice>}
+            {error && (!errorIsValidation || Object.keys(errors).length > 0 || slugBlockMessage(step.id)) && <Notice kind="error">{error}</Notice>}
             {saved && <Notice kind="success">השינויים נשמרו. אם האתר מפורסם, הם כבר מופיעים בו.</Notice>}
           </div>
 

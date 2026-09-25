@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Website" ADD COLUMN     "plan" TEXT NOT NULL DEFAULT 'BASIC';

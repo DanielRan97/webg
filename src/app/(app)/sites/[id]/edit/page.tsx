@@ -21,7 +21,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
   // controls yet - those only make sense once the owner has actually
   // finished setting the site up at least once.
   if (site.wizardStep) {
-    return <SiteForm initial={site.data} siteId={site.id} wizardStep={site.wizardStep} />;
+    return <SiteForm initial={site.data} siteId={site.id} wizardStep={site.wizardStep} plan={site.plan} />;
   }
 
   return (
@@ -39,6 +39,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
         initial={site.data}
         siteId={site.id}
         wizardStep={null}
+        plan={site.plan}
         liveUrl={isPubliclyVisible(site) ? `/s/${site.slug}` : null}
       />
     </>

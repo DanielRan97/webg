@@ -91,6 +91,7 @@ model Website {
   templateId         String   @default("modern")
   status             String   @default("DRAFT") // DRAFT | PUBLISHED
   subscriptionStatus String   @default("TRIAL") // ACTIVE | INACTIVE | TRIAL (cache of Subscription.status)
+  plan               String   @default("BASIC") // BASIC | PRO
   /**
    * Non-null while the owner is still walking through the first-time wizard
    * (holds the id of the step they were last on, e.g. "basics") - null once

@@ -9,17 +9,19 @@ import {
   deactivateSubscriptionAction,
   deleteSiteAction,
   publishSiteAction,
+  setPlanAction,
   unpublishSiteAction,
   type SimpleResult,
 } from "@/server/actions/sites";
-import { SUBSCRIPTION_STATUS } from "@/lib/constants";
+import { PLAN, SUBSCRIPTION_STATUS } from "@/lib/constants";
 import { displayState, isPubliclyVisible } from "@/lib/subscription";
+import { isPro } from "@/lib/plan";
 import { nextStep, subscriptionInfo } from "@/lib/status";
 import { getCategory } from "@/lib/categories";
 import type { WebsiteRecord } from "@/server/websites";
 import { Logo } from "@/templates/shared/Logo";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
-import { ExternalLinkIcon, InboxIcon, LightbulbIcon, MoreIcon } from "./ui/icons";
+import { ExternalLinkIcon, InboxIcon, LightbulbIcon, LockIcon, MoreIcon } from "./ui/icons";
 import { CopyButton } from "./CopyButton";
 import { StatusBadge } from "./StatusBadge";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
@@ -29,7 +31,7 @@ const isDev = process.env.NODE_ENV !== "production";
 
 const secondaryBtn = "inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50";
 
-type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | null;
+type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | "plan" | null;
 
 /** One site's card on the dashboard: summary, primary actions, and quiet secondary info/settings. */
 export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCount: number }) {
@@ -95,6 +97,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
   const online = isPubliclyVisible(site);
   const state = displayState(site);
   const address = `webg.co.il/s/${site.slug}`;
+  const pro = isPro(site);
 
   function run(kind: Exclude<Pending, null>, action: (id: string) => Promise<SimpleResult>, success: string) {
     setNotice(null);
@@ -187,15 +190,19 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
 
         <Link
           href={`/sites/${site.id}/admin`}
-          aria-label={unreadCount > 0 ? `מרכז פניות, ${unreadCount} פניות חדשות` : "מרכז פניות"}
+          aria-label={pro ? (unreadCount > 0 ? `מרכז פניות, ${unreadCount} פניות חדשות` : "מרכז פניות") : "מרכז פניות, זמין ב-WEBG Pro"}
           className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
         >
           <InboxIcon />
           מרכז פניות
-          {unreadCount > 0 && (
-            <span aria-hidden className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white">
-              {unreadCount}
-            </span>
+          {pro ? (
+            unreadCount > 0 && (
+              <span aria-hidden className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white">
+                {unreadCount}
+              </span>
+            )
+          ) : (
+            <LockIcon aria-hidden />
           )}
         </Link>
 
@@ -258,6 +265,21 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
                       className="flex min-h-11 w-full items-center rounded-lg px-3 text-start text-sm text-gray-700 hover:bg-gray-100"
                     >
                       הדמיה: סיום מנוי
+                    </button>
+                  )}
+                  {isDev && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      title="הדמיה בלבד, עד שיחובר תשלום"
+                      disabled={isPending}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        run("plan", (id) => setPlanAction(id, pro ? PLAN.BASIC : PLAN.PRO), pro ? "האתר הוחזר ל-Basic (הדמיה)." : "האתר שודרג ל-Pro (הדמיה).");
+                      }}
+                      className="flex min-h-11 w-full items-center rounded-lg px-3 text-start text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {pro ? "הדמיה: חזרה ל-Basic" : "הדמיה: שדרוג ל-Pro"}
                     </button>
                   )}
                   <button

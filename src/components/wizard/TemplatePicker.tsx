@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sectionHasContent } from "@/templates/shared/helpers";
 import { withPreviewPlaceholders } from "@/lib/site-defaults";
+import { canUseTemplateTier } from "@/lib/plan";
 import { TEMPLATES, getTemplate } from "@/templates/registry";
 import type { SiteData } from "@/types/site";
+import { LockedBadge } from "../LockedFeature";
+import { PlanComparisonModal } from "../PlanComparisonModal";
 import { cx } from "../ui/ui";
 
 const RENDER_WIDTH = 1000;
@@ -43,7 +46,8 @@ function Thumbnail({ templateId, data }: { templateId: string; data: SiteData })
   );
 }
 
-export function TemplatePicker({ data, onPick }: { data: SiteData; onPick: (id: string) => void }) {
+export function TemplatePicker({ data, plan, onPick }: { data: SiteData; plan: string; onPick: (id: string) => void }) {
+  const [lockedInfoOpen, setLockedInfoOpen] = useState(false);
   return (
     <div role="group" aria-labelledby="tpl-label" className="space-y-2">
       <p id="tpl-label" className="text-sm font-semibold text-gray-900">סגנון עיצוב</p>
@@ -51,6 +55,7 @@ export function TemplatePicker({ data, onPick }: { data: SiteData; onPick: (id: 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((t) => {
           const selected = data.templateId === t.id;
+          const locked = !canUseTemplateTier({ plan }, t.tier);
           return (
             <div
               key={t.id}
@@ -64,15 +69,18 @@ export function TemplatePicker({ data, onPick }: { data: SiteData; onPick: (id: 
                 {selected && (
                   <span aria-hidden className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-700 text-sm text-white shadow">✓</span>
                 )}
+                {locked && (
+                  <span className="absolute start-2 top-2"><LockedBadge>Pro</LockedBadge></span>
+                )}
               </div>
               <span className="font-semibold">{t.label}</span>
               <span className="text-xs text-gray-700">{t.description}</span>
-              {/* The whole card is one button, kept separate from the preview so no links sit inside it. */}
+              {/* The whole card is one button, kept separate from the preview so no links sit inside it. A locked template opens the Pro explanation instead of selecting it. */}
               <button
                 type="button"
                 aria-pressed={selected}
-                aria-label={`${t.label}: ${t.description}`}
-                onClick={() => onPick(t.id)}
+                aria-label={locked ? `${t.label}: ${t.description} - זמין ב-WEBG Pro` : `${t.label}: ${t.description}`}
+                onClick={() => (locked ? setLockedInfoOpen(true) : onPick(t.id))}
                 className="absolute inset-0 rounded-2xl"
               />
             </div>
@@ -83,6 +91,7 @@ export function TemplatePicker({ data, onPick }: { data: SiteData; onPick: (id: 
         <span aria-hidden>ℹ</span>
         החלפת סגנון לא מוחקת מידע — כל פרטי העסק נשארים.
       </p>
+      <PlanComparisonModal open={lockedInfoOpen} onClose={() => setLockedInfoOpen(false)} />
     </div>
   );
 }

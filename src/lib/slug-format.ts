@@ -15,6 +15,9 @@ export function slugify(input: string): string {
 
 export const RESERVED_SLUGS = new Set(["admin", "api", "app", "login", "signup", "dashboard", "create", "preview"]);
 
+/** The Basic-plan public URL prefix, e.g. "webg.co.il/s/daniel-barber". */
+export const SLUG_BASE = "webg.co.il/s/";
+
 export function isValidSlug(slug: string) {
   return /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(slug) && !RESERVED_SLUGS.has(slug);
 }

@@ -43,6 +43,10 @@ export const PauseCircleIcon = (p: SVGProps<SVGSVGElement>) => (
   <Svg {...p}><circle cx="12" cy="12" r="9" /><path d="M10 9v6M14 9v6" /></Svg>
 );
 
+export const LockIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}><rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></Svg>
+);
+
 export const LightbulbIcon = (p: SVGProps<SVGSVGElement>) => (
   <Svg {...p}>
     <path d="M9 18h6" />
