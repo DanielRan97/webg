@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
-import { createSiteAction, updateSiteAction } from "@/server/actions/sites";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { autosaveSiteAction, updateSiteAction } from "@/server/actions/sites";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, ValidationContext, cx } from "../ui/ui";
@@ -63,22 +63,38 @@ const stepHasError = (stepId: string, errors: Record<string, string>) =>
 
 interface Props {
   initial: SiteData;
-  /** Present when editing an existing website. */
-  siteId?: string;
+  siteId: string;
+  /**
+   * Non-null while the owner is still walking through the first-time wizard
+   * (the step id they were last on) - drives both the linear "step X of Y"
+   * UI (vs. the free-edit tab UI) and where autosave resumes from. Pass
+   * `null` for an already-finished site.
+   */
+  wizardStep: string | null;
   liveUrl?: string | null;
 }
 
-export function SiteForm({ initial, siteId, liveUrl }: Props) {
+const AUTOSAVE_DEBOUNCE_MS = 800;
+
+export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
   const router = useRouter();
-  const isNew = !siteId;
+  const isNew = wizardStep !== null;
   const [data, setData] = useState<SiteData>(initial);
-  const [stepIndexRaw, setStepIndex] = useState(0);
   // Only ask about the sections the owner actually switched on.
   const steps = useMemo(
     () => STEPS.filter((s) => (!s.editOnly || !isNew) && (!s.show || s.show(data))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [isNew, data.sections],
   );
+  // Resume on the last step the owner was on, resolved once against the
+  // steps available for their current data - if that step no longer exists
+  // (e.g. a section it depended on got disabled elsewhere), fall back to
+  // the first step rather than breaking.
+  const [stepIndexRaw, setStepIndex] = useState(() => {
+    if (!wizardStep) return 0;
+    const i = steps.findIndex((s) => s.id === wizardStep);
+    return i >= 0 ? i : 0;
+  });
   const stepIndex = Math.min(stepIndexRaw, steps.length - 1);
   const [view, setView] = useState<"form" | "preview">("form");
   const [submitted, setSubmitted] = useState(false);
@@ -91,6 +107,99 @@ export function SiteForm({ initial, siteId, liveUrl }: Props) {
   const errors = useMemo(() => validateSite(data, { checkSlug: !isNew }), [data, isNew]);
   const step = steps[stepIndex];
   const last = stepIndex === steps.length - 1;
+
+  // --- Autosave: persists the draft in the background as the owner types/
+  // toggles, so a refresh, closed tab or lost connection never loses
+  // progress. Only runs while still mid-wizard - once the site has been
+  // through one deliberate, validated save (updateSiteAction), `wizardStep`
+  // is cleared and this component stops autosaving; free-edit mode keeps
+  // its existing explicit "שמירת שינויים" button instead.
+  const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [autosaveError, setAutosaveError] = useState("");
+  const dataRef = useRef(data);
+  const stepsRef = useRef(steps);
+  const stepIndexRef = useRef(stepIndex);
+  const inFlightRef = useRef(false);
+  const pendingSaveRef = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(false);
+  const autosaveRef = useRef<(explicitStepId?: string) => void>(() => {});
+
+  useEffect(() => { dataRef.current = data; }, [data]);
+  useEffect(() => { stepsRef.current = steps; }, [steps]);
+  useEffect(() => { stepIndexRef.current = stepIndex; }, [stepIndex]);
+
+  const autosave = useCallback((explicitStepId?: string) => {
+    if (!isNew) return;
+    if (inFlightRef.current) {
+      pendingSaveRef.current = true;
+      return;
+    }
+    inFlightRef.current = true;
+    setAutosaveStatus("saving");
+    const stepId = explicitStepId ?? stepsRef.current[stepIndexRef.current]?.id ?? null;
+    autosaveSiteAction(siteId, dataRef.current, stepId)
+      .then((res) => {
+        if (res.ok) {
+          setAutosaveStatus("saved");
+          setAutosaveError("");
+        } else {
+          setAutosaveStatus("error");
+          setAutosaveError(res.error ?? "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב.");
+        }
+      })
+      .catch(() => {
+        setAutosaveStatus("error");
+        setAutosaveError("לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב.");
+      })
+      .finally(() => {
+        inFlightRef.current = false;
+        if (pendingSaveRef.current) {
+          pendingSaveRef.current = false;
+          autosaveRef.current();
+        }
+      });
+  }, [isNew, siteId]);
+
+  useEffect(() => { autosaveRef.current = autosave; }, [autosave]);
+
+  // Debounced autosave on every data change (skips the very first render).
+  useEffect(() => {
+    if (!isNew) return;
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => autosave(), AUTOSAVE_DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, isNew]);
+
+  // Flush any pending debounced save as soon as the tab is hidden/closed -
+  // this shrinks the loss window to a fraction of a second, but (like any
+  // async write) cannot make the save land before a hard browser kill.
+  useEffect(() => {
+    if (!isNew) return;
+    function flush() {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
+      autosave();
+    }
+    function onVisibility() {
+      if (document.visibilityState === "hidden") flush();
+    }
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [isNew, autosave]);
 
   const update = (patch: Partial<SiteData>) => {
     setSaved(false);
@@ -109,6 +218,13 @@ export function SiteForm({ initial, siteId, liveUrl }: Props) {
   function go(i: number) {
     setError("");
     setSubmitted(false);
+    if (isNew && steps[i]) {
+      // Moving between steps is a discrete, meaningful checkpoint - save it
+      // immediately instead of waiting for the debounce, so the resumed
+      // step is always the one the owner actually last saw.
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      autosave(steps[i].id);
+    }
     setStepIndex(i);
     window.scrollTo({ top: 0 });
     // Move keyboard / screen-reader focus to the new step's heading.
@@ -137,7 +253,7 @@ export function SiteForm({ initial, siteId, liveUrl }: Props) {
     }
     startTransition(async () => {
       try {
-        const res = isNew ? await createSiteAction(data) : await updateSiteAction(siteId, data);
+        const res = await updateSiteAction(siteId, data);
         if (!res.ok) {
           fail(res.error, false);
           if (!isNew && /כתובת/.test(res.error)) {
@@ -177,7 +293,14 @@ export function SiteForm({ initial, siteId, liveUrl }: Props) {
         <div className={cx(view === "form" ? "" : "hidden", "lg:block")}>
           {isNew ? (
             <div className="mb-6">
-              <p className="mb-2 text-sm font-semibold text-indigo-800">שלב {stepIndex + 1} מתוך {steps.length}: {step.label(data)}</p>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                <p className="text-sm font-semibold text-indigo-800">שלב {stepIndex + 1} מתוך {steps.length}: {step.label(data)}</p>
+                <p aria-live="polite" className={cx("text-sm", autosaveStatus === "error" ? "font-medium text-red-700" : "text-gray-500")}>
+                  {autosaveStatus === "saving" && "שומר..."}
+                  {autosaveStatus === "saved" && "נשמר"}
+                  {autosaveStatus === "error" && (autosaveError || "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב.")}
+                </p>
+              </div>
               <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-gray-200">
                 <div className="h-2 rounded-full bg-indigo-700 transition-all" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
               </div>

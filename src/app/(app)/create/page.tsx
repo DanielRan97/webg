@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { SiteForm } from "@/components/wizard/SiteForm";
-import { emptySiteData } from "@/lib/site-defaults";
+import { CreateDraftRedirect } from "@/components/wizard/CreateDraftRedirect";
 
 export const metadata: Metadata = { title: "יצירת אתר חדש" };
 
 export default function CreatePage() {
-  return <SiteForm initial={emptySiteData()} />;
+  return <CreateDraftRedirect />;
 }

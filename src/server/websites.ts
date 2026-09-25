@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type CtaType, type SubscriptionStatus } from "@/lib/constants";
 import { isSectionType } from "@/lib/sections";
 import { isValidSlug, uniqueSlug } from "@/lib/slug";
-import { defaultHours, normalizeSections, withAllSections } from "@/lib/site-defaults";
+import { defaultHours, emptySiteData, normalizeSections, withAllSections } from "@/lib/site-defaults";
 import { removeUploadedImage } from "@/lib/storage";
 import type { BookingMethod } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
@@ -34,6 +34,8 @@ export interface WebsiteRecord {
   slug: string;
   status: string;
   subscriptionStatus: string;
+  /** Non-null while still mid-wizard (holds the last-visited step id); null once the wizard has been completed. */
+  wizardStep: string | null;
   updatedAt: Date;
   data: SiteData;
 }
@@ -58,6 +60,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
     slug: row.slug,
     status: row.status,
     subscriptionStatus: row.subscriptionStatus,
+    wizardStep: row.wizardStep,
     updatedAt: row.updatedAt,
     data: {
       businessName: row.businessName,
@@ -308,7 +311,7 @@ function profileColumns(d: SiteData) {
   };
 }
 
-export async function createWebsite(userId: string, d: SiteData): Promise<WebsiteRecord> {
+export async function createWebsite(userId: string, d: SiteData, opts: { wizardStep?: string | null } = {}): Promise<WebsiteRecord> {
   const slug = await uniqueSlug(d.slug || d.businessName);
   // writeChildren does many sequential round-trips (one per child table); the
   // default 5s interactive-transaction timeout is comfortably exceeded over
@@ -322,6 +325,7 @@ export async function createWebsite(userId: string, d: SiteData): Promise<Websit
         ...websiteColumns(d),
         status: WEBSITE_STATUS.DRAFT,
         subscriptionStatus: SUBSCRIPTION_STATUS.TRIAL,
+        wizardStep: opts.wizardStep ?? null,
         profile: { create: profileColumns(d) },
         subscription: { create: { status: SUBSCRIPTION_STATUS.TRIAL } },
       },
@@ -332,13 +336,33 @@ export async function createWebsite(userId: string, d: SiteData): Promise<Websit
   return (await getOwnedWebsite(userId, id))!;
 }
 
+/**
+ * Creates an empty draft the instant a user starts the "create a new site"
+ * wizard, so refreshing, closing the tab or logging back in later never
+ * loses progress - the wizard then autosaves into this same row as the
+ * owner fills it in. `wizardStep` starts at the first step id.
+ */
+export async function createDraftWebsite(userId: string): Promise<WebsiteRecord> {
+  return createWebsite(userId, emptySiteData(), { wizardStep: "basics" });
+}
+
 export class SlugError extends Error {}
 
-/** Every image URL a site can reference, so we can tell which ones a save just stopped using. */
+/**
+ * Every image URL a site can reference, so we can tell which ones a save
+ * just stopped using (and, on delete, which ones to remove entirely). Keep
+ * this in sync whenever a new uploaded-image field is added anywhere in
+ * SiteData - today that's the website's own logo/hero, gallery photos,
+ * testimonial photos and portfolio project images.
+ */
 function collectImageUrls(d: SiteData): string[] {
-  return [d.logoUrl, d.heroImageUrl, ...d.gallery.map((g) => g.url), ...d.testimonials.map((t) => t.imageUrl)].filter(
-    (u): u is string => Boolean(u),
-  );
+  return [
+    d.logoUrl,
+    d.heroImageUrl,
+    ...d.gallery.map((g) => g.url),
+    ...d.testimonials.map((t) => t.imageUrl),
+    ...d.projects.map((p) => p.imageUrl),
+  ].filter((u): u is string => Boolean(u));
 }
 
 /**
@@ -373,7 +397,12 @@ async function cleanupRemovedImages(websiteId: string, before: SiteData, after: 
   await cleanupOrphanedImages(websiteId, dropped);
 }
 
-export async function updateWebsite(userId: string, id: string, d: SiteData): Promise<WebsiteRecord | null> {
+export async function updateWebsite(
+  userId: string,
+  id: string,
+  d: SiteData,
+  opts: { wizardStep?: string | null } = {},
+): Promise<WebsiteRecord | null> {
   const before = await getOwnedWebsite(userId, id);
   if (!before) return null;
 
@@ -387,7 +416,10 @@ export async function updateWebsite(userId: string, id: string, d: SiteData): Pr
   }
 
   await db.$transaction(async (tx) => {
-    await tx.website.update({ where: { id }, data: { slug, ...websiteColumns(d) } });
+    // `wizardStep: undefined` is Prisma's own "leave this column alone" convention -
+    // callers outside the wizard (e.g. a normal edit-mode save) omit `opts.wizardStep`
+    // entirely and never touch it either way.
+    await tx.website.update({ where: { id }, data: { slug, ...websiteColumns(d), wizardStep: opts.wizardStep } });
     await tx.businessProfile.upsert({
       where: { websiteId: id },
       create: { websiteId: id, ...profileColumns(d) },
@@ -419,6 +451,12 @@ export async function deleteWebsite(userId: string, id: string): Promise<string 
   if (!before) return null;
 
   const urls = collectImageUrls(before.data);
+
+  // Extension point for real payments: once a subscription provider exists,
+  // cancel/terminate it here (reading Subscription.provider/providerRef for
+  // this website) before the row - and its Subscription - are gone. This
+  // function is the single place a site is ever deleted from, so it is the
+  // one place that future step needs to be added.
   const { count } = await db.website.deleteMany({ where: { id, userId } });
   if (count === 0) return null;
 

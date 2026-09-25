@@ -16,6 +16,14 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
   const site = await getOwnedWebsite(user.id, id);
   if (!site) notFound();
 
+  // Still mid-wizard (never finished onboarding once): show the bare
+  // step-by-step flow, same as a brand-new draft, with no publish/delete
+  // controls yet - those only make sense once the owner has actually
+  // finished setting the site up at least once.
+  if (site.wizardStep) {
+    return <SiteForm initial={site.data} siteId={site.id} wizardStep={site.wizardStep} />;
+  }
+
   return (
     <>
       <div className="border-b border-gray-200 bg-white">
@@ -30,6 +38,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
       <SiteForm
         initial={site.data}
         siteId={site.id}
+        wizardStep={null}
         liveUrl={isPubliclyVisible(site) ? `/s/${site.slug}` : null}
       />
     </>

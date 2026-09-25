@@ -91,6 +91,14 @@ model Website {
   templateId         String   @default("modern")
   status             String   @default("DRAFT") // DRAFT | PUBLISHED
   subscriptionStatus String   @default("TRIAL") // ACTIVE | INACTIVE | TRIAL (cache of Subscription.status)
+  /**
+   * Non-null while the owner is still walking through the first-time wizard
+   * (holds the id of the step they were last on, e.g. "basics") - null once
+   * the wizard has been completed at least once, after which the site opens
+   * in the full free-edit UI instead. Existing sites (created before this
+   * column existed) are null, so they are unaffected.
+   */
+  wizardStep         String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 

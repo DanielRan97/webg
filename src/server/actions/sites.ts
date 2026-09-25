@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
 import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
-import { siteSchema } from "@/lib/validation";
+import { uniqueSlug } from "@/lib/slug";
+import { draftSiteSchema, siteSchema } from "@/lib/validation";
 import type { SiteData } from "@/types/site";
 import {
   SlugError,
-  createWebsite,
+  createDraftWebsite,
   deleteWebsite,
   getOwnedWebsite,
   setSubscriptionStatus,
@@ -25,21 +26,39 @@ function validate(input: SiteData) {
   return { data: parsed.data as SiteData };
 }
 
-export async function createSiteAction(input: SiteData): Promise<ActionResult> {
+/** Starts a brand-new site: an empty draft, persisted immediately so refreshing/closing the tab never loses it. */
+export async function createDraftSiteAction(): Promise<ActionResult> {
   const user = await requireUser();
-  const v = validate(input);
-  if (!v.data) return { ok: false, error: v.error! };
-  const site = await createWebsite(user.id, v.data);
+  const site = await createDraftWebsite(user.id);
   revalidatePath("/dashboard");
   return { ok: true, id: site.id, slug: site.slug };
 }
 
+/**
+ * A deliberate, fully-validated save: the normal "שמירת שינויים" in free-edit
+ * mode, and also what the wizard's final step calls to finish. Either way,
+ * `wizardStep` is cleared - once an owner has gone through one complete,
+ * validated save, the site is no longer treated as "still onboarding".
+ */
 export async function updateSiteAction(id: string, input: SiteData): Promise<ActionResult> {
   const user = await requireUser();
   const v = validate(input);
   if (!v.data) return { ok: false, error: v.error! };
   try {
-    const site = await updateWebsite(user.id, id, v.data);
+    const before = await getOwnedWebsite(user.id, id);
+    if (!before) return { ok: false, error: "האתר לא נמצא" };
+    // The address/slug step is hidden while still mid-wizard, so `data.slug`
+    // just passively carries the placeholder assigned the instant the draft
+    // was created - it is never reachable for the owner to edit until the
+    // wizard is done. Finishing it is therefore the one moment to replace
+    // that placeholder with one derived from the now-final business name,
+    // same as the old one-shot creation flow used to produce. Any other
+    // save (free-edit mode, where the address step - and a real owner edit
+    // to the slug - is reachable) leaves the slug exactly as submitted.
+    const data = before.wizardStep
+      ? { ...v.data, slug: await uniqueSlug(v.data.businessName, id) }
+      : v.data;
+    const site = await updateWebsite(user.id, id, data, { wizardStep: null });
     if (!site) return { ok: false, error: "האתר לא נמצא" };
     revalidatePath("/dashboard");
     revalidatePath(`/s/${site.slug}`);
@@ -47,6 +66,34 @@ export async function updateSiteAction(id: string, input: SiteData): Promise<Act
   } catch (e) {
     if (e instanceof SlugError) return { ok: false, error: e.message };
     throw e;
+  }
+}
+
+export interface AutosaveResult {
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Background save while the owner is still typing/toggling in the wizard -
+ * called on a debounce, not on every keystroke. Deliberately lenient
+ * (`draftSiteSchema`, not `siteSchema`): a draft mid-edit does not have to
+ * look "finished" to be worth persisting. Never touches revalidatePath -
+ * this fires far too often for that to be worthwhile, and nothing public
+ * depends on a still-draft site's content.
+ */
+export async function autosaveSiteAction(id: string, input: SiteData, wizardStep?: string | null): Promise<AutosaveResult> {
+  const user = await requireUser();
+  const parsed = draftSiteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב." };
+  try {
+    const site = await updateWebsite(user.id, id, parsed.data as SiteData, { wizardStep });
+    if (!site) return { ok: false, error: "האתר לא נמצא" };
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof SlugError) return { ok: false, error: e.message };
+    console.error("autosave failed:", e instanceof Error ? e.message : e);
+    return { ok: false, error: "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב." };
   }
 }
 

@@ -107,6 +107,15 @@ export const siteSchema = z.object({
     .max(ALL_SECTIONS.length),
 });
 
+/**
+ * Same structural checks as `siteSchema` (image URL restrictions, formats,
+ * enums, max lengths) but without the "must already look finished" UX
+ * requirements - used only to autosave an in-progress wizard draft, where a
+ * business name of one character or zero is a normal, temporary state while
+ * the owner is mid-keystroke, not something to reject.
+ */
+export const draftSiteSchema = siteSchema.extend({ businessName: text(80) });
+
 /** Public "צור קשר" form on a live website. Anonymous, so kept tight: short fields, and at least one way to reach the visitor back. */
 export const contactFormSchema = z
   .object({
