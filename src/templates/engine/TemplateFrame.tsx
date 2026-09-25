@@ -3,6 +3,7 @@ import { telHref, whatsappHref } from "@/lib/links";
 import type { SiteData } from "@/types/site";
 import { ChatIcon, PhoneIcon } from "../shared/Icons";
 import { visibleSections } from "../shared/helpers";
+import { NavPortalProvider } from "./nav-portal";
 import { SectionFrame, renderSectionBody } from "./Sections";
 import type { NavItem, TemplateConfig } from "./types";
 
@@ -26,33 +27,35 @@ export function TemplateFrame({ data: d, config }: { data: SiteData; config: Tem
 
   return (
     <div dir="rtl" lang="he" style={palette(d)} className={`min-h-screen scroll-smooth bg-t-bg pb-20 text-t-fg md:pb-0 ${t.body}`}>
-      <Header d={d} nav={nav} />
-      <main>
-        {sections.map((s) =>
-          s.type === "hero" ? (
-            <Hero key="hero" d={d} />
-          ) : (
-            <SectionFrame key={s.type} type={s.type} index={bodyIndex++} t={t}>
-              {renderSectionBody(s.type, { d, t, pricesVisible })}
-            </SectionFrame>
-          ),
+      <NavPortalProvider>
+        <Header d={d} nav={nav} />
+        <main>
+          {sections.map((s) =>
+            s.type === "hero" ? (
+              <Hero key="hero" d={d} />
+            ) : (
+              <SectionFrame key={s.type} type={s.type} index={bodyIndex++} t={t}>
+                {renderSectionBody(s.type, { d, t, pricesVisible })}
+              </SectionFrame>
+            ),
+          )}
+        </main>
+
+        <footer className="border-t border-t-line px-5 py-8 text-center text-sm text-t-muted">
+          © {new Date().getFullYear()} {d.businessName}
+        </footer>
+
+        {(d.phone || wa) && (
+          <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-t-line bg-t-bg p-3 md:hidden">
+            {d.phone && (
+              <a href={telHref(d.phone)} className={`${t.btn} ${t.btnPrimary} flex-1`}><PhoneIcon /> התקשרו</a>
+            )}
+            {wa && (
+              <a href={whatsappHref(wa)} target="_blank" rel="noopener noreferrer" className={`${t.btn} ${t.btnWhatsApp} flex-1`}><ChatIcon /> WhatsApp</a>
+            )}
+          </div>
         )}
-      </main>
-
-      <footer className="border-t border-t-line px-5 py-8 text-center text-sm text-t-muted">
-        © {new Date().getFullYear()} {d.businessName}
-      </footer>
-
-      {(d.phone || wa) && (
-        <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-t-line bg-t-bg p-3 md:hidden">
-          {d.phone && (
-            <a href={telHref(d.phone)} className={`${t.btn} ${t.btnPrimary} flex-1`}><PhoneIcon /> התקשרו</a>
-          )}
-          {wa && (
-            <a href={whatsappHref(wa)} target="_blank" rel="noopener noreferrer" className={`${t.btn} ${t.btnWhatsApp} flex-1`}><ChatIcon /> WhatsApp</a>
-          )}
-        </div>
-      )}
+      </NavPortalProvider>
     </div>
   );
 }

@@ -78,3 +78,21 @@ export const TruckIcon = (p: SVGProps<SVGSVGElement>) => (
     <circle cx="17.5" cy="18.5" r="1.8" />
   </Svg>
 );
+
+export const ChevronDownIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p} width="16" height="16">
+    <path d="m6 9 6 6 6-6" />
+  </Svg>
+);
+
+export const MenuIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </Svg>
+);
+
+export const CloseIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}>
+    <path d="M18 6 6 18M6 6l12 12" />
+  </Svg>
+);

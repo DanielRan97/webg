@@ -2,6 +2,7 @@ import { telHref } from "@/lib/links";
 import type { SiteData } from "@/types/site";
 import { HeroActions, excerpt } from "../engine/hero-parts";
 import { buildVars } from "../engine/palette";
+import { SiteNav } from "../engine/SiteNav";
 import { TemplateFrame } from "../engine/TemplateFrame";
 import type { NavItem, TemplateConfig, TemplateTheme } from "../engine/types";
 
@@ -32,12 +33,10 @@ const theme: TemplateTheme = {
 function Header({ d, nav }: { d: SiteData; nav: NavItem[] }) {
   return (
     <header className="px-5 py-5">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-6">
-        <a href="#sec-hero" className="text-base font-semibold tracking-tight">{d.businessName}</a>
-        <nav aria-label="ניווט" className="hidden flex-wrap justify-end gap-x-5 gap-y-1 text-sm text-t-muted lg:flex">
-          {nav.map((n) => <a key={n.type} href={`#sec-${n.type}`} className="hover:text-t-fg hover:underline">{n.label}</a>)}
-        </nav>
-        {d.phone && <a href={telHref(d.phone)} className="text-sm font-semibold underline underline-offset-4 lg:hidden" dir="ltr">{d.phone}</a>}
+      <div className="mx-auto flex max-w-3xl items-center gap-6">
+        <a href="#sec-hero" className="max-w-[10rem] shrink-0 truncate text-base font-semibold tracking-tight sm:max-w-none">{d.businessName}</a>
+        <SiteNav nav={nav} linkClassName="text-sm text-t-muted hover:text-t-fg hover:underline" />
+        {d.phone && <a href={telHref(d.phone)} className="shrink-0 text-sm font-semibold underline underline-offset-4 lg:hidden" dir="ltr">{d.phone}</a>}
       </div>
     </header>
   );
