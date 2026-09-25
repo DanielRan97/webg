@@ -64,6 +64,22 @@ export const INTERACTION_LABELS: Record<InteractionType, string> = {
   OTHER: "פנייה",
 };
 
+/**
+ * The independent, self-contained pieces a wizard draft autosave can touch -
+ * one per wizard step (minus "address", which is never reachable during the
+ * wizard). Autosave sends only the domains that actually changed since the
+ * last successful save, so typing a business name never rewrites services,
+ * testimonials, sections, etc. Server-side, this is also the whitelist an
+ * incoming autosave request's `domains` are validated against - see
+ * `autosaveWebsiteDraft` in src/server/websites.ts.
+ */
+export const AUTOSAVE_DOMAINS = [
+  "basics", "branding", "hours", "sections", "services", "testimonials", "areas",
+  "delivery", "emergency", "booking", "faq", "highlights", "experience", "education",
+  "skills", "projects", "certifications", "images", "social",
+] as const;
+export type AutosaveDomain = (typeof AUTOSAVE_DOMAINS)[number];
+
 /** Purpose of a row in VerificationToken - keeps password-reset and email-verify tokens in one table without mixing them up. */
 export const TOKEN_PURPOSE = {
   PASSWORD_RESET: "PASSWORD_RESET",

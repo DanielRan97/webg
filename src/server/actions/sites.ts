@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
-import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
+import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain } from "@/lib/constants";
 import { uniqueSlug } from "@/lib/slug";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
 import type { SiteData } from "@/types/site";
 import {
   SlugError,
+  autosaveWebsiteDraft,
   createDraftWebsite,
   deleteWebsite,
   getOwnedWebsite,
@@ -15,6 +16,14 @@ import {
   setWebsiteStatus,
   updateWebsite,
 } from "../websites";
+
+const AUTOSAVE_DOMAIN_SET: ReadonlySet<string> = new Set(AUTOSAVE_DOMAINS);
+
+/** Never trusts the client's domain list as-is - anything not in the fixed, known set (see AUTOSAVE_DOMAINS) is silently dropped rather than acted on. This is a whitelist for *which write helpers run*, not an authorization or data-validation mechanism; `input` is still fully schema-checked below regardless of what domains are requested. */
+function validDomains(domains: unknown): AutosaveDomain[] {
+  if (!Array.isArray(domains)) return [];
+  return domains.filter((d): d is AutosaveDomain => typeof d === "string" && AUTOSAVE_DOMAIN_SET.has(d));
+}
 
 export type ActionResult =
   | { ok: true; id: string; slug: string }
@@ -78,16 +87,24 @@ export interface AutosaveResult {
  * Background save while the owner is still typing/toggling in the wizard -
  * called on a debounce, not on every keystroke. Deliberately lenient
  * (`draftSiteSchema`, not `siteSchema`): a draft mid-edit does not have to
- * look "finished" to be worth persisting. Never touches revalidatePath -
- * this fires far too often for that to be worthwhile, and nothing public
- * depends on a still-draft site's content.
+ * look "finished" to be worth persisting. `domains` names which parts of the
+ * draft actually changed since the last save (see AUTOSAVE_DOMAINS) so only
+ * those Website/BusinessProfile columns and child tables get touched -
+ * typing a business name never rewrites services, testimonials, sections,
+ * etc. Never touches revalidatePath - this fires far too often for that to
+ * be worthwhile, and nothing public depends on a still-draft site's content.
  */
-export async function autosaveSiteAction(id: string, input: SiteData, wizardStep?: string | null): Promise<AutosaveResult> {
+export async function autosaveSiteAction(
+  id: string,
+  input: SiteData,
+  domains: unknown,
+  wizardStep?: string | null,
+): Promise<AutosaveResult> {
   const user = await requireUser();
   const parsed = draftSiteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב." };
   try {
-    const site = await updateWebsite(user.id, id, parsed.data as SiteData, { wizardStep });
+    const site = await autosaveWebsiteDraft(user.id, id, parsed.data as SiteData, validDomains(domains), wizardStep);
     if (!site) return { ok: false, error: "האתר לא נמצא" };
     return { ok: true };
   } catch (e) {

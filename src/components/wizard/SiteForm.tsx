@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { autosaveSiteAction, updateSiteAction } from "@/server/actions/sites";
+import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, ValidationContext, cx } from "../ui/ui";
@@ -60,6 +61,43 @@ const STEPS: StepDef[] = [
 
 const stepHasError = (stepId: string, errors: Record<string, string>) =>
   Object.keys(errors).some((k) => (STEP_ERROR_KEYS[stepId] ?? []).some((p) => k.startsWith(p)));
+
+/**
+ * The slice of `SiteData` each autosave domain owns, for change detection.
+ * Mirrors exactly which fields each wizard step below edits - see
+ * AUTOSAVE_DOMAINS in @/lib/constants for the server-side counterpart.
+ */
+const DOMAIN_SELECTORS: Record<AutosaveDomain, (d: SiteData) => unknown> = {
+  basics: (d) => [d.businessName, d.subtitle, d.category, d.description, d.phone, d.whatsapp, d.email, d.address, d.city],
+  branding: (d) => [d.logoUrl, d.primaryColor, d.secondaryColor, d.templateId],
+  hours: (d) => [d.hours, d.openSaturday, d.openHolidays],
+  sections: (d) => d.sections,
+  services: (d) => d.services,
+  testimonials: (d) => d.testimonials,
+  areas: (d) => d.areas,
+  delivery: (d) => d.delivery,
+  emergency: (d) => d.emergency,
+  booking: (d) => d.booking,
+  faq: (d) => d.faq,
+  highlights: (d) => d.highlights,
+  experience: (d) => d.experience,
+  education: (d) => d.education,
+  skills: (d) => d.skills,
+  projects: (d) => d.projects,
+  certifications: (d) => d.certifications,
+  images: (d) => [d.heroImageUrl, d.gallery],
+  social: (d) => [d.ctaType, d.socials, d.resumeUrl],
+};
+
+/** Which domains differ between two snapshots - only these get written on autosave. */
+function diffDomains(a: SiteData, b: SiteData): AutosaveDomain[] {
+  const out: AutosaveDomain[] = [];
+  for (const domain of AUTOSAVE_DOMAINS) {
+    const select = DOMAIN_SELECTORS[domain];
+    if (JSON.stringify(select(a)) !== JSON.stringify(select(b))) out.push(domain);
+  }
+  return out;
+}
 
 interface Props {
   initial: SiteData;
@@ -124,6 +162,12 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(false);
   const autosaveRef = useRef<(explicitStepId?: string) => void>(() => {});
+  // What we last successfully persisted - autosave only ever sends the
+  // domains that differ from this, and only advances it past a *successful*
+  // save, so a failed request never makes a later save think something was
+  // already saved when it wasn't.
+  const lastSavedRef = useRef(initial);
+  const lastSavedStepRef = useRef(wizardStep);
 
   useEffect(() => { dataRef.current = data; }, [data]);
   useEffect(() => { stepsRef.current = steps; }, [steps]);
@@ -135,12 +179,21 @@ export function SiteForm({ initial, siteId, wizardStep, liveUrl }: Props) {
       pendingSaveRef.current = true;
       return;
     }
+    const snapshot = dataRef.current;
+    const domains = diffDomains(lastSavedRef.current, snapshot);
+    const stepId = explicitStepId ?? stepsRef.current[stepIndexRef.current]?.id ?? null;
+    const stepChanged = stepId !== lastSavedStepRef.current;
+    // Nothing actually differs from what's already saved - skip the request
+    // entirely instead of sending an empty no-op autosave.
+    if (domains.length === 0 && !stepChanged) return;
+
     inFlightRef.current = true;
     setAutosaveStatus("saving");
-    const stepId = explicitStepId ?? stepsRef.current[stepIndexRef.current]?.id ?? null;
-    autosaveSiteAction(siteId, dataRef.current, stepId)
+    autosaveSiteAction(siteId, snapshot, domains, stepChanged ? stepId : undefined)
       .then((res) => {
         if (res.ok) {
+          lastSavedRef.current = snapshot;
+          if (stepChanged) lastSavedStepRef.current = stepId;
           setAutosaveStatus("saved");
           setAutosaveError("");
         } else {

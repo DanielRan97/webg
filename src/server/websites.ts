@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type CtaType, type SubscriptionStatus } from "@/lib/constants";
+import { AUTOSAVE_DOMAINS, SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type CtaType, type SubscriptionStatus } from "@/lib/constants";
 import { isSectionType } from "@/lib/sections";
 import { isValidSlug, uniqueSlug } from "@/lib/slug";
 import { defaultHours, emptySiteData, normalizeSections, withAllSections } from "@/lib/site-defaults";
@@ -154,120 +154,191 @@ export async function listWebsites(userId: string) {
   return rows.map(toRecord);
 }
 
-/** Writes all owned child records for a website. Runs inside the caller's transaction. */
-async function writeChildren(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
-  await Promise.all([
-    tx.service.deleteMany({ where: { websiteId } }),
-    tx.businessHour.deleteMany({ where: { websiteId } }),
-    tx.galleryImage.deleteMany({ where: { websiteId } }),
-    tx.socialLink.deleteMany({ where: { websiteId } }),
-    tx.websiteSection.deleteMany({ where: { websiteId } }),
-    tx.testimonial.deleteMany({ where: { websiteId } }),
-    tx.serviceArea.deleteMany({ where: { websiteId } }),
-    tx.faqItem.deleteMany({ where: { websiteId } }),
-    tx.highlight.deleteMany({ where: { websiteId } }),
-    tx.experience.deleteMany({ where: { websiteId } }),
-    tx.education.deleteMany({ where: { websiteId } }),
-    tx.skill.deleteMany({ where: { websiteId } }),
-    tx.project.deleteMany({ where: { websiteId } }),
-    tx.certification.deleteMany({ where: { websiteId } }),
-  ]);
+// Each of these owns exactly one child table: delete what's there, recreate
+// from `d`. Split out (rather than one combined block) so a draft autosave
+// can run only the ones whose domain actually changed - see
+// `writeChildrenForDomains` - while a full save (`writeChildren`) still runs
+// every one of them, unchanged from before.
 
+async function writeServices(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.service.deleteMany({ where: { websiteId } });
   const services = d.services.filter((s) => s.name.trim());
-  // Independent tables, no ordering dependency between them - run as one
-  // batch of round-trips instead of sequentially, for the same reason the
-  // deletes above already run in parallel.
-  await Promise.all([
-    tx.service.createMany({
-      data: services.map((s, order) => ({
-        websiteId, order, name: s.name.trim(),
-        description: s.description.trim() || null,
-        price: s.price.trim() || null,
-        category: s.category.trim() || null,
+  await tx.service.createMany({
+    data: services.map((s, order) => ({
+      websiteId, order, name: s.name.trim(),
+      description: s.description.trim() || null,
+      price: s.price.trim() || null,
+      category: s.category.trim() || null,
+    })),
+  });
+}
+
+async function writeTestimonials(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.testimonial.deleteMany({ where: { websiteId } });
+  await tx.testimonial.createMany({
+    data: d.testimonials
+      .filter((t) => t.name.trim() && t.text.trim())
+      .map((t, order) => ({
+        websiteId, order, name: t.name.trim(), text: t.text.trim(),
+        rating: t.rating >= 1 && t.rating <= 5 ? t.rating : null,
+        imageUrl: t.imageUrl || null,
       })),
-    }),
-    tx.testimonial.createMany({
-      data: d.testimonials
-        .filter((t) => t.name.trim() && t.text.trim())
-        .map((t, order) => ({
-          websiteId, order, name: t.name.trim(), text: t.text.trim(),
-          rating: t.rating >= 1 && t.rating <= 5 ? t.rating : null,
-          imageUrl: t.imageUrl || null,
-        })),
-    }),
-    tx.serviceArea.createMany({
-      data: d.areas.map((a) => a.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
-    }),
-    tx.faqItem.createMany({
-      data: d.faq
-        .filter((f) => f.question.trim() && f.answer.trim())
-        .map((f, order) => ({ websiteId, order, question: f.question.trim(), answer: f.answer.trim() })),
-    }),
-    tx.highlight.createMany({
-      data: d.highlights
-        .filter((h) => h.label.trim() && h.value.trim())
-        .map((h, order) => ({ websiteId, order, label: h.label.trim(), value: h.value.trim() })),
-    }),
-    tx.businessHour.createMany({
-      data: d.hours.map((h) => ({
-        websiteId, day: h.day, isOpen: h.isOpen,
-        openTime: h.isOpen ? h.openTime || null : null,
-        closeTime: h.isOpen ? h.closeTime || null : null,
+  });
+}
+
+async function writeAreas(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.serviceArea.deleteMany({ where: { websiteId } });
+  await tx.serviceArea.createMany({
+    data: d.areas.map((a) => a.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
+  });
+}
+
+async function writeFaq(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.faqItem.deleteMany({ where: { websiteId } });
+  await tx.faqItem.createMany({
+    data: d.faq
+      .filter((f) => f.question.trim() && f.answer.trim())
+      .map((f, order) => ({ websiteId, order, question: f.question.trim(), answer: f.answer.trim() })),
+  });
+}
+
+async function writeHighlights(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.highlight.deleteMany({ where: { websiteId } });
+  await tx.highlight.createMany({
+    data: d.highlights
+      .filter((h) => h.label.trim() && h.value.trim())
+      .map((h, order) => ({ websiteId, order, label: h.label.trim(), value: h.value.trim() })),
+  });
+}
+
+async function writeHours(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.businessHour.deleteMany({ where: { websiteId } });
+  await tx.businessHour.createMany({
+    data: d.hours.map((h) => ({
+      websiteId, day: h.day, isOpen: h.isOpen,
+      openTime: h.isOpen ? h.openTime || null : null,
+      closeTime: h.isOpen ? h.closeTime || null : null,
+    })),
+  });
+}
+
+async function writeGallery(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.galleryImage.deleteMany({ where: { websiteId } });
+  await tx.galleryImage.createMany({
+    data: d.gallery.map((g, order) => ({
+      websiteId, order, url: g.url,
+      title: g.title.trim() || null,
+      description: g.description.trim() || null,
+      price: g.price.trim() || null,
+    })),
+  });
+}
+
+async function writeSocials(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.socialLink.deleteMany({ where: { websiteId } });
+  await tx.socialLink.createMany({
+    data: SOCIAL_PLATFORMS.filter((p) => d.socials[p].trim()).map((p) => ({
+      websiteId, platform: p, url: d.socials[p].trim(),
+    })),
+  });
+}
+
+async function writeSections(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.websiteSection.deleteMany({ where: { websiteId } });
+  await tx.websiteSection.createMany({
+    data: normalizeSections(d.sections).map((s, order) => ({ websiteId, type: s.type, enabled: s.enabled, order })),
+  });
+}
+
+async function writeExperience(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.experience.deleteMany({ where: { websiteId } });
+  await tx.experience.createMany({
+    data: d.experience
+      .filter((e) => e.organization.trim() && e.role.trim())
+      .map((e, order) => ({
+        websiteId, order, organization: e.organization.trim(), role: e.role.trim(),
+        startDate: e.startDate.trim() || null, endDate: e.endDate.trim() || null,
+        description: e.description.trim() || null,
       })),
-    }),
-    tx.galleryImage.createMany({
-      data: d.gallery.map((g, order) => ({
-        websiteId, order, url: g.url,
-        title: g.title.trim() || null,
-        description: g.description.trim() || null,
-        price: g.price.trim() || null,
+  });
+}
+
+async function writeEducation(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.education.deleteMany({ where: { websiteId } });
+  await tx.education.createMany({
+    data: d.education
+      .filter((e) => e.institution.trim())
+      .map((e, order) => ({
+        websiteId, order, institution: e.institution.trim(),
+        field: e.field.trim() || null, dates: e.dates.trim() || null, description: e.description.trim() || null,
       })),
-    }),
-    tx.socialLink.createMany({
-      data: SOCIAL_PLATFORMS.filter((p) => d.socials[p].trim()).map((p) => ({
-        websiteId, platform: p, url: d.socials[p].trim(),
+  });
+}
+
+async function writeSkills(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.skill.deleteMany({ where: { websiteId } });
+  await tx.skill.createMany({
+    data: d.skills.map((s) => s.name.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
+  });
+}
+
+async function writeProjects(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.project.deleteMany({ where: { websiteId } });
+  await tx.project.createMany({
+    data: d.projects
+      .filter((p) => p.title.trim())
+      .map((p, order) => ({
+        websiteId, order, title: p.title.trim(),
+        description: p.description.trim() || null, imageUrl: p.imageUrl || null, link: p.link.trim() || null,
       })),
-    }),
-    tx.websiteSection.createMany({
-      data: normalizeSections(d.sections).map((s, order) => ({ websiteId, type: s.type, enabled: s.enabled, order })),
-    }),
-    tx.experience.createMany({
-      data: d.experience
-        .filter((e) => e.organization.trim() && e.role.trim())
-        .map((e, order) => ({
-          websiteId, order, organization: e.organization.trim(), role: e.role.trim(),
-          startDate: e.startDate.trim() || null, endDate: e.endDate.trim() || null,
-          description: e.description.trim() || null,
-        })),
-    }),
-    tx.education.createMany({
-      data: d.education
-        .filter((e) => e.institution.trim())
-        .map((e, order) => ({
-          websiteId, order, institution: e.institution.trim(),
-          field: e.field.trim() || null, dates: e.dates.trim() || null, description: e.description.trim() || null,
-        })),
-    }),
-    tx.skill.createMany({
-      data: d.skills.map((s) => s.name.trim()).filter(Boolean).map((name, order) => ({ websiteId, order, name })),
-    }),
-    tx.project.createMany({
-      data: d.projects
-        .filter((p) => p.title.trim())
-        .map((p, order) => ({
-          websiteId, order, title: p.title.trim(),
-          description: p.description.trim() || null, imageUrl: p.imageUrl || null, link: p.link.trim() || null,
-        })),
-    }),
-    tx.certification.createMany({
-      data: d.certifications
-        .filter((c) => c.name.trim())
-        .map((c, order) => ({
-          websiteId, order, name: c.name.trim(),
-          issuer: c.issuer.trim() || null, date: c.date.trim() || null, link: c.link.trim() || null,
-        })),
-    }),
-  ]);
+  });
+}
+
+async function writeCertifications(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.certification.deleteMany({ where: { websiteId } });
+  await tx.certification.createMany({
+    data: d.certifications
+      .filter((c) => c.name.trim())
+      .map((c, order) => ({
+        websiteId, order, name: c.name.trim(),
+        issuer: c.issuer.trim() || null, date: c.date.trim() || null, link: c.link.trim() || null,
+      })),
+  });
+}
+
+/** Every child-table writer, keyed by the autosave domain it belongs to. */
+const CHILD_WRITERS: Record<AutosaveDomain, ((tx: Prisma.TransactionClient, websiteId: string, d: SiteData) => Promise<void>)[]> = {
+  basics: [],
+  branding: [],
+  hours: [writeHours],
+  sections: [writeSections],
+  services: [writeServices],
+  testimonials: [writeTestimonials],
+  areas: [writeAreas],
+  delivery: [],
+  emergency: [],
+  booking: [],
+  faq: [writeFaq],
+  highlights: [writeHighlights],
+  experience: [writeExperience],
+  education: [writeEducation],
+  skills: [writeSkills],
+  projects: [writeProjects],
+  certifications: [writeCertifications],
+  images: [writeGallery],
+  social: [writeSocials],
+};
+
+/** Writes every owned child record for a website - the full, unconditional rewrite used by a complete/explicit save. Runs inside the caller's transaction. */
+async function writeChildren(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await Promise.all(AUTOSAVE_DOMAINS.flatMap((domain) => CHILD_WRITERS[domain].map((write) => write(tx, websiteId, d))));
+}
+
+/** Writes only the child tables for the given domains - the lightweight path a draft autosave uses. Runs inside the caller's transaction. */
+async function writeChildrenForDomains(tx: Prisma.TransactionClient, websiteId: string, d: SiteData, domains: Set<AutosaveDomain>) {
+  await Promise.all(
+    [...domains].flatMap((domain) => CHILD_WRITERS[domain].map((write) => write(tx, websiteId, d))),
+  );
 }
 
 function websiteColumns(d: SiteData) {
@@ -311,6 +382,29 @@ function profileColumns(d: SiteData) {
   };
 }
 
+/** Which `websiteColumns()`/`profileColumns()` keys a given autosave domain owns. A domain not listed here (or with no listed keys) never touches Website/BusinessProfile columns - it's collection-only, see `CHILD_WRITERS`. */
+const WEBSITE_DOMAIN_KEYS: Partial<Record<AutosaveDomain, (keyof ReturnType<typeof websiteColumns>)[]>> = {
+  basics: ["businessName", "category", "description"],
+  branding: ["primaryColor", "secondaryColor", "logoUrl", "templateId"],
+  images: ["heroImageUrl"],
+};
+const PROFILE_DOMAIN_KEYS: Partial<Record<AutosaveDomain, (keyof ReturnType<typeof profileColumns>)[]>> = {
+  basics: ["subtitle", "phone", "whatsapp", "email", "address", "city"],
+  hours: ["openSaturday", "openHolidays"],
+  social: ["ctaType", "resumeUrl"],
+  delivery: ["deliveryAvailable", "deliveryAreas", "deliveryMinOrder", "deliveryFee", "deliveryFreeOver", "deliveryTime", "deliveryNote"],
+  emergency: ["emergency24x7", "emergencyPhone", "emergencyMessage"],
+  booking: ["bookingMethod", "bookingUrl", "bookingText"],
+};
+/** Domains whose write can drop an image reference (logo/hero/gallery/testimonial photo/project image) - only these are worth an image-cleanup pass afterwards. */
+const IMAGE_AFFECTING_DOMAINS: AutosaveDomain[] = ["branding", "images", "testimonials", "projects"];
+
+function pick<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): Pick<T, K> {
+  const out = {} as Pick<T, K>;
+  for (const k of keys) out[k] = obj[k];
+  return out;
+}
+
 export async function createWebsite(userId: string, d: SiteData, opts: { wizardStep?: string | null } = {}): Promise<WebsiteRecord> {
   const slug = await uniqueSlug(d.slug || d.businessName);
   // writeChildren does many sequential round-trips (one per child table); the
@@ -341,8 +435,24 @@ export async function createWebsite(userId: string, d: SiteData, opts: { wizardS
  * wizard, so refreshing, closing the tab or logging back in later never
  * loses progress - the wizard then autosaves into this same row as the
  * owner fills it in. `wizardStep` starts at the first step id.
+ *
+ * Idempotent for a still-pristine draft: if the owner already has one that
+ * has never had a business name typed into it (still on step 1, exactly as
+ * `emptySiteData()` left it), that same row is reused instead of creating a
+ * new one - this is what stops an empty, unwanted `Website` row from being
+ * created every time `/create` is merely *visited* (leaving immediately,
+ * revisiting later, refreshing, clicking "צור אתר חדש" more than once, or
+ * opening it in two tabs). The moment a draft has real content, it is no
+ * longer "pristine" and a fresh visit to `/create` starts a genuinely new
+ * site instead, so intentionally building several sites still works.
  */
 export async function createDraftWebsite(userId: string): Promise<WebsiteRecord> {
+  const pristine = await db.website.findFirst({
+    where: { userId, wizardStep: "basics", businessName: "" },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+  if (pristine) return (await getOwnedWebsite(userId, pristine.id))!;
   return createWebsite(userId, emptySiteData(), { wizardStep: "basics" });
 }
 
@@ -430,6 +540,57 @@ export async function updateWebsite(
   const after = await getOwnedWebsite(userId, id);
   if (after) await cleanupRemovedImages(id, before.data, after.data);
   return after;
+}
+
+/**
+ * Lightweight save for a wizard draft still in progress - the counterpart to
+ * `updateWebsite()`'s full rewrite. Only touches the Website/BusinessProfile
+ * columns and child tables that belong to `domains` (see `AUTOSAVE_DOMAINS`),
+ * so typing a business name never rewrites services/testimonials/sections/etc,
+ * and a pure step change with no other edits can skip writeChildren entirely.
+ * Never touches `slug` - the address step is unreachable during the wizard,
+ * so there is nothing for it to change.
+ *
+ * Deliberately does not return a full `WebsiteRecord`: callers only need to
+ * know whether the write happened, which avoids a second full multi-join
+ * fetch after every autosave - the caller already has the just-saved data.
+ */
+export async function autosaveWebsiteDraft(
+  userId: string,
+  id: string,
+  d: SiteData,
+  domains: AutosaveDomain[],
+  wizardStep: string | null | undefined,
+): Promise<{ id: string } | null> {
+  const before = await getOwnedWebsite(userId, id);
+  if (!before) return null;
+
+  const domainSet = new Set(domains);
+  const fullWebsiteCols = websiteColumns(d);
+  const fullProfileCols = profileColumns(d);
+  let websiteUpdate: Partial<ReturnType<typeof websiteColumns>> = {};
+  let profileUpdate: Partial<ReturnType<typeof profileColumns>> = {};
+  for (const domain of domainSet) {
+    const wKeys = WEBSITE_DOMAIN_KEYS[domain];
+    if (wKeys) websiteUpdate = { ...websiteUpdate, ...pick(fullWebsiteCols, wKeys) };
+    const pKeys = PROFILE_DOMAIN_KEYS[domain];
+    if (pKeys) profileUpdate = { ...profileUpdate, ...pick(fullProfileCols, pKeys) };
+  }
+
+  await db.$transaction(async (tx) => {
+    if (Object.keys(websiteUpdate).length > 0 || wizardStep !== undefined) {
+      await tx.website.update({ where: { id }, data: { ...websiteUpdate, wizardStep } });
+    }
+    if (Object.keys(profileUpdate).length > 0) {
+      await tx.businessProfile.update({ where: { websiteId: id }, data: profileUpdate });
+    }
+    await writeChildrenForDomains(tx, id, d, domainSet);
+  }, { timeout: 20_000 });
+
+  if (IMAGE_AFFECTING_DOMAINS.some((domain) => domainSet.has(domain))) {
+    await cleanupRemovedImages(id, before.data, d);
+  }
+  return { id };
 }
 
 export async function setWebsiteStatus(userId: string, id: string, status: string) {
