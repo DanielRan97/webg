@@ -16,6 +16,7 @@ import {
 import { PLAN, SUBSCRIPTION_STATUS } from "@/lib/constants";
 import { displayState, isPubliclyVisible } from "@/lib/subscription";
 import { isPro } from "@/lib/plan";
+import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
 import { nextStep, subscriptionInfo } from "@/lib/status";
 import { getCategory } from "@/lib/categories";
 import type { WebsiteRecord } from "@/server/websites";
@@ -96,7 +97,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
   const inactive = site.subscriptionStatus === SUBSCRIPTION_STATUS.INACTIVE;
   const online = isPubliclyVisible(site);
   const state = displayState(site);
-  const address = `webg.co.il/s/${site.slug}`;
+  const address = publicSiteUrlDisplay(site);
   const pro = isPro(site);
 
   function run(kind: Exclude<Pending, null>, action: (id: string) => Promise<SimpleResult>, success: string) {
@@ -223,7 +224,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
               <span className="truncate text-sm font-semibold text-indigo-800" dir="ltr">{address}</span>
               <div className="flex shrink-0 items-center gap-1">
                 {online && (
-                  <Link href={`/s/${site.slug}`} target="_blank" aria-label="פתיחת האתר בכרטיסייה חדשה" className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                  <Link href={publicSiteHref(site)} target="_blank" aria-label="פתיחת האתר בכרטיסייה חדשה" className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800">
                     <ExternalLinkIcon />
                   </Link>
                 )}

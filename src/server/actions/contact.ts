@@ -7,6 +7,7 @@ import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request";
 import { isPubliclyVisible } from "@/lib/subscription";
 import { isPro } from "@/lib/plan";
+import { proUrlDisplay } from "@/lib/site-url";
 import { contactFormSchema } from "@/lib/validation";
 import { createInteraction } from "../interactions";
 import { getWebsiteBySlug } from "../websites";
@@ -62,7 +63,7 @@ export async function submitContactFormAction(input: {
     try {
       await sendContactFormEmail(owner.email, {
         businessName: site.data.businessName,
-        siteUrl: `${appUrl()}/s/${site.slug}`,
+        siteUrl: isPro(site) ? `https://${proUrlDisplay(site.slug)}` : `${appUrl()}/s/${site.slug}`,
         adminUrl: isPro(site) ? `${appUrl()}/sites/${site.id}/admin?interaction=${interaction.id}` : null,
         name,
         phone,

@@ -11,10 +11,10 @@ const RESERVED_SUBDOMAINS = new Set(["www"]);
  * file only ever decides *where* to route the request, never *whether*
  * it's allowed.
  *
- * No wildcard DNS/Vercel domain is configured yet (see the plan/PRO URL
- * report), so in production this never fires today - every request's Host
- * header is still webg.co.il/www.webg.co.il, both excluded below. Once
- * *.webg.co.il is configured, this activates automatically.
+ * The *.webg.co.il wildcard DNS and Vercel domain are configured, so this
+ * fires for real in production for any Pro site's subdomain. webg.co.il and
+ * www.webg.co.il are excluded below since those are the app's own host, not
+ * a site's subdomain.
  */
 export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";

@@ -11,6 +11,7 @@ import {
   type SimpleResult,
 } from "@/server/actions/sites";
 import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
+import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
 
@@ -20,12 +21,14 @@ type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | 
 export function SiteActions({
   id,
   slug,
+  plan,
   businessName,
   status,
   subscriptionStatus,
 }: {
   id: string;
   slug: string;
+  plan: string;
   businessName: string;
   status: string;
   subscriptionStatus: string;
@@ -56,7 +59,7 @@ export function SiteActions({
     });
   }
 
-  const publishedText = `האתר פורסם! הלקוחות יכולים לראות אותו ב-webg.co.il/s/${slug}`;
+  const publishedText = `האתר פורסם! הלקוחות יכולים לראות אותו ב-${publicSiteUrlDisplay({ slug, plan })}`;
 
   function runDelete() {
     setNotice(null);

@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { publishSiteAction } from "@/server/actions/sites";
+import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
 import { CopyButton } from "../CopyButton";
 import { Button, Notice } from "../ui/ui";
 
 /** Shown right after the wizard creates the website. */
-export function CreatedScreen({ id, slug, businessName }: { id: string; slug: string; businessName: string }) {
+export function CreatedScreen({ id, slug, plan, businessName }: { id: string; slug: string; plan: string; businessName: string }) {
   const [published, setPublished] = useState(false);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
-  const address = `webg.co.il/s/${slug}`;
+  const address = publicSiteUrlDisplay({ slug, plan });
 
   function publish() {
     setError("");
@@ -41,7 +42,7 @@ export function CreatedScreen({ id, slug, businessName }: { id: string; slug: st
       {published ? (
         <div className="mt-6 space-y-3">
           <Notice kind="success">האתר פורסם! מעכשיו הלקוחות יכולים לראות אותו.</Notice>
-          <Link href={`/s/${slug}`} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">
+          <Link href={publicSiteHref({ slug, plan })} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">
             צפייה באתר החי
           </Link>
         </div>

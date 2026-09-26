@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { getOwnedWebsite } from "@/server/websites";
 import { isPubliclyVisible } from "@/lib/subscription";
+import { publicSiteHref } from "@/lib/site-url";
 import { SiteForm } from "@/components/wizard/SiteForm";
 import { SiteActions } from "@/components/SiteActions";
 
@@ -32,7 +33,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
             <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← האתרים שלי</Link>
             <h1 className="text-2xl font-extrabold">{site.data.businessName}</h1>
           </div>
-          <SiteActions id={site.id} slug={site.slug} businessName={site.data.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} />
+          <SiteActions id={site.id} slug={site.slug} plan={site.plan} businessName={site.data.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} />
         </div>
       </div>
       <SiteForm
@@ -40,7 +41,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
         siteId={site.id}
         wizardStep={null}
         plan={site.plan}
-        liveUrl={isPubliclyVisible(site) ? `/s/${site.slug}` : null}
+        liveUrl={isPubliclyVisible(site) ? publicSiteHref(site) : null}
       />
     </>
   );

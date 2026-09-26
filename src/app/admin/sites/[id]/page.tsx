@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSiteAdminDetail } from "@/server/admin";
-import { SLUG_BASE } from "@/lib/slug-format";
+import { basicUrlDisplay, publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
 import { PlanOverride } from "@/components/admin/PlanOverride";
 
 export const metadata: Metadata = { title: "פרטי אתר - WEBG Admin" };
@@ -32,7 +32,7 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Link href={`/s/${site.slug}`} target="_blank" className={linkClass}>פתיחת האתר</Link>
+        <Link href={publicSiteHref(site)} target="_blank" className={linkClass}>פתיחת האתר</Link>
         <Link href={`/sites/${site.id}/edit`} target="_blank" className={linkClass}>עריכת האתר</Link>
         <Link href={`/sites/${site.id}/admin`} target="_blank" className={linkClass}>מרכז הפניות</Link>
       </div>
@@ -42,8 +42,10 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
           <Row label="בעלים" value={<span dir="ltr">{site.ownerEmail}</span>} />
           <Row label="תוכנית" value={site.plan} />
           <Row label="סטטוס" value={site.status === "PUBLISHED" ? "מפורסם" : "טיוטה"} />
-          <Row label="כתובת Basic" value={<span dir="ltr">{SLUG_BASE}{site.slug}</span>} />
-          <Row label="כתובת Pro" value={<span dir="ltr">{site.slug}.webg.co.il</span>} />
+          <Row label="כתובת ראשית" value={<span dir="ltr">{publicSiteUrlDisplay(site)}</span>} />
+          {site.plan === "PRO" && (
+            <Row label="כתובת קודמת (Basic)" value={<span dir="ltr">{basicUrlDisplay(site.slug)}</span>} />
+          )}
           <Row label="נוצר" value={site.createdAt.toLocaleString("he-IL")} />
           <Row label="עודכן" value={site.updatedAt.toLocaleString("he-IL")} />
           <Row label="כניסות" value={site.visits} />

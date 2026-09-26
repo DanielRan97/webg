@@ -415,7 +415,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
     });
   }
 
-  if (created) return <CreatedScreen id={created.id} slug={created.slug} businessName={data.businessName} />;
+  if (created) return <CreatedScreen id={created.id} slug={created.slug} plan={plan} businessName={data.businessName} />;
 
   return (
     <ValidationContext.Provider value={{ submitted }}>
