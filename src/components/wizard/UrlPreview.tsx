@@ -14,9 +14,12 @@ export function UrlPreview({ slug, pro }: { slug: string; pro: boolean }) {
         <p className={pro ? "text-xs font-semibold text-indigo-800" : "text-xs font-semibold text-gray-500"}>Pro</p>
         <p className={pro ? "mt-1 break-all font-bold text-indigo-900" : "mt-1 break-all font-bold text-gray-400"} dir="ltr">{shown}.webg.co.il</p>
         {!pro && (
-          <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-indigo-700">
-            <LockIcon /> זמין ב-WEBG Pro
-          </p>
+          <>
+            <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-indigo-700">
+              <LockIcon /> זמין ב-WEBG Pro
+            </p>
+            <p className="mt-1 text-xs text-gray-600">כתובת אתר מקצועית וקלה לזכירה - כתובת קצרה בסגנון yourbusiness.webg.co.il, בלי ״s/״ באמצע.</p>
+          </>
         )}
       </div>
     </div>

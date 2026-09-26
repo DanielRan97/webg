@@ -191,6 +191,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
         <Link
           href={`/sites/${site.id}/admin`}
           aria-label={pro ? (unreadCount > 0 ? `מרכז פניות, ${unreadCount} פניות חדשות` : "מרכז פניות") : "מרכז פניות, זמין ב-WEBG Pro"}
+          title={pro ? undefined : "כל הפניות מהאתר במקום אחד, בנוסף לעדכונים במייל. הפניות שלכם ממשיכות להגיע למייל גם ב-Basic."}
           className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
         >
           <InboxIcon />

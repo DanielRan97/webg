@@ -8,7 +8,9 @@ import { TEMPLATES, getTemplate } from "@/templates/registry";
 import type { SiteData } from "@/types/site";
 import { LockedBadge } from "../LockedFeature";
 import { PlanComparisonModal } from "../PlanComparisonModal";
-import { cx } from "../ui/ui";
+import { Button, cx } from "../ui/ui";
+
+const HAS_PREMIUM_TEMPLATE = TEMPLATES.some((t) => t.tier === "premium");
 
 const RENDER_WIDTH = 1000;
 
@@ -48,6 +50,7 @@ function Thumbnail({ templateId, data }: { templateId: string; data: SiteData })
 
 export function TemplatePicker({ data, plan, onPick }: { data: SiteData; plan: string; onPick: (id: string) => void }) {
   const [lockedInfoOpen, setLockedInfoOpen] = useState(false);
+  const [lockedClicked, setLockedClicked] = useState<string | null>(null);
   return (
     <div role="group" aria-labelledby="tpl-label" className="space-y-2">
       <p id="tpl-label" className="text-sm font-semibold text-gray-900">סגנון עיצוב</p>
@@ -75,18 +78,27 @@ export function TemplatePicker({ data, plan, onPick }: { data: SiteData; plan: s
               </div>
               <span className="font-semibold">{t.label}</span>
               <span className="text-xs text-gray-700">{t.description}</span>
-              {/* The whole card is one button, kept separate from the preview so no links sit inside it. A locked template opens the Pro explanation instead of selecting it. */}
+              {/* The whole card is one button, kept separate from the preview so no links sit inside it. A locked template stays visible - it's never hidden - and explains itself instead of silently doing nothing. */}
               <button
                 type="button"
                 aria-pressed={selected}
                 aria-label={locked ? `${t.label}: ${t.description} - זמין ב-WEBG Pro` : `${t.label}: ${t.description}`}
-                onClick={() => (locked ? setLockedInfoOpen(true) : onPick(t.id))}
+                onClick={() => (locked ? setLockedClicked(t.label) : onPick(t.id))}
                 className="absolute inset-0 rounded-2xl"
               />
             </div>
           );
         })}
       </div>
+      {lockedClicked && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-950">
+          <p>🔒 העיצוב ״{lockedClicked}״ זמין ב-WEBG Pro</p>
+          <Button type="button" variant="secondary" onClick={() => setLockedInfoOpen(true)}>מה כולל Pro?</Button>
+        </div>
+      )}
+      {!HAS_PREMIUM_TEMPLATE && (
+        <p className="text-xs text-gray-500">עיצובים נוספים ל-Pro יתווספו בהמשך.</p>
+      )}
       <p className="flex items-center gap-1.5 text-xs text-gray-500">
         <span aria-hidden>ℹ</span>
         החלפת סגנון לא מוחקת מידע — כל פרטי העסק נשארים.

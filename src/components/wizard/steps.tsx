@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CATEGORIES, getCategory } from "@/lib/categories";
 import { COLOR_SWATCHES, isHexColor, readableOn } from "@/lib/color";
-import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS } from "@/lib/constants";
+import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS, type SocialPlatform } from "@/lib/constants";
 import { isPro } from "@/lib/plan";
 import { sectionsForCategory } from "@/lib/site-defaults";
 import { SLUG_BASE } from "@/lib/slug-format";
@@ -353,6 +353,15 @@ export function ImagesStep({ data, update }: StepProps) {
 }
 
 /* 7 ─ Social & contact */
+/** Full-link examples, matching socialUrl()'s own base URLs (@/lib/links) - a bare handle still works too (backward-compatible with existing sites), but the wizard should ask for the full link so it's unambiguous. */
+const SOCIAL_URL_EXAMPLES: Record<SocialPlatform, string> = {
+  instagram: "https://instagram.com/yourbusiness",
+  facebook: "https://facebook.com/yourbusiness",
+  tiktok: "https://tiktok.com/@yourbusiness",
+  linkedin: "https://linkedin.com/in/yourname",
+  github: "https://github.com/username",
+};
+
 export function SocialStep({ data, update }: StepProps) {
   const cat = getCategory(data.category);
   const isPortfolio = cat.id === "portfolio";
@@ -373,10 +382,10 @@ export function SocialStep({ data, update }: StepProps) {
       <div className="space-y-4">
         <div>
           <p className="text-sm font-semibold text-gray-900">רשתות חברתיות (לא חובה)</p>
-          <p className="text-sm text-gray-600">כתבו את שם המשתמש או הדביקו את הקישור לעמוד. מה שתשאירו ריק לא יופיע.</p>
+          <p className="text-sm text-gray-600">הדביקו את הקישור המלא לפרופיל שלכם. מה שתשאירו ריק לא יופיע.</p>
         </div>
         {cat.socialPlatforms.map((p) => (
-          <TextField key={p} label={SOCIAL_LABELS[p]} dir="ltr" placeholder={p === "facebook" ? "לדוגמה: facebook.com/העסק-שלי" : "לדוגמה: @danielbarber"} value={data.socials[p]} onChange={(v) => update({ socials: { ...data.socials, [p]: v } })} />
+          <TextField key={p} label={SOCIAL_LABELS[p]} hint="הקישור המלא לעמוד, לא רק שם המשתמש." dir="ltr" placeholder={`לדוגמה: ${SOCIAL_URL_EXAMPLES[p]}`} value={data.socials[p]} onChange={(v) => update({ socials: { ...data.socials, [p]: v } })} />
         ))}
       </div>
       {isPortfolio && (

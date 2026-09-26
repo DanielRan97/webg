@@ -3,17 +3,17 @@ const BASIC_FEATURES = [
   "פרסום האתר",
   "תבניות רגילות",
   "טפסי לידים והודעות",
-  "עדכונים למייל",
+  "פניות ועדכונים למייל",
   "כתובת WEBG רגילה",
 ];
 
 const PRO_FEATURES = [
   "כל מה שב-Basic",
-  "כתובת יפה יותר",
-  "מרכז פניות",
+  "כתובת אתר מקצועית וקלה לזכירה",
+  "מרכז פניות — כל הלידים וההודעות במקום אחד",
   "התראות על פניות חדשות",
-  "תבניות Premium",
-  "עוד תכונות Pro בדרך",
+  "עיצובי Premium",
+  "יכולות Pro נוספות בהמשך",
 ];
 
 /** Compact BASIC/PRO feature comparison - no prices, no pitch, just what's included. Reused by the wizard's "מה כולל Pro?" modal and any other locked-feature explanation. */
@@ -35,6 +35,17 @@ export function PlanComparison() {
             <li key={f} className="flex items-start gap-1.5"><span aria-hidden>✓</span>{f}</li>
           ))}
         </ul>
+      </div>
+
+      <div className="rounded-xl bg-gray-50 p-3 text-xs text-gray-700 sm:col-span-2">
+        <p className="font-semibold">לדוגמה, כתובת האתר:</p>
+        <p className="mt-1" dir="ltr">Basic: webg.co.il/s/danielbarber</p>
+        <p dir="ltr">Pro: danielbarber.webg.co.il</p>
+      </div>
+      <div className="rounded-xl bg-gray-50 p-3 text-xs text-gray-700 sm:col-span-2">
+        <p className="font-semibold">איך פניות מתקבלות:</p>
+        <p className="mt-1">Basic: פניות נשלחות אליכם במייל</p>
+        <p>Pro: פניות נשלחות למייל וגם נשמרות במרכז הפניות ב-WEBG</p>
       </div>
     </div>
   );
