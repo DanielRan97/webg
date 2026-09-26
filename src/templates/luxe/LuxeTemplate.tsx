@@ -59,27 +59,33 @@ function Header({ d, nav }: { d: SiteData; nav: NavItem[] }) {
   );
 }
 
+/**
+ * A letterboxed image band (a fixed aspect ratio, never full-bleed to the
+ * viewport) with the business name breaking out below it in oversized type -
+ * a distinct cinematic-poster silhouette that reads as premium even at
+ * thumbnail scale, unlike Dark's full-bleed photo-behind-text hero.
+ */
 function Hero({ d }: { d: SiteData }) {
   const hasImage = Boolean(d.heroImageUrl);
   return (
-    <section id="sec-hero" className="relative flex min-h-[88vh] items-end overflow-hidden px-5 pb-16 pt-28 md:pb-24">
-      {hasImage ? (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+    <section id="sec-hero" className="relative bg-t-bg px-5 pb-14 pt-24 md:pb-24 md:pt-28">
+      <div className="relative mx-auto aspect-[16/10] w-full max-w-6xl overflow-hidden sm:aspect-[16/9] md:aspect-[21/9]">
+        {hasImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={d.heroImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-t-bg via-t-bg/55 to-t-bg/10" />
-          <div className="absolute inset-0 bg-gradient-to-b from-t-bg/50 via-transparent to-transparent" />
-        </>
-      ) : (
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{ background: "radial-gradient(60% 70% at 85% 100%, color-mix(in srgb, var(--t-brand) 32%, transparent), transparent 70%)" }}
-        />
-      )}
-      <div className="relative mx-auto w-full max-w-6xl">
+        ) : (
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{ background: "radial-gradient(65% 80% at 50% 30%, color-mix(in srgb, var(--t-brand) 35%, transparent), transparent 70%)" }}
+          />
+        )}
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-b from-transparent to-t-bg" />
+      </div>
+      <div className="relative z-10 mx-auto -mt-10 w-full max-w-6xl md:-mt-24">
+        <span aria-hidden className="mb-4 block h-[3px] w-20 bg-t-accent md:mb-5" />
         {d.subtitle && <p className="mb-4 text-sm font-semibold tracking-[0.25em] text-t-accent-text">{d.subtitle}</p>}
-        <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-tight md:text-8xl">{d.businessName}</h1>
+        <h1 className="max-w-4xl text-5xl font-black leading-[0.92] tracking-tight md:text-8xl lg:text-9xl">{d.businessName}</h1>
         {d.description && <p className="mt-6 max-w-lg text-lg text-t-muted md:text-xl">{excerpt(d.description)}</p>}
         <div className="mt-9 flex flex-wrap items-center gap-6">
           <HeroActions
