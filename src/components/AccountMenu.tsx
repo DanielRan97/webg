@@ -50,6 +50,9 @@ export function AccountMenu({ email, logoutAction, isAdmin }: { email: string; l
               אדמין
             </Link>
           )}
+          <a href="mailto:support@webg.co.il" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
+            עזרה / צור קשר
+          </a>
           <form action={logoutAction}>
             <button type="submit" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
               התנתקות

@@ -15,6 +15,9 @@ import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
 
+// Inlined at build time by Next.js - not a secret, just a mode flag. Matches the same gate on SiteCard's dev-only controls.
+const isDev = process.env.NODE_ENV !== "production";
+
 type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | null;
 
 /** Publish / take offline / reactivate, with a short explanation, confirmation for risky actions, and clear feedback. */
@@ -109,7 +112,7 @@ export function SiteActions({
 
       {notice && <Notice kind={notice.kind}>{notice.text}</Notice>}
 
-      {!inactive && (
+      {isDev && !inactive && (
         <button type="button" disabled={isPending} onClick={() => setConfirm("deactivate")} className="min-h-11 text-sm text-gray-700 underline hover:text-gray-900" title="הדמיה בלבד, עד שיחובר תשלום">
           הדמיה: סיום מנוי
         </button>

@@ -69,6 +69,15 @@ export function AuthForm({
           <Button type="submit" className="w-full" loading={pending}>
             {pending ? (isLogin ? "מתחברים..." : "יוצרים את החשבון...") : isLogin ? "התחברות" : "יצירת חשבון"}
           </Button>
+          {!isLogin && (
+            <p className="text-center text-xs text-gray-500">
+              בהרשמה אתם מאשרים את{" "}
+              <Link href="/terms" className="underline hover:text-gray-700">תנאי השימוש</Link>
+              {" "}ואת{" "}
+              <Link href="/privacy" className="underline hover:text-gray-700">מדיניות הפרטיות</Link>
+              {" "}שלנו.
+            </p>
+          )}
         </form>
       </ValidationContext.Provider>
     </AuthCard>

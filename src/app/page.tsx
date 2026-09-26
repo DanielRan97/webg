@@ -86,7 +86,14 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-gray-200 px-5 py-8 text-center text-sm text-gray-500">© {new Date().getFullYear()} WEBG</footer>
+      <footer className="border-t border-gray-200 px-5 py-8 text-center text-sm text-gray-500">
+        <p>© {new Date().getFullYear()} WEBG</p>
+        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <Link href="/privacy" className="underline hover:text-gray-700">מדיניות פרטיות</Link>
+          <Link href="/terms" className="underline hover:text-gray-700">תנאי שימוש</Link>
+          <a href="mailto:support@webg.co.il" className="underline hover:text-gray-700">צור קשר</a>
+        </p>
+      </footer>
     </div>
   );
 }

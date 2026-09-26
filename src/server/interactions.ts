@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import type { InteractionType } from "@/lib/constants";
+import { canAccessInbox } from "@/lib/plan";
 
 export interface CreateInteractionInput {
   type: InteractionType;
@@ -93,11 +94,13 @@ export async function listInteractions(userId: string, websiteId: string): Promi
  * Marks every currently-unseen interaction for a site as seen. Owner-scoped
  * server-side: a userId/websiteId pair that isn't a real ownership match
  * touches nothing and reports failure, so this can never be used to read or
- * mutate another account's data.
+ * mutate another account's data. Also re-checks the inbox plan gate here
+ * (not just at the page level) so a Basic-plan owner can't call this action
+ * directly to clear their own unread-lead badge without upgrading.
  */
 export async function markInteractionsSeen(userId: string, websiteId: string): Promise<boolean> {
-  const site = await db.website.findFirst({ where: { id: websiteId, userId }, select: { id: true } });
-  if (!site) return false;
+  const site = await db.website.findFirst({ where: { id: websiteId, userId }, select: { id: true, plan: true } });
+  if (!site || !canAccessInbox(site)) return false;
   await db.customerInteraction.updateMany({ where: { websiteId, seenAt: null }, data: { seenAt: new Date() } });
   return true;
 }
