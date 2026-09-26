@@ -692,3 +692,16 @@ export async function setPlan(userId: string, id: string, plan: Plan) {
   const { count } = await db.website.updateMany({ where: { id, userId }, data: { plan } });
   return count > 0;
 }
+
+/**
+ * Platform-admin override of a site's plan - deliberately not scoped by
+ * userId (unlike setPlan above): authorization here comes entirely from
+ * requireAdmin() at the calling action, not row ownership, since this is a
+ * platform-admin action, not an owner action. A plain column update - it
+ * never creates or touches a Subscription/purchase/revenue row, so it can
+ * never be mistaken for (or counted as) a real purchase.
+ */
+export async function adminSetWebsitePlan(id: string, plan: Plan) {
+  const { count } = await db.website.updateMany({ where: { id }, data: { plan } });
+  return count > 0;
+}

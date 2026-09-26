@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "./ui/icons";
 
 /** Compact account menu for the top nav: avatar + chevron trigger, email and logout inside. */
-export function AccountMenu({ email, logoutAction }: { email: string; logoutAction: () => void }) {
+export function AccountMenu({ email, logoutAction, isAdmin }: { email: string; logoutAction: () => void; isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -44,6 +45,11 @@ export function AccountMenu({ email, logoutAction }: { email: string; logoutActi
       {open && (
         <div role="menu" className="absolute end-0 top-full z-50 mt-2 w-60 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-lg">
           <p className="truncate rounded-lg px-3 py-2 text-sm text-gray-600" dir="ltr">{email}</p>
+          {isAdmin && (
+            <Link href="/admin" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
+              אדמין
+            </Link>
+          )}
           <form action={logoutAction}>
             <button type="submit" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
               התנתקות

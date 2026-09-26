@@ -121,6 +121,7 @@ model Website {
   projects       Project[]
   certifications Certification[]
   interactions   CustomerInteraction[]
+  pageViews      PageView[]
 
   @@index([userId])
 }
@@ -402,4 +403,23 @@ model CustomerInteraction {
 
   @@index([websiteId, createdAt])
   @@index([websiteId, seenAt])
+}
+
+/**
+ * One row per website per day - a lightweight aggregate visit counter, not
+ * one row per view. Written only from the public /s/[slug] page (see
+ * src/server/traffic.ts); nothing else on the platform can reach that code
+ * path, so no visitor identifier (IP, cookie, fingerprint) is needed or
+ * stored here at all.
+ */
+model PageView {
+  id        String   @id @default(cuid())
+  websiteId String
+  day       DateTime // truncated to UTC midnight
+  count     Int      @default(1)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, day])
+  @@index([websiteId])
 }

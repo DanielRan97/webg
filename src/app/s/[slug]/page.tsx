@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getWebsiteBySlug } from "@/server/websites";
+import { recordPageView } from "@/server/traffic";
 import { isPubliclyVisible } from "@/lib/subscription";
 import { canUseProUrl } from "@/lib/plan";
 import { appUrl } from "@/lib/env";
@@ -53,6 +54,8 @@ export default async function PublicSitePage({ params }: PageProps<"/s/[slug]">)
       </main>
     );
   }
+
+  void recordPageView(site.id);
 
   const d = site.data;
   const jsonLd = {
