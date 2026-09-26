@@ -119,12 +119,54 @@ function Feature({ d, t }: Props) {
   );
 }
 
+/** Editorial asymmetric grid: one wide lead image, the rest in taller portrait pairs, with a soft hover zoom. Used by premium templates. */
+function Showcase({ d, t }: Props) {
+  const n = d.gallery.length;
+  if (n <= 2) {
+    return (
+      <div className={`grid gap-4 md:gap-5 ${n === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+        {d.gallery.map((g, i) => (
+          <div key={g.url + i} className={`group relative overflow-hidden ${t.media} aspect-[16/10]`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={g.url} alt={alt(d, i)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <Caption g={g} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  // A full-width lead banner, then the rest tiled with the same proven
+  // span math as Mosaic - guaranteed to always fill complete rows, for any n.
+  const lead = d.gallery[0];
+  const rest = d.gallery.slice(1);
+  const spans = gallerySpans(rest.length);
+  return (
+    <div className="space-y-4 md:space-y-5">
+      <div className={`group relative overflow-hidden ${t.media} aspect-[16/9] md:aspect-[21/9]`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={lead.url} alt={alt(d, 0)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        <Caption g={lead} />
+      </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-6 md:gap-5">
+        {rest.map((g, i) => (
+          <div key={g.url + i} className={`group relative overflow-hidden ${t.media} ${SPAN_CLASS[spans[i]]} aspect-[4/5]`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={g.url} alt={alt(d, i + 1)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <Caption g={g} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const LAYOUTS: Record<GalleryLayout, (p: Props) => React.JSX.Element> = {
   mosaic: Mosaic,
   uniform: Uniform,
   masonry: Masonry,
   bold: Chunky,
   feature: Feature,
+  showcase: Showcase,
 };
 
 export function Gallery(p: Props) {

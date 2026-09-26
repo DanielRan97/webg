@@ -39,14 +39,13 @@ export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
   github: "GitHub",
 };
 
-export const TEMPLATE_IDS = ["modern", "elegant", "minimal", "bold", "dark"] as const;
+export const TEMPLATE_IDS = ["modern", "elegant", "minimal", "bold", "dark", "noble", "luxe"] as const;
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
 
 /**
  * Which plan a template requires - pure data, kept here (not just in
  * templates/registry.ts) so server-side write paths can enforce it without
- * importing the template React components. Every template shipped so far is
- * "standard"; this is metadata-only until a real premium template exists.
+ * importing the template React components.
  */
 export const TEMPLATE_TIERS: Record<TemplateId, "standard" | "premium"> = {
   modern: "standard",
@@ -54,6 +53,8 @@ export const TEMPLATE_TIERS: Record<TemplateId, "standard" | "premium"> = {
   minimal: "standard",
   bold: "standard",
   dark: "standard",
+  noble: "premium",
+  luxe: "premium",
 };
 
 export const BOOKING_METHODS = ["WHATSAPP", "PHONE", "LINK"] as const;

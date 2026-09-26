@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Assistant, Frank_Ruhl_Libre, Heebo, Rubik, Secular_One } from "next/font/google";
+import { Assistant, Frank_Ruhl_Libre, Heebo, Noto_Serif_Hebrew, Rubik, Secular_One } from "next/font/google";
 import { appUrl } from "@/lib/env";
 import "./globals.css";
 
@@ -14,6 +14,8 @@ const frank = Frank_Ruhl_Libre({ variable: "--font-frank", subsets: ["hebrew", "
 const assistant = Assistant({ variable: "--font-assistant", subsets: ["hebrew", "latin"], display: "swap", preload: false });
 const rubik = Rubik({ variable: "--font-rubik", subsets: ["hebrew", "latin"], display: "swap", preload: false });
 const secular = Secular_One({ variable: "--font-secular", subsets: ["hebrew", "latin"], weight: "400", display: "swap", preload: false });
+// Premium (Noble) template's editorial display serif.
+const notoSerif = Noto_Serif_Hebrew({ variable: "--font-noto-serif", subsets: ["hebrew", "latin"], display: "swap", preload: false });
 
 export const metadata: Metadata = {
   // Gives every relative URL in page metadata (og:image, canonical...) a correct absolute origin in production.
@@ -24,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} ${frank.variable} ${assistant.variable} ${rubik.variable} ${secular.variable} h-full antialiased`}>
+    <html lang="he" dir="rtl" className={`${heebo.variable} ${frank.variable} ${assistant.variable} ${rubik.variable} ${secular.variable} ${notoSerif.variable} h-full antialiased`}>
       <body className="min-h-full font-[family-name:var(--font-heebo)]">{children}</body>
     </html>
   );

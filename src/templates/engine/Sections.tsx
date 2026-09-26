@@ -142,7 +142,32 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-function Testimonials({ d, t }: Ctx) {
+/** A single large pull-quote, stacked - used by premium templates instead of a grid of identical boxes. */
+function QuoteTestimonials({ d, t }: Ctx) {
+  const items = d.testimonials.filter((x) => x.name.trim() && x.text.trim());
+  return (
+    <ul className={`mx-auto max-w-3xl space-y-10 ${t.narrow}`}>
+      {items.map((x, i) => (
+        <li key={i}>
+          <Stars rating={x.rating} />
+          <blockquote className={`relative mt-4 whitespace-pre-line text-xl leading-relaxed md:text-2xl ${t.heading}`}>
+            <span aria-hidden className="pointer-events-none absolute -top-9 -start-1 select-none text-7xl leading-none text-t-accent/25">“</span>
+            {x.text}
+          </blockquote>
+          <div className="mt-5 flex items-center gap-3">
+            {x.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={x.imageUrl} alt="" width={44} height={44} loading="lazy" className="h-11 w-11 rounded-full object-cover" />
+            )}
+            <cite className="text-sm font-semibold not-italic text-t-muted">{x.name}</cite>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function CardTestimonials({ d, t }: Ctx) {
   const items = d.testimonials.filter((x) => x.name.trim() && x.text.trim());
   return (
     <ul className={`grid gap-4 ${items.length === 1 ? `max-w-2xl ${t.narrow}` : "sm:grid-cols-2 lg:grid-cols-3"}`}>
@@ -161,6 +186,10 @@ function Testimonials({ d, t }: Ctx) {
       ))}
     </ul>
   );
+}
+
+function Testimonials(ctx: Ctx) {
+  return ctx.t.testimonialStyle === "quote" ? <QuoteTestimonials {...ctx} /> : <CardTestimonials {...ctx} />;
 }
 
 function Areas({ d, t }: Ctx) {
@@ -220,7 +249,24 @@ function Faq({ d, t }: Ctx) {
 }
 
 const HIGHLIGHT_COLS: Record<number, string> = { 1: "md:grid-cols-1", 2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4" };
-function Highlights({ d, t }: Ctx) {
+
+/** No boxes - just big numerals over a thin underline accent. Used by premium templates. */
+function StatHighlights({ d, t }: Ctx) {
+  const items = d.highlights.filter((h) => h.label.trim() && h.value.trim());
+  return (
+    <dl className={`grid grid-cols-2 gap-x-6 gap-y-10 ${HIGHLIGHT_COLS[Math.min(items.length, 4)]}`}>
+      {items.map((h, i) => (
+        <div key={i} className="flex flex-col">
+          <dd className={`text-5xl font-bold text-t-accent-text md:text-6xl ${t.heading}`}>{h.value}</dd>
+          <span aria-hidden className="mt-3 block h-px w-10 bg-t-accent" />
+          <dt className="mt-3 text-sm text-t-muted">{h.label}</dt>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function CardHighlights({ d, t }: Ctx) {
   const items = d.highlights.filter((h) => h.label.trim() && h.value.trim());
   return (
     <dl className={`grid grid-cols-2 gap-4 ${HIGHLIGHT_COLS[Math.min(items.length, 4)]}`}>
@@ -232,6 +278,10 @@ function Highlights({ d, t }: Ctx) {
       ))}
     </dl>
   );
+}
+
+function Highlights(ctx: Ctx) {
+  return ctx.t.highlightStyle === "stat" ? <StatHighlights {...ctx} /> : <CardHighlights {...ctx} />;
 }
 
 function ExperienceList({ d, t }: Ctx) {
@@ -278,7 +328,36 @@ function Skills({ d, t }: Ctx) {
   );
 }
 
-function Projects({ d, t }: Ctx) {
+/** Image-forward "poster" card: title/description sit over the image, not below it. Used by premium templates. */
+function PosterProjects({ d, t }: Ctx) {
+  const items = d.projects.filter((p) => p.title.trim());
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((p, i) => (
+        <div key={i} className={`group relative overflow-hidden ${t.media} ${p.imageUrl ? "aspect-[4/5]" : `${t.card} aspect-[4/5]`}`}>
+          {p.imageUrl && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.imageUrl} alt={p.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+            </>
+          )}
+          <div className={`relative flex h-full flex-col justify-end p-5 ${p.imageUrl ? "text-white" : ""}`}>
+            <h4 className={`text-lg font-semibold ${t.heading}`}>{p.title}</h4>
+            {p.description && <p className={`mt-1 text-sm ${p.imageUrl ? "text-white/80" : "text-t-muted"}`}>{p.description}</p>}
+            {p.link && (
+              <a href={normalizeUrl(p.link)} {...ext(true)} className={`mt-3 self-start text-sm font-semibold underline underline-offset-4 ${p.imageUrl ? "text-white" : "text-t-accent-text"}`}>
+                לצפייה בפרויקט
+              </a>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CardProjects({ d, t }: Ctx) {
   const items = d.projects.filter((p) => p.title.trim());
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -297,6 +376,10 @@ function Projects({ d, t }: Ctx) {
       ))}
     </div>
   );
+}
+
+function Projects(ctx: Ctx) {
+  return ctx.t.projectStyle === "poster" ? <PosterProjects {...ctx} /> : <CardProjects {...ctx} />;
 }
 
 function Certifications({ d, t }: Ctx) {
@@ -418,6 +501,18 @@ export function SectionFrame({ type, index, t, children }: { type: SectionType; 
         {title}
         <span className="mt-3 block h-1 w-14 rounded-full bg-t-accent shadow-[0_0_16px_var(--t-accent)]" />
       </h2>
+    ),
+    editorial: (
+      <div className="mb-12 md:mb-16">
+        <h2 id={`h-${type}`} className={`text-3xl leading-tight md:text-5xl ${h}`}>{title}</h2>
+        <span aria-hidden className="mt-4 block h-px w-20 bg-t-accent" />
+      </div>
+    ),
+    cinema: (
+      <div className="mb-12 flex items-end justify-between gap-6 border-b border-t-line pb-6 md:mb-16">
+        <h2 id={`h-${type}`} className={`text-3xl font-black leading-none tracking-tight md:text-5xl ${h}`}>{title}</h2>
+        <span aria-hidden className="mb-1 h-2 w-2 shrink-0 rounded-full bg-t-accent shadow-[0_0_12px_var(--t-accent)]" />
+      </div>
     ),
   }[t.titleStyle];
 

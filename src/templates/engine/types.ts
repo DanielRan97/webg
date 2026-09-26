@@ -2,8 +2,8 @@ import type { ComponentType, CSSProperties } from "react";
 import type { SectionType } from "@/lib/sections";
 import type { SiteData } from "@/types/site";
 
-export type GalleryLayout = "mosaic" | "uniform" | "masonry" | "bold" | "feature";
-export type TitleStyle = "bar" | "ornament" | "quiet" | "block" | "glow";
+export type GalleryLayout = "mosaic" | "uniform" | "masonry" | "bold" | "feature" | "showcase";
+export type TitleStyle = "bar" | "ornament" | "quiet" | "block" | "glow" | "editorial" | "cinema";
 
 /**
  * What makes one template look different from another. Every section is
@@ -34,6 +34,14 @@ export interface TemplateTheme {
   narrow: string;
   rhythm: "alt" | "lines" | "plain";
   gallery: GalleryLayout;
+  /**
+   * Optional presentation-mode switches for premium templates: each defaults
+   * to the plain "card" behavior every standard template already uses, so
+   * this is purely additive - no existing template needs to set these.
+   */
+  testimonialStyle?: "card" | "quote";
+  highlightStyle?: "card" | "stat";
+  projectStyle?: "card" | "poster";
 }
 
 export interface NavItem {
