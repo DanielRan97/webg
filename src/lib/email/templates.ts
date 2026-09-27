@@ -115,3 +115,33 @@ ${adminUrl ? `${btn(adminUrl, "צפייה בפנייה ב-WEBG")}${fallbackLink(
   const text = `ליד חדש מ-${businessName}\n\nשם: ${name}\nטלפון: ${phone}\nאימייל: ${email || "-"}\n${adminUrl ? `\nלצפייה בפנייה: ${adminUrl}\n` : ""}\nהתקבל: ${submittedAt}\nהאתר: ${siteUrl}`;
   return { subject, html, text };
 }
+
+/** Sent to a user when a WEBG admin replies to their support ticket. `message` is the admin's own reply text - still escaped, since it renders inside an HTML email regardless of who wrote it. Deliberately never invites a reply by email (no real support mailbox exists) - the button/link is the only way to continue the conversation. */
+export function supportReplyEmail(input: { subject: string; message: string; ticketUrl: string }) {
+  const { subject: ticketSubject, message, ticketUrl } = input;
+  const subject = "קיבלת תשובה לפנייה שלך ב-WEBG";
+  const html = wrap(
+    "קיבלת תשובה לפנייה שלך ב-WEBG",
+    `<p style="color:#374151;line-height:1.6;font-size:15px">צוות WEBG הגיב לפנייה שלכם: <b>${escapeHtml(ticketSubject)}</b></p>
+<p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f9fafb;border-radius:12px;padding:14px">${escapeHtml(message)}</p>
+${btn(ticketUrl, "פתיחת הפנייה ב-WEBG")}${fallbackLink(ticketUrl)}
+<p style="margin-top:20px;color:#9ca3af;font-size:13px">להמשך השיחה יש להיכנס לפנייה ב-WEBG - לא ניתן להשיב להודעה זו במייל.</p>`,
+  );
+  const text = `קיבלת תשובה לפנייה שלך ב-WEBG\n\nפנייה: ${ticketSubject}\n\n${message}\n\nלהמשך השיחה יש להיכנס לפנייה ב-WEBG (לא ניתן להשיב להודעה זו במייל):\n${ticketUrl}`;
+  return { subject, html, text };
+}
+
+/** Sent to the configured platform admins when a user opens a new support ticket. `subject`/`category` come from the authenticated user, not an anonymous visitor, but are still escaped since a user's own free-text input still renders inside an HTML email. */
+export function supportTicketOpenedEmail(input: { subject: string; category: string; userEmail: string; adminTicketUrl: string }) {
+  const { subject: ticketSubject, category, userEmail, adminTicketUrl } = input;
+  const subject = "פנייה חדשה למערכת התמיכה של WEBG";
+  const html = wrap(
+    "פנייה חדשה למערכת התמיכה",
+    `${row("נושא", ticketSubject)}
+${row("קטגוריה", category)}
+${row("ממשתמש", userEmail)}
+${btn(adminTicketUrl, "פתיחת הפנייה בניהול")}${fallbackLink(adminTicketUrl)}`,
+  );
+  const text = `פנייה חדשה למערכת התמיכה\n\nנושא: ${ticketSubject}\nקטגוריה: ${category}\nממשתמש: ${userEmail}\n\nלפתיחה: ${adminTicketUrl}`;
+  return { subject, html, text };
+}

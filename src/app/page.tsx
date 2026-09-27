@@ -91,7 +91,7 @@ export default async function LandingPage() {
         <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <Link href="/privacy" className="underline hover:text-gray-700">מדיניות פרטיות</Link>
           <Link href="/terms" className="underline hover:text-gray-700">תנאי שימוש</Link>
-          <a href="mailto:support@webg.co.il" className="underline hover:text-gray-700">צור קשר</a>
+          <Link href="/support" className="underline hover:text-gray-700">צור קשר</Link>
         </p>
       </footer>
     </div>

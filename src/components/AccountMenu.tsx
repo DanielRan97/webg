@@ -5,7 +5,18 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "./ui/icons";
 
 /** Compact account menu for the top nav: avatar + chevron trigger, email and logout inside. */
-export function AccountMenu({ email, logoutAction, isAdmin }: { email: string; logoutAction: () => void; isAdmin?: boolean }) {
+export function AccountMenu({
+  email,
+  logoutAction,
+  isAdmin,
+  supportUnreadCount,
+}: {
+  email: string;
+  logoutAction: () => void;
+  isAdmin?: boolean;
+  /** Unread admin replies across the user's own support tickets - omitted (not 0) hides the badge entirely, so pages that don't fetch it never show a stale zero. */
+  supportUnreadCount?: number;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -50,9 +61,12 @@ export function AccountMenu({ email, logoutAction, isAdmin }: { email: string; l
               אדמין
             </Link>
           )}
-          <a href="mailto:support@webg.co.il" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
-            עזרה / צור קשר
-          </a>
+          <Link href="/support" role="menuitem" className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
+            <span>עזרה / צור קשר</span>
+            {Boolean(supportUnreadCount) && (
+              <span aria-hidden className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{supportUnreadCount}</span>
+            )}
+          </Link>
           <form action={logoutAction}>
             <button type="submit" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
               התנתקות

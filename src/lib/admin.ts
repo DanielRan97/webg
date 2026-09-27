@@ -21,6 +21,11 @@ export function isAdminEmail(email: string): boolean {
   return adminEmails().has(email.trim().toLowerCase());
 }
 
+/** The configured admin addresses, for sending internal notifications (e.g. a new support ticket) - never used to accept a recipient from a client. */
+export function adminEmailList(): string[] {
+  return [...adminEmails()];
+}
+
 /**
  * Gates every admin page and every admin server action. Uses notFound(), not
  * a login redirect, so a non-admin (anonymous or logged in) never learns that

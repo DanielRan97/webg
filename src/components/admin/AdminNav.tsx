@@ -10,10 +10,11 @@ const LINKS = [
   { href: "/admin/sites", label: "אתרים" },
   { href: "/admin/traffic", label: "תנועה" },
   { href: "/admin/interactions", label: "פניות" },
+  { href: "/admin/support", label: "תמיכה" },
   { href: "/admin/purchases", label: "רכישות" },
 ] as const;
 
-export function AdminNav() {
+export function AdminNav({ supportUnreadCount = 0 }: { supportUnreadCount?: number }) {
   const pathname = usePathname();
   return (
     <nav className="flex flex-wrap items-center gap-1">
@@ -24,11 +25,14 @@ export function AdminNav() {
             key={l.href}
             href={l.href}
             className={cx(
-              "flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold transition",
+              "flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition",
               active ? "bg-indigo-100 text-indigo-900" : "text-gray-700 hover:bg-gray-100",
             )}
           >
             {l.label}
+            {l.href === "/admin/support" && supportUnreadCount > 0 && (
+              <span aria-hidden className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{supportUnreadCount}</span>
+            )}
           </Link>
         );
       })}

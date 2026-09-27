@@ -106,3 +106,38 @@ export const TOKEN_PURPOSE = {
   EMAIL_VERIFY: "EMAIL_VERIFY",
 } as const;
 export type TokenPurpose = (typeof TOKEN_PURPOSE)[keyof typeof TOKEN_PURPOSE];
+
+export const SUPPORT_TICKET_STATUS = {
+  OPEN: "OPEN",
+  IN_PROGRESS: "IN_PROGRESS",
+  CLOSED: "CLOSED",
+} as const;
+export type SupportTicketStatus = (typeof SUPPORT_TICKET_STATUS)[keyof typeof SUPPORT_TICKET_STATUS];
+
+export const SUPPORT_TICKET_STATUS_LABELS: Record<SupportTicketStatus, string> = {
+  OPEN: "פתוח",
+  IN_PROGRESS: "בטיפול",
+  CLOSED: "סגור",
+};
+
+/** "BILLING" is deliberately not offered yet - no real payment provider is connected, see src/app/support. */
+export const SUPPORT_CATEGORY = {
+  ISSUE: "ISSUE",
+  QUESTION: "QUESTION",
+  SUGGESTION: "SUGGESTION",
+  ACCOUNT: "ACCOUNT",
+  OTHER: "OTHER",
+} as const;
+export type SupportCategory = (typeof SUPPORT_CATEGORY)[keyof typeof SUPPORT_CATEGORY];
+
+export const SUPPORT_CATEGORY_LABELS: Record<SupportCategory, string> = {
+  ISSUE: "תקלה",
+  QUESTION: "שאלה",
+  SUGGESTION: "הצעה",
+  ACCOUNT: "חשבון",
+  OTHER: "אחר",
+};
+
+/** Who wrote a given SupportMessage. */
+export const SUPPORT_SENDER_TYPE = { USER: "USER", ADMIN: "ADMIN" } as const;
+export type SupportSenderType = (typeof SUPPORT_SENDER_TYPE)[keyof typeof SUPPORT_SENDER_TYPE];

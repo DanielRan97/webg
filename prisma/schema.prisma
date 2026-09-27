@@ -26,6 +26,7 @@ model User {
   websites        Website[]
   sessions        Session[]
   tokens          VerificationToken[]
+  supportTickets  SupportTicket[]
 }
 
 /**
@@ -422,4 +423,53 @@ model PageView {
 
   @@unique([websiteId, day])
   @@index([websiteId])
+}
+
+/**
+ * A WEBG customer's support ticket to the WEBG platform team - distinct from
+ * CustomerInteraction, which is an end-visitor contacting a business through
+ * its own published site. `relatedWebsiteId` is a plain unenforced reference
+ * (no FK/relation): a ticket should survive its related site being deleted,
+ * and ownership of it is re-validated server-side on every write anyway, so
+ * a DB-level relation would add nothing but a cascade to guard against.
+ * `adminSeenAt`/`userSeenAt` are each side's own "last viewed this thread"
+ * timestamp; unread-for-admin means the latest message is from the user and
+ * is newer than adminSeenAt (same idea, mirrored, for unread-for-user) - no
+ * separate read-state table needed for this MVP.
+ */
+model SupportTicket {
+  id               String    @id @default(cuid())
+  userId           String
+  category         String // ISSUE | QUESTION | SUGGESTION | ACCOUNT | OTHER
+  subject          String
+  status           String    @default("OPEN") // OPEN | IN_PROGRESS | CLOSED
+  relatedWebsiteId String?
+  adminSeenAt      DateTime?
+  userSeenAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  closedAt         DateTime?
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SupportMessage[]
+
+  @@index([userId, status])
+  @@index([status])
+}
+
+/**
+ * One row per message in a ticket's thread, from either side - a single
+ * shared table (not separate user/admin tables) since a thread is just a
+ * time-ordered list of messages regardless of sender.
+ */
+model SupportMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  senderType String // USER | ADMIN
+  message    String
+  createdAt  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
 }

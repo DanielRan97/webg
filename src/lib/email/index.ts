@@ -1,7 +1,7 @@
 import "server-only";
 import { consoleAdapter } from "./console-adapter";
 import { createResendAdapter } from "./resend-adapter";
-import { contactFormEmail, leadFormEmail, passwordResetEmail, verifyEmailEmail } from "./templates";
+import { contactFormEmail, leadFormEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
 import type { EmailAdapter } from "./types";
 
 /**
@@ -40,6 +40,18 @@ export async function sendLeadFormEmail(
   input: { businessName: string; siteUrl: string; adminUrl: string | null; name: string; phone: string; email: string; submittedAt: string },
 ) {
   const { subject, html, text } = leadFormEmail(input);
+  await getAdapter().send({ to, subject, html, text });
+}
+
+/** `to` must always be resolved server-side from the ticket's owner - never accept a recipient from the browser. */
+export async function sendSupportReplyEmail(to: string, input: { subject: string; message: string; ticketUrl: string }) {
+  const { subject, html, text } = supportReplyEmail(input);
+  await getAdapter().send({ to, subject, html, text });
+}
+
+/** `to` must always be resolved server-side from ADMIN_EMAILS - never accept a recipient from the browser. Best-effort only: a failure here must never block ticket creation, see callers. */
+export async function sendSupportTicketOpenedEmail(to: string, input: { subject: string; category: string; userEmail: string; adminTicketUrl: string }) {
+  const { subject, html, text } = supportTicketOpenedEmail(input);
   await getAdapter().send({ to, subject, html, text });
 }
 

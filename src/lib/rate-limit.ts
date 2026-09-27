@@ -36,4 +36,6 @@ export const RATE_LIMITS = {
   contactFormPerSite: { limit: 20, windowMs: 60 * 60 * 1000 },
   leadFormPerIp: { limit: 5, windowMs: 10 * 60 * 1000 },
   leadFormPerSite: { limit: 20, windowMs: 60 * 60 * 1000 },
+  supportTicketPerUser: { limit: 5, windowMs: 60 * 60 * 1000 },
+  supportReplyPerUser: { limit: 20, windowMs: 60 * 60 * 1000 },
 } as const;
