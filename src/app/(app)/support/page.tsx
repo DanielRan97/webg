@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { listTicketsForUser } from "@/server/support";
-import { SUPPORT_CATEGORY_LABELS, SUPPORT_TICKET_STATUS_LABELS, type SupportCategory, type SupportTicketStatus } from "@/lib/constants";
+import { SUPPORT_CATEGORY_LABELS, SUPPORT_EMAIL, SUPPORT_TICKET_STATUS_LABELS, type SupportCategory, type SupportTicketStatus } from "@/lib/constants";
 
 export const metadata: Metadata = { title: "תמיכה" };
 export const dynamic = "force-dynamic";
@@ -28,6 +28,10 @@ export default async function SupportPage() {
         <div>
           <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← האתרים שלי</Link>
           <h1 className="text-2xl font-extrabold">תמיכה</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            אפשר גם לכתוב לנו:{" "}
+            <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>
+          </p>
         </div>
         <Link href="/support/new" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-5 text-base font-semibold text-white transition hover:bg-indigo-700">
           + פנייה חדשה

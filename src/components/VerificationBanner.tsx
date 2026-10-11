@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { resendVerificationAction } from "@/server/actions/email-verification";
+import { SUPPORT_EMAIL } from "@/lib/constants";
 import { Button, Notice } from "./ui/ui";
 
 /** Shown on the dashboard until the owner confirms their email. Publishing a site is blocked until then. */
@@ -30,6 +31,10 @@ export function VerificationBanner() {
           {pending ? "שולחים..." : "שליחת קישור אימות מחדש"}
         </Button>
       )}
+      <p className="text-sm text-amber-900">
+        עדיין לא הגיע? כתבו לנו:{" "}
+        <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold underline">{SUPPORT_EMAIL}</a>
+      </p>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { CATEGORIES } from "@/lib/categories";
+import { SUPPORT_EMAIL } from "@/lib/constants";
 
 const STEPS = [
   { n: 1, title: "ממלאים פרטים", text: "שם העסק, טלפון, שעות פתיחה ומה אתם מציעים." },
@@ -91,7 +92,9 @@ export default async function LandingPage() {
         <p className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <Link href="/privacy" className="underline hover:text-gray-700">מדיניות פרטיות</Link>
           <Link href="/terms" className="underline hover:text-gray-700">תנאי שימוש</Link>
-          <Link href="/support" className="underline hover:text-gray-700">צור קשר</Link>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className="underline hover:text-gray-700">
+            צור קשר: <span dir="ltr">{SUPPORT_EMAIL}</span>
+          </a>
         </p>
       </footer>
     </div>

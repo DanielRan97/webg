@@ -6,8 +6,8 @@ import type { EmailAdapter } from "./types";
 export function createResendAdapter(apiKey: string, from: string): EmailAdapter {
   const resend = new Resend(apiKey);
   return {
-    async send({ to, subject, html, text }) {
-      const { error } = await resend.emails.send({ from, to, subject, html, text });
+    async send({ to, subject, html, text, replyTo }) {
+      const { error } = await resend.emails.send({ from, to, subject, html, text, ...(replyTo ? { replyTo } : {}) });
       // Never log the API key or full request; the error object from Resend
       // does not include it, only a message/name, which is safe to log.
       if (error) throw new Error(`Resend failed to send: ${error.message}`);

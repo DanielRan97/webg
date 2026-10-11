@@ -1,3 +1,6 @@
+/** WEBG's public contact address (a Google Workspace alias). Public by design - shown in the UI and used as Reply-To - so it's a constant, not an env var. Transactional mail is still sent *from* EMAIL_FROM (no-reply@). */
+export const SUPPORT_EMAIL = "hello@webg.co.il";
+
 export const WEBSITE_STATUS = { DRAFT: "DRAFT", PUBLISHED: "PUBLISHED" } as const;
 export type WebsiteStatus = (typeof WEBSITE_STATUS)[keyof typeof WEBSITE_STATUS];
 

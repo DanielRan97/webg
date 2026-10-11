@@ -13,7 +13,12 @@ export function slugify(input: string): string {
     .slice(0, 40);
 }
 
-export const RESERVED_SLUGS = new Set(["admin", "api", "app", "login", "signup", "dashboard", "create", "preview"]);
+// The second line are names that exist (or may exist) as real DNS records under webg.co.il - e.g. send.webg.co.il is
+// Resend's bounce domain - so the *.webg.co.il wildcard never reaches them and a Pro site with that slug would not load.
+export const RESERVED_SLUGS = new Set([
+  "admin", "api", "app", "login", "signup", "dashboard", "create", "preview",
+  "send", "www", "mail", "hello", "support",
+]);
 
 /** The Basic-plan public URL prefix, e.g. "webg.co.il/s/daniel-barber". */
 export const SLUG_BASE = "webg.co.il/s/";

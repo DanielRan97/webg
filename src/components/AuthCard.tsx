@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SUPPORT_EMAIL } from "@/lib/constants";
 
 /**
  * Shared shell for every auth screen (login, signup, forgot/reset password,
@@ -27,6 +28,11 @@ export function AuthCard({
         </div>
         {children}
         {footer}
+        {/* Everyone on these screens is logged out, so the in-app /support area is out of reach - email is their only way to us. */}
+        <p className="text-center text-sm text-gray-600">
+          צריכים עזרה או שלא הגיע מייל? כתבו לנו:{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>
+        </p>
       </div>
     </main>
   );

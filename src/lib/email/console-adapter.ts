@@ -9,13 +9,14 @@ import type { EmailAdapter } from "./types";
  * the text is easy to copy into a browser.
  */
 export const consoleAdapter: EmailAdapter = {
-  async send({ to, subject, text }) {
+  async send({ to, subject, text, replyTo }) {
     console.log(
       [
         "",
         "———————————————————————————————————————————",
         "  📧  Email (dev mode - no RESEND_API_KEY set)",
         `  To:      ${to}`,
+        ...(replyTo ? [`  ReplyTo: ${replyTo}`] : []),
         `  Subject: ${subject}`,
         "———————————————————————————————————————————",
         text,

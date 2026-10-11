@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/lib/constants";
 
 export const metadata: Metadata = { title: "תנאי שימוש" };
 
@@ -115,6 +116,10 @@ export default function TermsPage() {
           משתמשים רשומים של WEBG יכולים לפנות אלינו בכל שאלה לגבי תנאי השימוש דרך{" "}
           <Link href="/support" className="font-semibold text-indigo-800 underline">אזור התמיכה</Link>{" "}
           בחשבונם (יש להתחבר; מי שעדיין אין לו חשבון יכול להירשם בחינם).
+        </p>
+        <p>
+          אפשר גם לכתוב לנו במייל:{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>.
         </p>
       </Section>
 

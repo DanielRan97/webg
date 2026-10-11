@@ -1,4 +1,5 @@
 import "server-only";
+import { SUPPORT_EMAIL } from "@/lib/constants";
 import { consoleAdapter } from "./console-adapter";
 import { createResendAdapter } from "./resend-adapter";
 import { contactFormEmail, leadFormEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
@@ -15,14 +16,16 @@ function getAdapter(): EmailAdapter {
   return createResendAdapter(apiKey, process.env.EMAIL_FROM ?? "WEBG <no-reply@webg.co.il>");
 }
 
+// Account emails get a real Reply-To: the From address (no-reply@) is not a mailbox, so a reply to it would bounce.
+// Deliberately not set on contact/lead emails - a business owner hitting "reply" there must not land at WEBG.
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   const { subject, html, text } = passwordResetEmail(resetUrl);
-  await getAdapter().send({ to, subject, html, text });
+  await getAdapter().send({ to, subject, html, text, replyTo: SUPPORT_EMAIL });
 }
 
 export async function sendVerifyEmail(to: string, verifyUrl: string) {
   const { subject, html, text } = verifyEmailEmail(verifyUrl);
-  await getAdapter().send({ to, subject, html, text });
+  await getAdapter().send({ to, subject, html, text, replyTo: SUPPORT_EMAIL });
 }
 
 /** `to` must always be resolved server-side from the website's owner - never accept a recipient from the browser. `adminUrl` is null for a Basic-plan site (no inbox to link to). */

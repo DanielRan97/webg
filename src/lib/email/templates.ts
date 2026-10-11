@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "@/lib/constants";
+
 /** Minimal, RTL-friendly Hebrew email templates. Kept plain (no heavy HTML/CSS, no external assets) so they render well in every client, including on a phone. */
 
 /** Every value interpolated into an HTML email body must go through this - the sender of a contact-form message is an anonymous website visitor. */
@@ -39,6 +41,9 @@ const btn = (href: string, label: string) =>
 const fallbackLink = (href: string) =>
   `<p style="color:#9ca3af;font-size:13px;line-height:1.6">אם הכפתור לא עובד, אפשר להעתיק את הכתובת הזו לדפדפן:<br><span style="word-break:break-all">${href}</span></p>`;
 
+const helpLine = `<p style="color:#6b7280;font-size:13px;line-height:1.6;margin-top:20px">צריכים עזרה? אפשר להשיב למייל הזה או לכתוב לנו: <span dir="ltr">${SUPPORT_EMAIL}</span></p>`;
+const helpText = `צריכים עזרה? אפשר להשיב למייל הזה או לכתוב לנו: ${SUPPORT_EMAIL}`;
+
 /** One "label: value" line in a visitor-submitted email, skipped when empty. The value always comes from an anonymous browser, so it is always escaped. */
 const row = (label: string, value: string) =>
   value ? `<p style="margin:0 0 10px;color:#374151;font-size:15px"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>` : "";
@@ -47,9 +52,9 @@ export function passwordResetEmail(resetUrl: string) {
   const subject = "איפוס סיסמה ל-WEBG";
   const html = wrap(
     "איפוס סיסמה",
-    `<p style="color:#374151;line-height:1.6;font-size:15px">קיבלנו בקשה לאיפוס הסיסמה שלכם. לחצו על הכפתור כדי לבחור סיסמה חדשה. הקישור בתוקף לשעה אחת.</p>${btn(resetUrl, "איפוס סיסמה")}${fallbackLink(resetUrl)}`,
+    `<p style="color:#374151;line-height:1.6;font-size:15px">קיבלנו בקשה לאיפוס הסיסמה שלכם. לחצו על הכפתור כדי לבחור סיסמה חדשה. הקישור בתוקף לשעה אחת.</p>${btn(resetUrl, "איפוס סיסמה")}${fallbackLink(resetUrl)}${helpLine}`,
   );
-  const text = `איפוס סיסמה ל-WEBG\n\nלחצו על הקישור כדי לבחור סיסמה חדשה (בתוקף לשעה אחת):\n${resetUrl}\n\nאם לא ביקשתם את זה, אפשר להתעלם מההודעה.`;
+  const text = `איפוס סיסמה ל-WEBG\n\nלחצו על הקישור כדי לבחור סיסמה חדשה (בתוקף לשעה אחת):\n${resetUrl}\n\nאם לא ביקשתם את זה, אפשר להתעלם מההודעה.\n\n${helpText}`;
   return { subject, html, text };
 }
 
@@ -57,9 +62,9 @@ export function verifyEmailEmail(verifyUrl: string) {
   const subject = "אימות כתובת האימייל ב-WEBG";
   const html = wrap(
     "אימות כתובת האימייל",
-    `<p style="color:#374151;line-height:1.6;font-size:15px">כמעט סיימנו. לחצו על הכפתור כדי לאמת את כתובת האימייל שלכם. אימות נדרש לפני שאפשר לפרסם אתר. הקישור בתוקף ל-24 שעות.</p>${btn(verifyUrl, "אימות האימייל")}${fallbackLink(verifyUrl)}`,
+    `<p style="color:#374151;line-height:1.6;font-size:15px">כמעט סיימנו. לחצו על הכפתור כדי לאמת את כתובת האימייל שלכם. אימות נדרש לפני שאפשר לפרסם אתר. הקישור בתוקף ל-24 שעות.</p>${btn(verifyUrl, "אימות האימייל")}${fallbackLink(verifyUrl)}${helpLine}`,
   );
-  const text = `אימות כתובת האימייל ב-WEBG\n\nלחצו על הקישור כדי לאמת את האימייל (בתוקף ל-24 שעות):\n${verifyUrl}`;
+  const text = `אימות כתובת האימייל ב-WEBG\n\nלחצו על הקישור כדי לאמת את האימייל (בתוקף ל-24 שעות):\n${verifyUrl}\n\n${helpText}`;
   return { subject, html, text };
 }
 
