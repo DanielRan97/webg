@@ -48,9 +48,9 @@ export default async function PublicSitePage({ params }: PageProps<"/s/[slug]">)
   if (!isPubliclyVisible(site)) {
     // Data is kept; visitors just see that the site is unavailable.
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gray-50 px-6 text-center">
-        <h1 className="text-3xl font-bold">האתר לא זמין כרגע</h1>
-        <p className="max-w-md text-gray-600">האתר הזה אינו פעיל בשלב זה. נסו שוב מאוחר יותר.</p>
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-paper px-6 text-center text-ink-900">
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">האתר לא זמין כרגע</h1>
+        <p className="max-w-md text-ink-700">האתר הזה אינו פעיל בשלב זה. נסו שוב מאוחר יותר.</p>
       </main>
     );
   }

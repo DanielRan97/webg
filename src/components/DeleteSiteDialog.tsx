@@ -48,12 +48,12 @@ export function DeleteSiteDialog({
         e.preventDefault();
         cancel();
       }}
-      className="m-auto w-[min(92vw,28rem)] rounded-3xl p-6 shadow-2xl backdrop:bg-black/50"
+      className="m-auto w-[min(92vw,28rem)] rounded-2xl border border-ink-200 p-6 shadow-2xl backdrop:bg-ink-950/50"
     >
       <h2 id={titleId} className="text-xl font-bold text-red-800">מחיקת האתר לצמיתות</h2>
-      <p className="mt-2 text-gray-700">מחיקת האתר תמחק את האתר, התמונות והמידע שלו לצמיתות. הפעולה בלתי הפיכה.</p>
+      <p className="mt-2 text-ink-700">מחיקת האתר תמחק את האתר, התמונות והמידע שלו לצמיתות. הפעולה בלתי הפיכה.</p>
       <div className="mt-4 space-y-1.5">
-        <label htmlFor={inputId} className="block text-sm font-semibold text-gray-900">
+        <label htmlFor={inputId} className="block text-sm font-semibold text-ink-900">
           כדי לאשר, הקלידו את שם העסק: <span className="font-bold">{businessName}</span>
         </label>
         <input
@@ -64,7 +64,7 @@ export function DeleteSiteDialog({
           autoComplete="off"
           aria-describedby={`${inputId}-hint`}
         />
-        <p id={`${inputId}-hint`} className="text-sm text-gray-600">ההקלדה חייבת להיות זהה לשם העסק בדיוק.</p>
+        <p id={`${inputId}-hint`} className="text-sm text-ink-500">ההקלדה חייבת להיות זהה לשם העסק בדיוק.</p>
       </div>
       <div className="mt-6 flex flex-wrap justify-end gap-3">
         <Button variant="secondary" autoFocus onClick={cancel}>ביטול</Button>

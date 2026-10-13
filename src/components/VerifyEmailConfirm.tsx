@@ -24,7 +24,7 @@ export function VerifyEmailConfirm({ token }: { token: string }) {
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="token" value={token} />
-      <p className="text-gray-700">לחצו לאישור שזו כתובת האימייל שלכם.</p>
+      <p className="text-ink-700">לחצו לאישור שזו כתובת האימייל שלכם.</p>
       {state.error && <Notice kind="error">{state.error}</Notice>}
       <Button type="submit" className="w-full" loading={pending}>
         {pending ? "מאמתים..." : "אימות האימייל"}
@@ -35,7 +35,7 @@ export function VerifyEmailConfirm({ token }: { token: string }) {
 
 export function VerifyEmailLinks() {
   return (
-    <Link href="/dashboard" className="flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">
+    <Link href="/dashboard" className="flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700">
       מעבר ללוח הבקרה
     </Link>
   );

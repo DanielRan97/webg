@@ -19,11 +19,9 @@ export function VerificationBanner() {
   }
 
   return (
-    <div className="space-y-2 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
-      <p className="font-bold text-amber-900">
-        <span aria-hidden>✉️ </span>עדיין לא אימתתם את כתובת האימייל
-      </p>
-      <p className="text-sm text-amber-900">אפשר להמשיך לערוך את האתר, אבל צריך לאמת את האימייל לפני שאפשר לפרסם אותו.</p>
+    <div className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+      <p className="font-bold">עדיין לא אימתתם את כתובת האימייל</p>
+      <p className="text-sm">אפשר להמשיך לערוך את האתר, אבל צריך לאמת את האימייל לפני שאפשר לפרסם אותו.</p>
       {notice ? (
         <Notice kind={notice.kind}>{notice.text}</Notice>
       ) : (
@@ -31,7 +29,7 @@ export function VerificationBanner() {
           {pending ? "שולחים..." : "שליחת קישור אימות מחדש"}
         </Button>
       )}
-      <p className="text-sm text-amber-900">
+      <p className="text-sm">
         עדיין לא הגיע? כתבו לנו:{" "}
         <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold underline">{SUPPORT_EMAIL}</a>
       </p>

@@ -55,8 +55,8 @@ function Row({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cx(
-        "rounded-2xl border p-3 transition",
-        isDragging ? "relative z-10 border-indigo-600 bg-white shadow-xl" : muted ? "border-gray-200 bg-gray-50" : "border-gray-200 bg-white",
+        "rounded-xl border p-3 transition",
+        isDragging ? "relative z-10 border-brand-600 bg-white shadow-xl" : muted ? "border-ink-100 bg-ink-50" : "border-ink-100 bg-white",
       )}
     >
       <div className="flex items-start gap-2 sm:gap-3">
@@ -67,14 +67,14 @@ function Row({
           {...listeners}
           aria-label={`גרירה לשינוי המיקום של ${meta.label}`}
           title="גררו כדי לשנות סדר"
-          className="flex h-11 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
+          className="flex h-11 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-400 transition hover:bg-ink-50 hover:text-ink-500 active:cursor-grabbing"
         >
           <GripIcon />
         </button>
 
         <div className="min-w-0 flex-1 space-y-1">
-          <p className={cx("text-base font-bold", muted ? "text-gray-700" : "text-gray-900")}>{meta.label}</p>
-          <p className={cx("text-sm", muted ? "text-gray-500" : "text-gray-600")}>{meta.hint}</p>
+          <p className={cx("text-base font-bold", muted ? "text-ink-700" : "text-ink-900")}>{meta.label}</p>
+          <p className={cx("text-sm", muted ? "text-ink-500" : "text-ink-500")}>{meta.hint}</p>
           <Toggle checked={s.enabled} onChange={onToggle} label={meta.label} labelClassName="sr-only" onText="מוצג" offText="מוסתר" />
           {s.enabled && !hasContent && (
             <p className="flex items-center gap-1.5 text-xs font-medium text-amber-700">
@@ -90,7 +90,7 @@ function Row({
             aria-label={`הזזת ${meta.label} למעלה`}
             disabled={index === 0}
             onClick={() => onMove(-1)}
-            className="flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-gray-400 hover:text-gray-700 disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-ink-100 text-ink-400 transition hover:border-ink-500 hover:text-ink-700 disabled:opacity-30"
           >
             <span aria-hidden>↑</span>
           </button>
@@ -99,7 +99,7 @@ function Row({
             aria-label={`הזזת ${meta.label} למטה`}
             disabled={index === count - 1}
             onClick={() => onMove(1)}
-            className="flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-gray-400 hover:text-gray-700 disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-ink-100 text-ink-400 transition hover:border-ink-500 hover:text-ink-700 disabled:opacity-30"
           >
             <span aria-hidden>↓</span>
           </button>
@@ -151,17 +151,17 @@ export function SectionsStep({ data, update }: StepProps) {
         subtitle="בחרו את החלקים שמתאימים לעסק שלכם וסדרו אותם איך שתרצו. לא חייבים להחליט הכול עכשיו — אפשר להוסיף, להסיר ולשנות חלקים גם בהמשך וגם אחרי שהאתר נוצר."
       />
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-3">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-ink-100 bg-ink-50 p-3">
         <span>
-          <span className="block text-base font-bold text-gray-900">{SECTION_META.hero.label}</span>
-          <span className="text-sm text-gray-600">{SECTION_META.hero.hint}</span>
+          <span className="block text-base font-bold text-ink-900">{SECTION_META.hero.label}</span>
+          <span className="text-sm text-ink-500">{SECTION_META.hero.hint}</span>
         </span>
-        <span className="shrink-0 rounded-full bg-gray-200 px-3 py-1 text-sm font-semibold text-gray-800">תמיד מופיע</span>
+        <span className="shrink-0 rounded-full bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-800">תמיד מופיע</span>
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-gray-900">החלקים באתר</p>
-        <p className="text-sm text-gray-600">גררו חלקים כדי לשנות את הסדר. אפשר גם להשתמש בחצים.</p>
+        <p className="text-sm font-semibold text-ink-900">החלקים באתר</p>
+        <p className="text-sm text-ink-500">גררו חלקים כדי לשנות את הסדר. אפשר גם להשתמש בחצים.</p>
 
         <DndContext
           sensors={sensors}
@@ -195,18 +195,18 @@ export function SectionsStep({ data, update }: StepProps) {
       <p className="sr-only" role="status" aria-live="polite">{status}</p>
 
       {more.length > 0 && (
-        <details className="group rounded-2xl border border-gray-200 bg-white p-4">
+        <details className="group rounded-xl border border-ink-100 bg-white p-4">
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-semibold [&::-webkit-details-marker]:hidden">
             עוד חלקים שאפשר להוסיף ({more.length})
-            <ChevronDownIcon className="text-gray-500 transition group-open:rotate-180" />
+            <ChevronDownIcon className="text-ink-500 transition group-open:rotate-180" />
           </summary>
-          <p className="mt-1 text-sm text-gray-500">לא חייבים להוסיף הכול עכשיו — החלקים האלה יהיו זמינים גם אחר כך בעריכת האתר.</p>
-          <ul className="mt-2 divide-y divide-gray-100">
+          <p className="mt-1 text-sm text-ink-500">לא חייבים להוסיף הכול עכשיו — החלקים האלה יהיו זמינים גם אחר כך בעריכת האתר.</p>
+          <ul className="mt-2 divide-y divide-ink-100">
             {more.map((s) => (
               <li key={s.type} className="flex items-center justify-between gap-3 py-3">
                 <span>
-                  <span className="block font-semibold text-gray-900">{SECTION_META[s.type].label}</span>
-                  <span className="text-sm text-gray-600">{SECTION_META[s.type].hint}</span>
+                  <span className="block font-semibold text-ink-900">{SECTION_META[s.type].label}</span>
+                  <span className="text-sm text-ink-500">{SECTION_META[s.type].hint}</span>
                 </span>
                 <Button type="button" variant="secondary" className="min-h-11 shrink-0 px-4" onClick={() => add(s.type)} aria-label={`הוספת ${SECTION_META[s.type].label} לאתר`}>
                   + הוספה

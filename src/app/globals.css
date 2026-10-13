@@ -2,13 +2,38 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #111827;
+  --foreground: #0f1b30;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-heebo);
+  --font-sans: var(--font-plex);
+
+  /* WEBG interface palette. Ink: cool navy-slate neutrals for text, borders and surfaces. */
+  --color-ink-50: #f5f7fa;
+  --color-ink-100: #e9edf3;
+  --color-ink-200: #d5dce6;
+  --color-ink-300: #b3bfcf;
+  --color-ink-400: #8493a8;
+  --color-ink-500: #5b6b82;
+  --color-ink-600: #3f4e66;
+  --color-ink-700: #2b3a52;
+  --color-ink-800: #1a2840;
+  --color-ink-900: #0f1b30;
+  --color-ink-950: #0a1222;
+  /* Brand: cobalt blue for primary actions, selection and focus. */
+  --color-brand-50: #eef3ff;
+  --color-brand-100: #dce6ff;
+  --color-brand-200: #b9ccff;
+  --color-brand-300: #8aa8ff;
+  --color-brand-400: #5a82f5;
+  --color-brand-500: #2f5fe6;
+  --color-brand-600: #1546d1;
+  --color-brand-700: #1038ab;
+  --color-brand-800: #0e2f88;
+  --color-brand-900: #0d2766;
+  --color-paper: #f6f8fb;
 
   /* Website template tokens, set per site by templates/engine/palette.ts */
   --color-t-bg: var(--t-bg);
@@ -38,8 +63,15 @@ body {
   }
 }
 
-/* Clearly visible keyboard focus everywhere. */
+/* Clearly visible keyboard focus everywhere. Customer websites ([data-webg-site]) keep their original ring;
+   WEBG's own interface gets a brand-blue outline with a soft halo, visible on light and dark surfaces. */
 :where(a, button, summary, input, select, textarea, [role="switch"], [tabindex]):focus-visible {
   outline: 3px solid #4f46e5;
   outline-offset: 2px;
+}
+
+:where(a, button, summary, input, select, textarea, [role="switch"], [tabindex]):where(:not([data-webg-site] *)):focus-visible {
+  outline: 2px solid #1546d1;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgb(21 70 209 / 0.18);
 }

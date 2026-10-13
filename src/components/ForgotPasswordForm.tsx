@@ -16,8 +16,8 @@ export function ForgotPasswordForm() {
       heading="שכחתם סיסמה?"
       subtitle="כתבו את כתובת האימייל שלכם, ונשלח לכם קישור לבחירת סיסמה חדשה."
       footer={
-        <p className="text-center text-gray-700">
-          <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-indigo-800 underline">
+        <p className="text-start text-ink-700">
+          <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
             חזרה להתחברות
           </Link>
         </p>

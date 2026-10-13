@@ -13,9 +13,9 @@ const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ")
 const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" });
 
 const statusClass: Record<SupportTicketStatus, string> = {
-  OPEN: "border-indigo-300 bg-indigo-50 text-indigo-900",
+  OPEN: "border-ink-300 bg-ink-50 text-ink-900",
   IN_PROGRESS: "border-amber-300 bg-amber-50 text-amber-900",
-  CLOSED: "border-gray-300 bg-gray-100 text-gray-700",
+  CLOSED: "border-ink-200 bg-ink-50 text-ink-700",
 };
 
 export default async function SupportPage() {
@@ -26,22 +26,22 @@ export default async function SupportPage() {
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← האתרים שלי</Link>
-          <h1 className="text-2xl font-extrabold">תמיכה</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← האתרים שלי</Link>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">תמיכה</h1>
+          <p className="mt-1 text-sm text-ink-500">
             אפשר גם לכתוב לנו:{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>
+            <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">{SUPPORT_EMAIL}</a>
           </p>
         </div>
-        <Link href="/support/new" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-5 text-base font-semibold text-white transition hover:bg-indigo-700">
+        <Link href="/support/new" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-5 text-base font-semibold text-white transition hover:bg-brand-700">
           + פנייה חדשה
         </Link>
       </div>
 
       {tickets.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-gray-300 bg-white p-10 text-center">
+        <div className="rounded-xl border border-dashed border-ink-300 bg-white p-10 text-center">
           <p className="text-xl font-bold">עדיין אין לכם פניות</p>
-          <p className="mt-1 text-gray-700">יש שאלה, תקלה או הצעה? אפשר לפתוח פנייה חדשה בכל רגע.</p>
+          <p className="mt-1 text-ink-700">יש שאלה, תקלה או הצעה? אפשר לפתוח פנייה חדשה בכל רגע.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -50,22 +50,22 @@ export default async function SupportPage() {
               key={t.id}
               href={`/support/${t.id}`}
               className={cx(
-                "flex min-h-16 flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition hover:bg-gray-50",
-                t.unread ? "border-indigo-300 bg-indigo-50/60" : "border-gray-200 bg-white",
+                "flex min-h-16 flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 transition hover:bg-ink-50",
+                t.unread ? "border-ink-300 bg-ink-50/60" : "border-ink-100 bg-white",
               )}
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  {t.unread && <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">תשובה חדשה</span>}
-                  <span className={cx("truncate", t.unread ? "font-bold text-gray-950" : "font-semibold text-gray-900")}>{t.subject}</span>
+                  {t.unread && <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">תשובה חדשה</span>}
+                  <span className={cx("truncate", t.unread ? "font-bold text-ink-950" : "font-semibold text-ink-900")}>{t.subject}</span>
                 </div>
-                <p className="mt-1 text-sm text-gray-600">{SUPPORT_CATEGORY_LABELS[t.category as SupportCategory] ?? t.category}</p>
+                <p className="mt-1 text-sm text-ink-500">{SUPPORT_CATEGORY_LABELS[t.category as SupportCategory] ?? t.category}</p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <span className={cx("rounded-full border px-2.5 py-1 text-xs font-semibold", statusClass[t.status as SupportTicketStatus])}>
                   {SUPPORT_TICKET_STATUS_LABELS[t.status as SupportTicketStatus] ?? t.status}
                 </span>
-                <span className="text-xs text-gray-500">{dateFormatter.format(t.updatedAt)}</span>
+                <span className="text-xs text-ink-500">{dateFormatter.format(t.updatedAt)}</span>
               </div>
             </Link>
           ))}

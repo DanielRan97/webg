@@ -26,12 +26,12 @@ export function AdminNav({ supportUnreadCount = 0 }: { supportUnreadCount?: numb
             href={l.href}
             className={cx(
               "flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition",
-              active ? "bg-indigo-100 text-indigo-900" : "text-gray-700 hover:bg-gray-100",
+              active ? "bg-brand-50 text-brand-700" : "text-ink-700 hover:bg-ink-50",
             )}
           >
             {l.label}
             {l.href === "/admin/support" && supportUnreadCount > 0 && (
-              <span aria-hidden className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{supportUnreadCount}</span>
+              <span aria-hidden className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">{supportUnreadCount}</span>
             )}
           </Link>
         );

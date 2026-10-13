@@ -25,16 +25,16 @@ const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", tim
 
 function SummaryCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
   return (
-    <div className={cx("rounded-2xl border p-4", accent ? "border-indigo-300 bg-indigo-50" : "border-gray-200 bg-white")}>
+    <div className={cx("rounded-xl border p-4", accent ? "border-ink-300 bg-ink-50" : "border-ink-100 bg-white")}>
       <p className="text-2xl font-extrabold">{value}</p>
-      <p className="text-sm text-gray-700">{label}</p>
+      <p className="text-sm text-ink-700">{label}</p>
     </div>
   );
 }
 
 function ActionLink({ href, label }: { href: string; label: string }) {
   return (
-    <a href={href} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50">
+    <a href={href} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-4 text-sm font-semibold text-ink-800 transition hover:bg-ink-50">
       {label}
     </a>
   );
@@ -57,48 +57,48 @@ function InteractionRow({
   return (
     <div
       ref={rowRef}
-      className={cx("rounded-2xl border transition", unread ? "border-indigo-300 bg-indigo-50/60" : "border-gray-200 bg-white")}
+      className={cx("rounded-xl border transition", unread ? "border-ink-300 bg-ink-50/60" : "border-ink-100 bg-white")}
     >
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex min-h-14 w-full items-start justify-between gap-3 rounded-2xl px-4 py-3 text-start"
+        className="flex min-h-14 w-full items-start justify-between gap-3 rounded-xl px-4 py-3 text-start"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-gray-700">{typeLabel(item.type)}</span>
-            {unread && <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">חדש</span>}
-            <span className={cx("truncate", unread ? "font-bold text-gray-950" : "font-semibold text-gray-900")}>{item.name || "ללא שם"}</span>
+            <span className="rounded-full border border-ink-200 bg-white px-2 py-0.5 text-xs font-semibold text-ink-700">{typeLabel(item.type)}</span>
+            {unread && <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">חדש</span>}
+            <span className={cx("truncate", unread ? "font-bold text-ink-950" : "font-semibold text-ink-900")}>{item.name || "ללא שם"}</span>
           </div>
-          {preview && <p className="mt-1 truncate text-sm text-gray-600">{preview}</p>}
+          {preview && <p className="mt-1 truncate text-sm text-ink-500">{preview}</p>}
         </div>
-        <span className="shrink-0 text-xs text-gray-500">{dateFormatter.format(item.createdAt)}</span>
+        <span className="shrink-0 text-xs text-ink-500">{dateFormatter.format(item.createdAt)}</span>
       </button>
 
       {open && (
-        <div className="space-y-3 border-t border-gray-200 px-4 py-3">
+        <div className="space-y-3 border-t border-ink-100 px-4 py-3">
           <dl className="grid gap-2 text-sm sm:grid-cols-2">
             {item.phone && (
               <div>
-                <dt className="text-gray-500">טלפון</dt>
-                <dd dir="ltr" className="text-end font-medium text-gray-900 sm:text-start">{item.phone}</dd>
+                <dt className="text-ink-500">טלפון</dt>
+                <dd dir="ltr" className="text-end font-medium text-ink-900 sm:text-start">{item.phone}</dd>
               </div>
             )}
             {item.email && (
               <div>
-                <dt className="text-gray-500">אימייל</dt>
-                <dd dir="ltr" className="break-all text-end font-medium text-gray-900 sm:text-start">{item.email}</dd>
+                <dt className="text-ink-500">אימייל</dt>
+                <dd dir="ltr" className="break-all text-end font-medium text-ink-900 sm:text-start">{item.email}</dd>
               </div>
             )}
           </dl>
           {item.message && (
             <div>
-              <p className="text-sm text-gray-500">הודעה</p>
-              <p className="whitespace-pre-line break-words text-gray-900">{item.message}</p>
+              <p className="text-sm text-ink-500">הודעה</p>
+              <p className="whitespace-pre-line break-words text-ink-900">{item.message}</p>
             </div>
           )}
-          <p className="text-xs text-gray-500">התקבל: {dateFormatter.format(item.createdAt)}</p>
+          <p className="text-xs text-ink-500">התקבל: {dateFormatter.format(item.createdAt)}</p>
           <div className="flex flex-wrap gap-2">
             {item.phone && <ActionLink href={telHref(item.phone)} label="התקשר" />}
             {item.phone && <ActionLink href={whatsappHref(item.phone)} label="WhatsApp" />}
@@ -158,9 +158,9 @@ export function AdminInbox({
 
   if (interactions.length === 0) {
     return (
-      <div className="rounded-3xl border-2 border-dashed border-gray-300 bg-white p-10 text-center">
+      <div className="rounded-xl border border-dashed border-ink-300 bg-white p-10 text-center">
         <p className="text-xl font-bold">עדיין לא התקבלו פניות</p>
-        <p className="mt-1 text-gray-700">כאשר לקוחות ישאירו פרטים או ישלחו הודעה דרך האתר, הם יופיעו כאן.</p>
+        <p className="mt-1 text-ink-700">כאשר לקוחות ישאירו פרטים או ישלחו הודעה דרך האתר, הם יופיעו כאן.</p>
       </div>
     );
   }
@@ -184,7 +184,7 @@ export function AdminInbox({
             aria-pressed={filter === f.value}
             className={cx(
               "min-h-10 rounded-full border px-4 text-sm font-semibold transition",
-              filter === f.value ? "border-indigo-700 bg-indigo-600 text-white" : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50",
+              filter === f.value ? "border-brand-600 bg-brand-50 text-ink-900 ring-1 ring-brand-600" : "border-ink-200 bg-white text-ink-800 hover:border-ink-500",
             )}
           >
             {f.label}
@@ -193,7 +193,7 @@ export function AdminInbox({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="rounded-2xl border border-gray-200 bg-white p-6 text-center text-gray-600">אין פניות בסינון הזה.</p>
+        <p className="rounded-xl border border-ink-100 bg-white p-6 text-center text-ink-500">אין פניות בסינון הזה.</p>
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (

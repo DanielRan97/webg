@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Assistant, Frank_Ruhl_Libre, Heebo, Noto_Serif_Hebrew, Rubik, Secular_One } from "next/font/google";
+import { Assistant, Frank_Ruhl_Libre, Heebo, IBM_Plex_Sans_Hebrew, Noto_Serif_Hebrew, Rubik, Secular_One } from "next/font/google";
 import { appUrl } from "@/lib/env";
 import "./globals.css";
 
@@ -8,6 +8,9 @@ const heebo = Heebo({
   subsets: ["hebrew", "latin"],
   display: "swap",
 });
+
+// WEBG's own interface: IBM Plex Sans Hebrew for all text, headlines included.
+const plex = IBM_Plex_Sans_Hebrew({ variable: "--font-plex", subsets: ["hebrew", "latin"], weight: ["400", "500", "600", "700"], display: "swap" });
 
 // Extra fonts give the website templates their own typography. They are only downloaded when a page uses them.
 const frank = Frank_Ruhl_Libre({ variable: "--font-frank", subsets: ["hebrew", "latin"], display: "swap", preload: false });
@@ -26,8 +29,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} ${frank.variable} ${assistant.variable} ${rubik.variable} ${secular.variable} ${notoSerif.variable} h-full antialiased`}>
-      <body className="min-h-full font-[family-name:var(--font-heebo)]">{children}</body>
+    <html lang="he" dir="rtl" className={`${plex.variable} ${heebo.variable} ${frank.variable} ${assistant.variable} ${rubik.variable} ${secular.variable} ${notoSerif.variable} h-full antialiased`}>
+      <body className="min-h-full font-sans">{children}</body>
     </html>
   );
 }

@@ -10,9 +10,9 @@ import { Button, Notice, TextArea, cx } from "./ui/ui";
 const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" });
 
 const statusClass: Record<SupportTicketStatus, string> = {
-  OPEN: "border-indigo-300 bg-indigo-50 text-indigo-900",
+  OPEN: "border-ink-300 bg-ink-50 text-ink-900",
   IN_PROGRESS: "border-amber-300 bg-amber-50 text-amber-900",
-  CLOSED: "border-gray-300 bg-gray-100 text-gray-700",
+  CLOSED: "border-ink-200 bg-ink-50 text-ink-700",
 };
 
 export function SupportThread({
@@ -55,14 +55,14 @@ export function SupportThread({
     <div className="space-y-5">
       {justCreated && <Notice kind="success">הפנייה נשלחה בהצלחה. נחזור אליכם בהקדם.</Notice>}
 
-      <div className="space-y-2 rounded-2xl border border-gray-200 bg-white p-4">
+      <div className="space-y-2 rounded-xl border border-ink-100 bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-xl font-extrabold">{ticket.subject}</h1>
           <span className={cx("rounded-full border px-2.5 py-1 text-xs font-semibold", statusClass[ticket.status as SupportTicketStatus])}>
             {SUPPORT_TICKET_STATUS_LABELS[ticket.status as SupportTicketStatus] ?? ticket.status}
           </span>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-ink-500">
           {SUPPORT_CATEGORY_LABELS[ticket.category as SupportCategory] ?? ticket.category}
           {ticket.relatedWebsiteName && <> · אתר: {ticket.relatedWebsiteName}</>}
           {role === "ADMIN" && (
@@ -81,23 +81,23 @@ export function SupportThread({
             <li
               key={m.id}
               className={cx(
-                "max-w-[85%] rounded-2xl border p-3",
-                fromUser ? "me-auto border-gray-200 bg-white" : "ms-auto border-indigo-200 bg-indigo-50",
+                "max-w-[85%] rounded-xl border p-3",
+                fromUser ? "me-auto border-ink-100 bg-white" : "ms-auto border-ink-200 bg-ink-50",
               )}
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-bold text-gray-700">{label}</span>
-                <span className="text-xs text-gray-500">{dateFormatter.format(m.createdAt)}</span>
+                <span className="text-xs font-bold text-ink-700">{label}</span>
+                <span className="text-xs text-ink-500">{dateFormatter.format(m.createdAt)}</span>
               </div>
-              <p className="mt-1 whitespace-pre-line break-words text-gray-900">{m.message}</p>
+              <p className="mt-1 whitespace-pre-line break-words text-ink-900">{m.message}</p>
             </li>
           );
         })}
       </ul>
 
-      <div className="space-y-2 rounded-2xl border border-gray-200 bg-white p-4">
+      <div className="space-y-2 rounded-xl border border-ink-100 bg-white p-4">
         {role === "USER" && ticket.status === SUPPORT_TICKET_STATUS.CLOSED && (
-          <p className="text-sm text-gray-600">הפנייה הזו סגורה. שליחת הודעה תפתח אותה מחדש.</p>
+          <p className="text-sm text-ink-500">הפנייה הזו סגורה. שליחת הודעה תפתח אותה מחדש.</p>
         )}
         <TextArea label="הוספת תגובה" value={reply} onChange={setReply} rows={3} placeholder="כתבו כאן..." />
         {error && <Notice kind="error">{error}</Notice>}

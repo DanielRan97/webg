@@ -21,19 +21,19 @@ export function LockedFeature({
   if (inline) {
     return (
       <span className={className}>
-        {label} <LockIcon className="inline align-[-2px] text-gray-500" />
+        {label} <LockIcon className="inline align-[-2px] text-ink-500" />
       </span>
     );
   }
   return (
     <div className={className}>
-      <p className="flex items-center gap-1.5 font-semibold text-gray-900">
+      <p className="flex items-center gap-1.5 font-semibold text-ink-900">
         {label}
-        <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800">
+        <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-800">
           <LockIcon /> זמין ב-WEBG Pro
         </span>
       </p>
-      {hint && <p className="mt-1 text-sm text-gray-600">{hint}</p>}
+      {hint && <p className="mt-1 text-sm text-ink-500">{hint}</p>}
     </div>
   );
 }
@@ -41,7 +41,7 @@ export function LockedFeature({
 /** A short badge only, for overlaying on a card/thumbnail. */
 export function LockedBadge({ children }: { children?: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-indigo-800 shadow">
+    <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-ink-800 shadow">
       <LockIcon /> {children ?? "Pro"}
     </span>
   );

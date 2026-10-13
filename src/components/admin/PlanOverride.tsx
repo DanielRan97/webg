@@ -26,7 +26,7 @@ export function PlanOverride({ siteId, plan }: { siteId: string; plan: string })
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-semibold text-gray-900">תוכנית האתר</p>
+      <p className="text-sm font-semibold text-ink-900">תוכנית האתר</p>
       <div className="flex gap-2">
         {([PLAN.BASIC, PLAN.PRO] as const).map((p) => (
           <Button
@@ -40,7 +40,7 @@ export function PlanOverride({ siteId, plan }: { siteId: string; plan: string })
           </Button>
         ))}
       </div>
-      <p className="text-xs text-gray-600">שינוי ידני לצורכי בדיקה/ניהול - לא יוצר עסקה או מנוי.</p>
+      <p className="text-xs text-ink-500">שינוי ידני לצורכי בדיקה/ניהול - לא יוצר עסקה או מנוי.</p>
       {notice && <Notice kind={notice.kind}>{notice.text}</Notice>}
       <ConfirmDialog
         open={pendingPlan !== null}

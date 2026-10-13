@@ -21,8 +21,8 @@ export function ResetPasswordForm({ token }: { token: string }) {
     <AuthCard
       heading="בחירת סיסמה חדשה"
       footer={
-        <p className="text-center text-gray-700">
-          <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-indigo-800 underline">
+        <p className="text-start text-ink-700">
+          <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
             חזרה להתחברות
           </Link>
         </p>
@@ -31,7 +31,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       {state.ok ? (
         <div className="space-y-4">
           <Notice kind="success">הסיסמה עודכנה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.</Notice>
-          <Link href="/login" className="flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">
+          <Link href="/login" className="flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700">
             מעבר להתחברות
           </Link>
         </div>

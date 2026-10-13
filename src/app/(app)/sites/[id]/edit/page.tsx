@@ -27,10 +27,10 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
 
   return (
     <>
-      <div className="border-b border-gray-200 bg-white">
+      <div className="border-b border-ink-100 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <div>
-            <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← האתרים שלי</Link>
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← האתרים שלי</Link>
             <h1 className="text-2xl font-extrabold">{site.data.businessName}</h1>
           </div>
           <SiteActions id={site.id} slug={site.slug} plan={site.plan} businessName={site.data.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} />

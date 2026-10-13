@@ -29,32 +29,31 @@ export function CreatedScreen({ id, slug, plan, businessName }: { id: string; sl
 
   return (
     <main className="mx-auto max-w-xl px-4 py-12 text-center">
-      <div aria-hidden className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl text-green-800">✓</div>
-      <h1 id="step-title" tabIndex={-1} className="text-3xl font-extrabold outline-none">האתר שלך מוכן</h1>
-      <p className="mt-2 text-lg text-gray-700">יצרנו את האתר של ״{businessName}״. עוד רגע הלקוחות יוכלו לראות אותו.</p>
+      <h1 id="step-title" tabIndex={-1} className="text-3xl font-bold tracking-tight md:text-4xl outline-none">האתר שלך מוכן</h1>
+      <p className="mt-2 text-lg text-ink-700">יצרנו את האתר של ״{businessName}״. עוד רגע הלקוחות יוכלו לראות אותו.</p>
 
-      <div className="mt-8 space-y-3 rounded-3xl border border-gray-300 bg-white p-5 text-start">
-        <p className="text-sm font-semibold text-gray-900">זו הכתובת שבה הלקוחות שלך יוכלו לראות את האתר:</p>
-        <p className="break-all text-lg font-bold text-indigo-800" dir="ltr">{address}</p>
+      <div className="mt-8 space-y-3 rounded-xl border border-ink-200 shadow-sm bg-white p-5 text-start">
+        <p className="text-sm font-semibold text-ink-900">זו הכתובת שבה הלקוחות שלך יוכלו לראות את האתר:</p>
+        <p className="break-all text-xl font-bold text-ink-900" dir="ltr"><span className="text-brand-700">{address}</span></p>
         <CopyButton text={address} />
       </div>
 
       {published ? (
         <div className="mt-6 space-y-3">
           <Notice kind="success">האתר פורסם! מעכשיו הלקוחות יכולים לראות אותו.</Notice>
-          <Link href={publicSiteHref({ slug, plan })} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 font-semibold text-white hover:bg-indigo-700">
+          <Link href={publicSiteHref({ slug, plan })} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700">
             צפייה באתר החי
           </Link>
         </div>
       ) : (
         <div className="mt-6 space-y-3">
-          <p className="text-gray-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
+          <p className="text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
           {error && <Notice kind="error">{error}</Notice>}
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link href={`/sites/${id}/preview`} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-gray-400 bg-white px-6 font-semibold hover:bg-gray-50">
+            <Link href={`/sites/${id}/preview`} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-6 font-semibold text-ink-800 hover:bg-ink-50">
               תצוגה מקדימה
             </Link>
-            <Link href={`/sites/${id}/edit`} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-gray-400 bg-white px-6 font-semibold hover:bg-gray-50">
+            <Link href={`/sites/${id}/edit`} className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-6 font-semibold text-ink-800 hover:bg-ink-50">
               עריכת האתר
             </Link>
             <Button loading={pending} onClick={publish}>{pending ? "מפרסם..." : "פרסום האתר"}</Button>
@@ -63,7 +62,7 @@ export function CreatedScreen({ id, slug, plan, businessName }: { id: string; sl
       )}
 
       <p className="mt-10">
-        <Link href="/dashboard" className="font-semibold text-indigo-800 underline">לכל האתרים שלי</Link>
+        <Link href="/dashboard" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">לכל האתרים שלי</Link>
       </p>
     </main>
   );

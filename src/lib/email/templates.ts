@@ -20,10 +20,10 @@ function wrap(title: string, bodyHtml: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 </head>
-<body style="font-family:Arial,Helvetica,sans-serif;background:#f9fafb;padding:16px;margin:0;-webkit-text-size-adjust:100%">
-<table role="presentation" width="100%" style="max-width:480px;width:100%;margin:0 auto;background:#ffffff;border-radius:16px" dir="rtl">
+<body style="font-family:Arial,Helvetica,sans-serif;background:#f6f8fb;padding:16px;margin:0;-webkit-text-size-adjust:100%">
+<table role="presentation" width="100%" style="max-width:480px;width:100%;margin:0 auto;background:#ffffff;border-radius:12px;border:1px solid #e1e6ee" dir="rtl">
 <tr><td style="padding:28px 24px">
-<p style="font-size:22px;font-weight:bold;color:#4338ca;margin:0 0 24px">WEBG</p>
+<p style="margin:0 0 24px"><span dir="ltr" style="display:inline-block;color:#0f1b30;font-size:20px;font-weight:bold"><span style="display:inline-block;background:#1546d1;color:#ffffff;border-radius:6px;width:26px;height:26px;line-height:26px;text-align:center;font-size:14px;margin-right:6px">W</span>WEBG</span></p>
 <h1 style="font-size:20px;line-height:1.4;margin:0 0 12px;color:#111827">${title}</h1>
 ${bodyHtml}
 <p style="font-size:12px;color:#9ca3af;margin-top:32px;line-height:1.6">אם לא ביקשתם את ההודעה הזו, אפשר להתעלם ממנה.</p>
@@ -34,7 +34,7 @@ ${bodyHtml}
 }
 
 const btn = (href: string, label: string) =>
-  `<table role="presentation" style="margin:24px 0"><tr><td style="border-radius:12px;background:#4338ca">
+  `<table role="presentation" style="margin:24px 0"><tr><td style="border-radius:8px;background:#1546d1">
 <a href="${href}" style="display:block;min-height:24px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;padding:14px 28px;text-align:center">${label}</a>
 </td></tr></table>`;
 
@@ -88,7 +88,7 @@ ${row("שם", name)}
 ${row("טלפון", phone)}
 ${row("אימייל", email)}
 <p style="margin:16px 0 4px;color:#374151;font-size:15px"><b>הודעה:</b></p>
-<p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f9fafb;border-radius:12px;padding:14px">${escapeHtml(message)}</p>
+<p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f6f8fb;border-radius:8px;padding:14px">${escapeHtml(message)}</p>
 ${adminUrl ? `${btn(adminUrl, "צפייה בפנייה ב-WEBG")}${fallbackLink(adminUrl)}` : ""}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">התקבל: ${escapeHtml(submittedAt)}<br>האתר: <span dir="ltr">${escapeHtml(siteUrl)}</span></p>`,
   );
@@ -128,7 +128,7 @@ export function supportReplyEmail(input: { subject: string; message: string; tic
   const html = wrap(
     "קיבלת תשובה לפנייה שלך ב-WEBG",
     `<p style="color:#374151;line-height:1.6;font-size:15px">צוות WEBG הגיב לפנייה שלכם: <b>${escapeHtml(ticketSubject)}</b></p>
-<p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f9fafb;border-radius:12px;padding:14px">${escapeHtml(message)}</p>
+<p style="white-space:pre-line;color:#111827;font-size:15px;line-height:1.6;background:#f6f8fb;border-radius:8px;padding:14px">${escapeHtml(message)}</p>
 ${btn(ticketUrl, "פתיחת הפנייה ב-WEBG")}${fallbackLink(ticketUrl)}
 <p style="margin-top:20px;color:#9ca3af;font-size:13px">להמשך השיחה יש להיכנס לפנייה ב-WEBG - לא ניתן להשיב להודעה זו במייל.</p>`,
   );

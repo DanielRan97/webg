@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { autosaveSiteAction, checkSlugAvailabilityAction, updateSiteAction } from "@/server/actions/sites";
 import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
+import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, ValidationContext, cx } from "../ui/ui";
@@ -421,9 +422,9 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
     <ValidationContext.Provider value={{ submitted }}>
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         {/* Mobile: switch between form and preview */}
-        <div className="flex rounded-xl bg-gray-100 p-1 lg:hidden">
+        <div className="flex rounded-lg bg-ink-50 p-1 lg:hidden">
           {(["form", "preview"] as const).map((v) => (
-            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cx("min-h-12 flex-1 rounded-lg font-semibold", view === v ? "bg-white shadow" : "text-gray-700")}>
+            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cx("min-h-12 flex-1 rounded-lg font-semibold", view === v ? "bg-white shadow" : "text-ink-700")}>
               {v === "form" ? "הטופס" : "תצוגה מקדימה"}
             </button>
           ))}
@@ -433,21 +434,21 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
           {isNew ? (
             <div className="mb-6">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                <p className="text-sm font-semibold text-indigo-800">שלב {stepIndex + 1} מתוך {steps.length}: {step.label(data)}</p>
-                <p aria-live="polite" className={cx("text-sm", autosaveStatus === "error" ? "font-medium text-red-700" : "text-gray-500")}>
+                <p className="text-sm font-semibold text-ink-800">שלב {stepIndex + 1} מתוך {steps.length}: {step.label(data)}</p>
+                <p aria-live="polite" className={cx("text-sm", autosaveStatus === "error" ? "font-medium text-red-700" : "text-ink-500")}>
                   {autosaveStatus === "saving" && "שומר..."}
                   {autosaveStatus === "saved" && "נשמר"}
                   {autosaveStatus === "error" && (autosaveError || "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב.")}
                 </p>
               </div>
-              <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-gray-200">
-                <div className="h-2 rounded-full bg-indigo-700 transition-all" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+              <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-ink-100">
+                <div className="h-2 rounded-full bg-brand-600 transition-all" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
               </div>
             </div>
           ) : (
             <nav aria-label="חלקי העריכה" className="mb-6 flex flex-wrap gap-2">
               {steps.map((s, i) => (
-                <button key={s.id} type="button" onClick={() => go(i)} aria-current={i === stepIndex ? "step" : undefined} className={cx("min-h-11 rounded-full px-4 text-sm font-semibold", i === stepIndex ? "bg-indigo-700 text-white" : "bg-gray-100 text-gray-900 hover:bg-gray-200")}>
+                <button key={s.id} type="button" onClick={() => go(i)} aria-current={i === stepIndex ? "step" : undefined} className={cx("min-h-11 rounded-full px-4 text-sm font-semibold", i === stepIndex ? "bg-brand-600 text-white" : "bg-ink-50 text-ink-900 hover:bg-ink-100")}>
                   {s.label(data)}
                   {stepHasError(s.id, errors) && <span aria-label="יש פרטים לתקן"> ⚠</span>}
                 </button>
@@ -455,7 +456,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
             </nav>
           )}
 
-          <div className="rounded-3xl border border-gray-300 bg-white p-5 shadow-sm sm:p-8">
+          <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-8">
             <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} />
           </div>
 
@@ -478,7 +479,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
               <>
                 <Button type="button" onClick={save} loading={pending}>{pending ? "שומר..." : "שמירת שינויים"}</Button>
                 {liveUrl && (
-                  <Link href={liveUrl} target="_blank" className="inline-flex min-h-11 items-center font-semibold text-indigo-800 underline">
+                  <Link href={liveUrl} target="_blank" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
                     צפייה באתר החי
                   </Link>
                 )}
@@ -489,8 +490,8 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
 
         <aside aria-label="תצוגה מקדימה" className={cx(view === "preview" ? "" : "hidden", "lg:block")}>
           <div className="lg:sticky lg:top-24">
-            <p className="mb-3 text-center text-sm font-semibold text-gray-700">כך האתר ייראה בטלפון</p>
-            <PreviewPane data={data} />
+            <p className="mb-3 text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
+            <PreviewPane data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
           </div>
         </aside>
       </div>

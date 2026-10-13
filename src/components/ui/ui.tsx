@@ -37,9 +37,9 @@ export function Button({
   loading?: boolean;
 }) {
   const styles = {
-    primary: "bg-indigo-600 text-white hover:bg-indigo-700",
-    secondary: "bg-white text-gray-900 border border-gray-400 hover:bg-gray-50",
-    ghost: "text-gray-800 hover:bg-gray-100",
+    primary: "bg-brand-600 text-white shadow-sm hover:bg-brand-700",
+    secondary: "bg-white text-ink-900 border border-ink-200 shadow-sm hover:border-ink-300 hover:bg-ink-50",
+    ghost: "text-ink-800 hover:bg-ink-50",
     danger: "bg-white text-red-700 border border-red-300 hover:bg-red-50",
   }[variant];
   return (
@@ -48,7 +48,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cx(
-        "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-6 text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
         styles,
         className,
       )}
@@ -64,18 +64,19 @@ export function Notice({ kind, children }: { kind: "success" | "error" | "info";
   const look = {
     success: { cls: "bg-green-50 text-green-900 border-green-300", icon: "✓" },
     error: { cls: "bg-red-50 text-red-900 border-red-300", icon: "⚠" },
-    info: { cls: "bg-blue-50 text-blue-900 border-blue-300", icon: "ℹ" },
+    info: { cls: "bg-ink-50 text-ink-900 border-ink-200", icon: "ℹ" },
   }[kind];
   return (
-    <p role={kind === "error" ? "alert" : "status"} className={cx("flex gap-2 rounded-xl border p-3 text-sm font-medium", look.cls)}>
+    <p role={kind === "error" ? "alert" : "status"} className={cx("flex gap-2 rounded-lg border p-3 text-sm font-medium", look.cls)}>
       <span aria-hidden className="font-bold">{look.icon}</span>
       <span>{children}</span>
     </p>
   );
 }
 
+/** Text input: a quiet border at rest, and the field in focus gets a brand-blue border with a soft ring. */
 export const inputClass =
-  "min-h-12 w-full rounded-xl border border-gray-400 bg-white px-4 text-base outline-none transition placeholder:text-gray-500 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 aria-[invalid=true]:border-red-600 aria-[invalid=true]:ring-red-100";
+  "min-h-12 w-full rounded-lg border border-ink-300 bg-white px-4 text-base text-ink-900 outline-none transition placeholder:text-ink-400 hover:border-ink-500 shadow-sm focus:border-brand-600 focus:ring-4 focus:ring-brand-600/15 focus-visible:outline-none aria-[invalid=true]:border-red-600";
 
 interface ControlProps {
   id: string;
@@ -105,12 +106,12 @@ export function Field({
   const describedBy = [hint && `${id}-hint`, showError && `${id}-err`].filter(Boolean).join(" ") || undefined;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-semibold text-gray-900">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink-900">
         {label}
-        {required && <span className="ms-1 font-normal text-gray-700">(חובה)</span>}
+        {required && <span className="ms-1 font-normal text-ink-700">(חובה)</span>}
       </label>
       {children({ id, "aria-describedby": describedBy, "aria-invalid": showError || undefined, onBlur: () => setTouched(true) })}
-      {hint && <p id={`${id}-hint`} className="text-sm text-gray-600">{hint}</p>}
+      {hint && <p id={`${id}-hint`} className="text-sm text-ink-500">{hint}</p>}
       {showError && (
         <p id={`${id}-err`} role="alert" className="flex gap-1.5 text-sm font-medium text-red-700">
           <span aria-hidden>⚠</span>
@@ -204,7 +205,7 @@ export function PasswordField({
             type="button"
             onClick={() => setVisible((v) => !v)}
             aria-label={visible ? "הסתרת הסיסמה" : "הצגת הסיסמה"}
-            className="absolute end-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-gray-500 transition hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+            className="absolute end-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-ink-500 transition hover:text-ink-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
           >
             {visible ? <EyeOffIcon /> : <EyeIcon />}
           </button>
@@ -267,15 +268,15 @@ export function Toggle({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="flex min-h-11 w-full items-center justify-between gap-4 rounded-xl text-start disabled:opacity-60"
+      className="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg text-start disabled:opacity-60"
     >
       <span>
-        <span className={labelClassName ?? "block font-semibold text-gray-900"}>{label}</span>
-        {hint && <span className="block text-sm text-gray-600">{hint}</span>}
+        <span className={labelClassName ?? "block font-semibold text-ink-900"}>{label}</span>
+        {hint && <span className="block text-sm text-ink-500">{hint}</span>}
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        {(onText || offText) && <span className="text-sm font-semibold text-gray-800">{checked ? onText : offText}</span>}
-        <span className={cx("relative h-7 w-12 rounded-full transition", checked ? "bg-indigo-700" : "bg-gray-400")}>
+        {(onText || offText) && <span className="text-sm font-semibold text-ink-800">{checked ? onText : offText}</span>}
+        <span className={cx("relative h-7 w-12 rounded-full transition", checked ? "bg-brand-600" : "bg-ink-400")}>
           <span className={cx("absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all", checked ? "end-0.5" : "start-0.5")} />
         </span>
       </span>
@@ -299,11 +300,11 @@ export function ChoiceCard({
       aria-pressed={selected}
       onClick={onClick}
       className={cx(
-        "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border-2 p-3 text-center font-semibold transition",
-        selected ? "border-indigo-700 bg-indigo-50 text-indigo-900" : "border-gray-300 bg-white hover:border-gray-400",
+        "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-lg border p-3 text-center font-semibold transition",
+        selected ? "border-brand-600 bg-brand-50 text-ink-900 ring-1 ring-brand-600" : "border-ink-200 bg-white text-ink-900 hover:border-ink-500",
       )}
     >
-      {selected && <span aria-hidden className="absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-700 text-xs text-white">✓</span>}
+      {selected && <span aria-hidden className="absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-xs text-white">✓</span>}
       {children}
     </button>
   );
@@ -380,7 +381,7 @@ export function ImageUploader({
       <Button type="button" variant="secondary" loading={busy} disabled={disabled} onClick={() => ref.current?.click()}>
         {busy ? "מעלה..." : label}
       </Button>
-      <p id={hintId} className="text-sm text-gray-600">{hint}</p>
+      <p id={hintId} className="text-sm text-ink-500">{hint}</p>
       <div aria-live="polite">
         {done && !error && <p className="text-sm font-medium text-green-800">{done}</p>}
         {error && <p role="alert" className="flex gap-1.5 text-sm font-medium text-red-700"><span aria-hidden>⚠</span>{error}</p>}
@@ -392,8 +393,8 @@ export function ImageUploader({
 export function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-6">
-      <h2 id="step-title" tabIndex={-1} className="text-2xl font-bold text-gray-900 outline-none">{title}</h2>
-      {subtitle && <p className="mt-1 text-gray-700">{subtitle}</p>}
+      <h2 id="step-title" tabIndex={-1} className="text-2xl font-bold tracking-tight text-ink-900 outline-none md:text-3xl">{title}</h2>
+      {subtitle && <p className="mt-2 text-ink-700">{subtitle}</p>}
     </div>
   );
 }
@@ -434,10 +435,10 @@ export function ConfirmDialog({
         e.preventDefault();
         onCancel();
       }}
-      className="m-auto w-[min(92vw,28rem)] rounded-3xl p-6 shadow-2xl backdrop:bg-black/50"
+      className="m-auto w-[min(92vw,28rem)] rounded-2xl border border-ink-200 p-6 shadow-2xl backdrop:bg-ink-950/50"
     >
       <h2 id={titleId} className="text-xl font-bold">{title}</h2>
-      <p className="mt-2 text-gray-700">{text}</p>
+      <p className="mt-2 text-ink-700">{text}</p>
       <div className="mt-6 flex flex-wrap justify-end gap-3">
         <Button variant="secondary" autoFocus onClick={onCancel}>ביטול</Button>
         <Button variant={danger ? "danger" : "primary"} loading={pending} onClick={onConfirm}>{confirmLabel}</Button>

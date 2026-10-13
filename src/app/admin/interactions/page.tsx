@@ -11,7 +11,7 @@ export default async function AdminInteractionsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold">פניות</h1>
+      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">פניות</h1>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="סך הכל" value={stats.total} />
@@ -20,21 +20,21 @@ export default async function AdminInteractionsPage() {
         <StatCard label="הודעות" value={stats.messages} />
       </div>
 
-      <section className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+      <section className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
         <h2 className="text-lg font-bold">פעילות אחרונה</h2>
         {recentInteractions.length === 0 ? (
-          <p className="text-sm text-gray-600">אין עדיין פניות.</p>
+          <p className="text-sm text-ink-500">אין עדיין פניות.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-ink-100">
             {recentInteractions.map((a, i) => (
               <li key={i} className="py-2 text-sm">
-                <p className="text-gray-900">{a.label}</p>
-                <p className="text-gray-500">{a.at.toLocaleString("he-IL")}</p>
+                <p className="text-ink-900">{a.label}</p>
+                <p className="text-ink-500">{a.at.toLocaleString("he-IL")}</p>
               </li>
             ))}
           </ul>
         )}
-        <p className="text-xs text-gray-500">פרטי הפנייה המלאים (שם, טלפון, הודעה) נשארים במרכז הפניות של כל אתר בנפרד.</p>
+        <p className="text-xs text-ink-500">פרטי הפנייה המלאים (שם, טלפון, הודעה) נשארים במרכז הפניות של כל אתר בנפרד.</p>
       </section>
     </div>
   );

@@ -45,7 +45,7 @@ export function CopyButton({ text, label = "העתקת הכתובת" }: { text: 
       <button
         type="button"
         onClick={copy}
-        className={`min-h-11 rounded-xl border px-3 text-sm font-semibold ${status === "error" ? "border-red-300 text-red-700 hover:bg-red-50" : "border-gray-400 hover:bg-gray-50"}`}
+        className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${status === "error" ? "border-red-300 text-red-700 hover:bg-red-50" : "border-ink-200 text-ink-900 shadow-sm hover:bg-ink-50"}`}
       >
         {status === "copied" ? "✓ הועתק" : status === "error" ? "לא ניתן להעתיק" : label}
       </button>

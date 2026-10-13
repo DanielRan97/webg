@@ -23,8 +23,8 @@ export function TicketStatusControl({ ticketId, status }: { ticketId: string; st
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
-      <p className="text-sm font-semibold text-gray-900">סטטוס הפנייה</p>
+    <div className="space-y-3 rounded-xl border border-ink-100 bg-white p-4">
+      <p className="text-sm font-semibold text-ink-900">סטטוס הפנייה</p>
       <div className="flex flex-wrap gap-2">
         {STATUSES.map((s) => (
           <Button key={s} type="button" variant={status === s ? "primary" : "secondary"} disabled={isPending || status === s} onClick={() => setStatus(s)}>

@@ -46,29 +46,29 @@ export function AccountMenu({
         aria-expanded={open}
         aria-label="תפריט חשבון"
         onClick={() => setOpen((v) => !v)}
-        className="flex min-h-11 items-center gap-1.5 rounded-xl px-1.5 text-gray-700 transition hover:bg-gray-100"
+        className="flex min-h-11 items-center gap-1.5 rounded-lg px-1.5 text-ink-700 transition hover:bg-ink-50"
       >
-        <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-800">
+        <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-100 text-sm font-bold text-ink-800">
           {initial}
         </span>
         <ChevronDownIcon className={`transition ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div role="menu" className="absolute end-0 top-full z-50 mt-2 w-60 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-lg">
-          <p className="truncate rounded-lg px-3 py-2 text-sm text-gray-600" dir="ltr">{email}</p>
+        <div role="menu" className="absolute end-0 top-full z-50 mt-2 w-60 rounded-xl border border-ink-200 bg-white p-1.5 shadow-lg">
+          <p className="truncate rounded-lg px-3 py-2 text-sm text-ink-500" dir="ltr">{email}</p>
           {isAdmin && (
-            <Link href="/admin" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
+            <Link href="/admin" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-ink-900 hover:bg-ink-50">
               אדמין
             </Link>
           )}
-          <Link href="/support" role="menuitem" className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
+          <Link href="/support" role="menuitem" className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-start font-semibold text-ink-900 hover:bg-ink-50">
             <span>עזרה / צור קשר</span>
             {Boolean(supportUnreadCount) && (
-              <span aria-hidden className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{supportUnreadCount}</span>
+              <span aria-hidden className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">{supportUnreadCount}</span>
             )}
           </Link>
           <form action={logoutAction}>
-            <button type="submit" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-gray-900 hover:bg-gray-100">
+            <button type="submit" role="menuitem" className="flex min-h-11 w-full items-center rounded-lg px-3 text-start font-semibold text-ink-900 hover:bg-ink-50">
               התנתקות
             </button>
           </form>

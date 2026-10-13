@@ -46,10 +46,10 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
   return (
     <div className="space-y-5">
       {isNew && plan !== undefined && !isPro({ plan }) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 bg-ink-50 p-4">
           <div>
-            <p className="font-bold text-indigo-950">אתם בונים אתר עם WEBG Basic</p>
-            <p className="mt-1 text-sm text-indigo-900">כל הכלים הדרושים לאתר מקצועי כלולים. תכונות Pro יסומנו במנעול 🔒 ותוכלו לשדרג בכל שלב.</p>
+            <p className="font-bold text-ink-950">אתם בונים אתר עם WEBG Basic</p>
+            <p className="mt-1 text-sm text-ink-900">כל הכלים הדרושים לאתר מקצועי כלולים. תכונות Pro יסומנו במנעול 🔒 ותוכלו לשדרג בכל שלב.</p>
           </div>
           <Button type="button" variant="secondary" onClick={() => setPlanModalOpen(true)}>מה כולל Pro?</Button>
         </div>
@@ -76,8 +76,8 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
         maxLength={80}
       />
       <div role="group" aria-labelledby="cat-label" className="space-y-2">
-        <p id="cat-label" className="text-sm font-semibold text-gray-900">מה סוג העסק?</p>
-        <p className="text-sm text-gray-600">לפי הבחירה נציע לכם חלקים שמתאימים לאתר.</p>
+        <p id="cat-label" className="text-sm font-semibold text-ink-900">מה סוג העסק?</p>
+        <p className="text-sm text-ink-500">לפי הבחירה נציע לכם חלקים שמתאימים לאתר.</p>
         {CATEGORIES.length > CATEGORY_SEARCH_THRESHOLD && (
           <TextField
             label="חיפוש סוג עסק"
@@ -87,13 +87,12 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
           />
         )}
         {visibleCategories.length === 0 ? (
-          <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">לא נמצא סוג עסק תואם. אפשר לבחור ״אחר״.</p>
+          <p className="rounded-lg border border-dashed border-ink-300 p-4 text-center text-sm text-ink-700">לא נמצא סוג עסק תואם. אפשר לבחור ״אחר״.</p>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {visibleCategories.map((c) => (
               <ChoiceCard key={c.id} selected={data.category === c.id} onClick={() => pickCategory(c.id)}>
-                <span className="text-2xl" aria-hidden>{c.emoji}</span>
-                {c.label}
+                <span className="text-base font-semibold">{c.label}</span>
               </ChoiceCard>
             ))}
           </div>
@@ -124,8 +123,8 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
 function ColorPicker({ label, hint, value, onChange, allowNone }: { label: string; hint: string; value: string; onChange: (v: string) => void; allowNone?: boolean }) {
   return (
     <div role="group" aria-label={label} className="space-y-2">
-      <p className="text-sm font-semibold text-gray-900">{label}</p>
-      <p className="text-sm text-gray-600">{hint}</p>
+      <p className="text-sm font-semibold text-ink-900">{label}</p>
+      <p className="text-sm text-ink-500">{hint}</p>
       <div className="flex flex-wrap items-center gap-2">
         {allowNone && (
           <button
@@ -134,8 +133,8 @@ function ColorPicker({ label, hint, value, onChange, allowNone }: { label: strin
             aria-label="ללא צבע משני"
             onClick={() => onChange("")}
             className={cx(
-              "flex h-11 w-11 items-center justify-center rounded-full border-2 bg-white text-xs font-bold text-gray-600",
-              value === "" ? "border-gray-900 ring-2 ring-gray-900 ring-offset-2" : "border-gray-300",
+              "flex h-11 w-11 items-center justify-center rounded-full border-2 bg-white text-xs font-bold text-ink-500",
+              value === "" ? "border-ink-900 ring-2 ring-ink-900 ring-offset-2" : "border-ink-200",
             )}
           >
             {value === "" ? <span aria-hidden>✓</span> : "ללא"}
@@ -150,14 +149,14 @@ function ColorPicker({ label, hint, value, onChange, allowNone }: { label: strin
               aria-label={c.name}
               aria-pressed={on}
               onClick={() => onChange(c.hex)}
-              className={cx("flex h-11 w-11 items-center justify-center rounded-full border-2 text-lg font-bold", on ? "border-gray-900 ring-2 ring-gray-900 ring-offset-2" : "border-white shadow")}
+              className={cx("flex h-11 w-11 items-center justify-center rounded-full border-2 text-lg font-bold", on ? "border-ink-900 ring-2 ring-ink-900 ring-offset-2" : "border-white shadow")}
               style={{ background: c.hex, color: readableOn(c.hex) }}
             >
               {on && <span aria-hidden>✓</span>}
             </button>
           );
         })}
-        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-gray-400 px-4 text-sm font-semibold focus-within:outline focus-within:outline-2 focus-within:outline-indigo-600">
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-ink-300 px-4 text-sm font-semibold focus-within:outline focus-within:outline-2 focus-within:outline-brand-600">
           צבע אחר
           <input type="color" aria-label={`${label}: צבע אחר`} value={isHexColor(value) ? value : "#2563eb"} onChange={(e) => onChange(e.target.value)} className="h-7 w-7 cursor-pointer border-0 bg-transparent p-0" />
         </label>
@@ -171,9 +170,9 @@ export function BrandingStep({ data, update, plan }: StepProps) {
     <div className="space-y-8">
       <StepTitle title="המראה של האתר" subtitle="בחרו לוגו וצבעים. בלי לוגו, ניצור לכם אחד פשוט מהאות הראשונה של העסק." />
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-gray-900">לוגו (לא חובה)</p>
-        <p className="text-sm text-gray-600">אפשר להעלות לוגו או להשאיר ריק — ניצור סימן פשוט לפי שם העסק.</p>
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <p className="text-sm font-semibold text-ink-900">לוגו (לא חובה)</p>
+        <p className="text-sm text-ink-500">אפשר להעלות לוגו או להשאיר ריק — ניצור סימן פשוט לפי שם העסק.</p>
+        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-ink-100 bg-ink-50 p-4">
           <Logo logoUrl={data.logoUrl} name={data.businessName || "עסק"} color={data.primaryColor} size={72} />
           <div className="flex flex-wrap items-center gap-2">
             <ImageUploader
@@ -205,7 +204,7 @@ export function HoursStep({ data, update, errors }: StepProps) {
         {data.hours.map((h) => {
           const err = errors[`hours-${h.day}`];
           return (
-            <li key={h.day} className={cx("rounded-2xl border p-3", h.isOpen ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50")}>
+            <li key={h.day} className={cx("rounded-xl border p-3", h.isOpen ? "border-green-200 bg-green-50" : "border-ink-100 bg-ink-50")}>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-44 flex-1">
                   <Toggle checked={h.isOpen} onChange={(v) => setDay(h.day, { isOpen: v })} label={`יום ${DAY_NAMES[h.day]}`} onText="פתוח" offText="סגור" />
@@ -213,7 +212,7 @@ export function HoursStep({ data, update, errors }: StepProps) {
                 {h.isOpen && (
                   <div className="flex items-center gap-2" dir="ltr">
                     <input aria-label={`שעת פתיחה ביום ${DAY_NAMES[h.day]}`} aria-invalid={err ? true : undefined} type="time" value={h.openTime} onChange={(e) => setDay(h.day, { openTime: e.target.value })} className={`${inputClass} w-32`} />
-                    <span aria-hidden className="text-gray-400">–</span>
+                    <span aria-hidden className="text-ink-400">–</span>
                     <input aria-label={`שעת סגירה ביום ${DAY_NAMES[h.day]}`} aria-invalid={err ? true : undefined} type="time" value={h.closeTime} onChange={(e) => setDay(h.day, { closeTime: e.target.value })} className={`${inputClass} w-32`} />
                   </div>
                 )}
@@ -223,10 +222,10 @@ export function HoursStep({ data, update, errors }: StepProps) {
           );
         })}
       </ul>
-      <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+      <div className="space-y-3 rounded-xl border border-ink-100 bg-ink-50 p-4">
         <div>
-          <p className="text-sm font-semibold text-gray-900">שבת וחגים</p>
-          <p className="text-sm text-gray-600">המידע יוצג באתר לצד שעות הפתיחה.</p>
+          <p className="text-sm font-semibold text-ink-900">שבת וחגים</p>
+          <p className="text-sm text-ink-500">המידע יוצג באתר לצד שעות הפתיחה.</p>
         </div>
         <Toggle checked={data.openSaturday} onChange={(v) => setDay(6, { isOpen: v })} label="פתוחים בשבת?" onText="כן" offText="לא" />
         <Toggle checked={data.openHolidays} onChange={(v) => update({ openHolidays: v })} label="פתוחים בחגים?" onText="כן" offText="לא" />
@@ -258,16 +257,16 @@ export function ServicesStep({ data, update, errors }: StepProps) {
       />
       <div className="space-y-3">
         {data.services.length === 0 && (
-          <div className="rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center">
+          <div className="rounded-xl border-2 border-dashed border-ink-200 p-6 text-center">
             <p className="font-semibold">עדיין לא הוספתם {noun}ים</p>
-            <p className="mt-1 text-sm text-gray-700">{menuOnly ? "תפריט עם מחירים עוזר ללקוחות להחליט מה להזמין." : "רשימה ברורה עוזרת ללקוחות להבין מה אתם עושים."}</p>
+            <p className="mt-1 text-sm text-ink-700">{menuOnly ? "תפריט עם מחירים עוזר ללקוחות להחליט מה להזמין." : "רשימה ברורה עוזרת ללקוחות להבין מה אתם עושים."}</p>
           </div>
         )}
         <datalist id="group-suggestions">{groups.map((g) => <option key={g} value={g} />)}</datalist>
         {data.services.map((s, i) => (
-          <fieldset key={i} aria-label={`${noun} ${i + 1}`} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3">
+          <fieldset key={i} aria-label={`${noun} ${i + 1}`} className="space-y-3 rounded-xl border border-ink-100 bg-white p-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-gray-500">{noun} {i + 1}</span>
+              <span className="text-sm font-semibold text-ink-500">{noun} {i + 1}</span>
               <button
                 type="button"
                 aria-label={`מחיקת ${noun} ${i + 1}`}
@@ -300,15 +299,15 @@ export function ImagesStep({ data, update }: StepProps) {
     <div className="space-y-8">
       <StepTitle title="תמונות" subtitle="תמונה טובה עושה הבדל גדול. הכול כאן לא חובה." />
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-gray-900">תמונה ראשית</p>
-        <p className="text-sm text-gray-600">התמונה הגדולה בראש האתר. עדיף תמונה פשוטה בלי הרבה טקסט, כך שם העסק ייקרא היטב. בלי תמונה, נשתמש בצבע העסק.</p>
+        <p className="text-sm font-semibold text-ink-900">תמונה ראשית</p>
+        <p className="text-sm text-ink-500">התמונה הגדולה בראש האתר. עדיף תמונה פשוטה בלי הרבה טקסט, כך שם העסק ייקרא היטב. בלי תמונה, נשתמש בצבע העסק.</p>
         {data.heroImageUrl ? (
-          <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 sm:w-72">
+          <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-xl bg-ink-50 sm:w-72">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={data.heroImageUrl} alt="התמונה הראשית שבחרתם לאתר" className="h-full w-full object-contain" />
           </div>
         ) : (
-          <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">עדיין לא נבחרה תמונה ראשית</p>
+          <p className="rounded-lg border border-dashed border-ink-300 p-4 text-center text-sm text-ink-700">עדיין לא נבחרה תמונה ראשית</p>
         )}
         <div className="space-y-2">
           <ImageUploader
@@ -320,17 +319,17 @@ export function ImagesStep({ data, update }: StepProps) {
         </div>
       </div>
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-gray-900">גלריה ({data.gallery.length} מתוך 12)</p>
-        <p className="text-sm text-gray-600">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה. לכל תמונה אפשר להוסיף שם ומחיר, אם רוצים - זה לא חובה.</p>
+        <p className="text-sm font-semibold text-ink-900">גלריה ({data.gallery.length} מתוך 12)</p>
+        <p className="text-sm text-ink-500">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה. לכל תמונה אפשר להוסיף שם ומחיר, אם רוצים - זה לא חובה.</p>
         {data.gallery.length === 0 ? (
-          <p className="rounded-2xl border-2 border-dashed border-gray-300 p-4 text-center text-sm text-gray-700">עדיין אין תמונות בגלריה</p>
+          <p className="rounded-lg border border-dashed border-ink-300 p-4 text-center text-sm text-ink-700">עדיין אין תמונות בגלריה</p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
             {data.gallery.map((g, i) => (
-              <li key={g.url} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
+              <li key={g.url} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
                 <div className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={g.url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-xl object-cover" />
+                  <img src={g.url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-lg object-cover" />
                   <button type="button" aria-label={`הסרת תמונה ${i + 1} מהגלריה`} onClick={() => update({ gallery: data.gallery.filter((_, idx) => idx !== i) })} className="absolute end-1 top-1 h-10 w-10 rounded-full bg-black/80 text-lg text-white">×</button>
                 </div>
                 <TextField label="שם / כותרת (לא חובה)" placeholder="לדוגמה: המבורגר הבית" value={g.title} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, title: v } : x)) })} maxLength={80} />
@@ -369,8 +368,8 @@ export function SocialStep({ data, update }: StepProps) {
     <div className="space-y-6">
       <StepTitle title="איך לקוחות יגיעו אליכם?" />
       <div role="group" aria-labelledby="cta-label" className="space-y-2">
-        <p id="cta-label" className="text-sm font-semibold text-gray-900">מה תרצו שהלקוחות יעשו?</p>
-        <p className="text-sm text-gray-600">זה הכפתור הגדול שיופיע בראש האתר.</p>
+        <p id="cta-label" className="text-sm font-semibold text-ink-900">מה תרצו שהלקוחות יעשו?</p>
+        <p className="text-sm text-ink-500">זה הכפתור הגדול שיופיע בראש האתר.</p>
         <div className="grid grid-cols-2 gap-3">
           {CTA_OPTIONS.map((o) => (
             <ChoiceCard key={o.value} selected={data.ctaType === o.value} onClick={() => update({ ctaType: o.value })}>
@@ -381,8 +380,8 @@ export function SocialStep({ data, update }: StepProps) {
       </div>
       <div className="space-y-4">
         <div>
-          <p className="text-sm font-semibold text-gray-900">רשתות חברתיות (לא חובה)</p>
-          <p className="text-sm text-gray-600">הדביקו את הקישור המלא לפרופיל שלכם. מה שתשאירו ריק לא יופיע.</p>
+          <p className="text-sm font-semibold text-ink-900">רשתות חברתיות (לא חובה)</p>
+          <p className="text-sm text-ink-500">הדביקו את הקישור המלא לפרופיל שלכם. מה שתשאירו ריק לא יופיע.</p>
         </div>
         {cat.socialPlatforms.map((p) => (
           <TextField key={p} label={SOCIAL_LABELS[p]} hint="הקישור המלא לעמוד, לא רק שם המשתמש." dir="ltr" placeholder={`לדוגמה: ${SOCIAL_URL_EXAMPLES[p]}`} value={data.socials[p]} onChange={(v) => update({ socials: { ...data.socials, [p]: v } })} />
@@ -397,7 +396,7 @@ export function SocialStep({ data, update }: StepProps) {
 
 /* Edit mode only ─ site address */
 function SlugAvailability({ status }: { status: SlugCheck["status"] }) {
-  if (status === "checking") return <p className="flex items-center gap-1.5 text-sm text-gray-600"><span aria-hidden>…</span> בודקים זמינות...</p>;
+  if (status === "checking") return <p className="flex items-center gap-1.5 text-sm text-ink-500"><span aria-hidden>…</span> בודקים זמינות...</p>;
   if (status === "available") return <p className="flex items-center gap-1.5 text-sm font-semibold text-green-700"><span aria-hidden>✓</span> הכתובת זמינה</p>;
   if (status === "taken") return <p className="flex items-center gap-1.5 text-sm font-semibold text-red-700"><span aria-hidden>✗</span> הכתובת הזו כבר תפוסה</p>;
   if (status === "invalid") return <p className="flex items-center gap-1.5 text-sm font-semibold text-red-700"><span aria-hidden>✗</span> אפשר להשתמש באותיות באנגלית, מספרים ומקפים בלבד</p>;
@@ -412,7 +411,7 @@ export function AddressStep({ data, update, errors, plan, slugCheck }: StepProps
       <Field label="הכתובת שלכם" hint="באנגלית, מספרים ומקפים בלבד. לדוגמה: daniel-barber" error={errors.slug}>
         {(p) => (
           <div className="flex flex-wrap items-center gap-2" dir="ltr">
-            <span className="text-gray-700">{SLUG_BASE}</span>
+            <span className="text-ink-700">{SLUG_BASE}</span>
             <input {...p} value={data.slug} onChange={(e) => update({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} className={cx(inputClass, "flex-1")} maxLength={40} />
           </div>
         )}

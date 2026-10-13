@@ -43,22 +43,22 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">תמיכה ({tickets.length})</h1>
+      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">תמיכה ({tickets.length})</h1>
 
       <div className="flex flex-wrap items-center gap-2">
         {STATUS_FILTERS.map((f) => (
           <Link
             key={f.value}
             href={withParams({ status: f.value })}
-            className={`flex min-h-10 items-center rounded-xl border px-3 text-sm font-semibold transition ${status === f.value ? "border-indigo-700 bg-indigo-50 text-indigo-900" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"}`}
+            className={`flex min-h-10 items-center rounded-lg border px-3 text-sm font-semibold transition ${status === f.value ? "border-brand-600 bg-brand-50 text-ink-900 ring-1 ring-brand-600" : "border-ink-200 bg-white text-ink-700 hover:border-ink-500"}`}
           >
             {f.label}
           </Link>
         ))}
-        <span className="mx-1 h-6 w-px bg-gray-300" aria-hidden />
+        <span className="mx-1 h-6 w-px bg-ink-200" aria-hidden />
         <Link
           href={withParams({ category: "" })}
-          className={`flex min-h-10 items-center rounded-xl border px-3 text-sm font-semibold transition ${!category ? "border-indigo-700 bg-indigo-50 text-indigo-900" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"}`}
+          className={`flex min-h-10 items-center rounded-lg border px-3 text-sm font-semibold transition ${!category ? "border-brand-600 bg-brand-50 text-ink-900 ring-1 ring-brand-600" : "border-ink-200 bg-white text-ink-700 hover:border-ink-500"}`}
         >
           כל הקטגוריות
         </Link>
@@ -66,7 +66,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
           <Link
             key={c}
             href={withParams({ category: c })}
-            className={`flex min-h-10 items-center rounded-xl border px-3 text-sm font-semibold transition ${category === c ? "border-indigo-700 bg-indigo-50 text-indigo-900" : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"}`}
+            className={`flex min-h-10 items-center rounded-lg border px-3 text-sm font-semibold transition ${category === c ? "border-brand-600 bg-brand-50 text-ink-900 ring-1 ring-brand-600" : "border-ink-200 bg-white text-ink-700 hover:border-ink-500"}`}
           >
             {SUPPORT_CATEGORY_LABELS[c]}
           </Link>
@@ -79,14 +79,14 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
             name="q"
             defaultValue={q}
             placeholder="חיפוש לפי נושא או אימייל"
-            className="min-h-10 w-full max-w-xs rounded-xl border border-gray-400 px-3 text-sm outline-none focus:border-indigo-600"
+            className="min-h-10 w-full max-w-xs rounded-lg border border-ink-300 bg-white px-3 text-sm text-ink-900 outline-none hover:border-ink-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/15 focus-visible:outline-none"
           />
         </form>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-gray-300 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-ink-200 bg-white">
         <table className="w-full min-w-[800px] text-sm">
-          <thead className="border-b border-gray-300 bg-gray-50">
+          <thead className="border-b border-ink-200 bg-ink-50">
             <tr>
               <th className="px-4 py-3 text-start font-semibold">נושא</th>
               <th className="px-4 py-3 text-start font-semibold">משתמש</th>
@@ -95,24 +95,24 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
               <th className="px-4 py-3 text-start font-semibold">עודכן</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-ink-100">
             {tickets.map((t) => (
-              <tr key={t.id} className={t.unread ? "bg-indigo-50/60" : undefined}>
+              <tr key={t.id} className={t.unread ? "bg-ink-50/60" : undefined}>
                 <td className="px-4 py-3">
-                  <Link href={`/admin/support/${t.id}`} className="font-semibold text-indigo-700 underline">
-                    {t.unread && <span className="me-2 rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">חדש</span>}
+                  <Link href={`/admin/support/${t.id}`} className="font-semibold text-ink-700 underline">
+                    {t.unread && <span className="me-2 rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">חדש</span>}
                     {t.subject}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-gray-700" dir="ltr">{t.userEmail}</td>
+                <td className="px-4 py-3 text-ink-700" dir="ltr">{t.userEmail}</td>
                 <td className="px-4 py-3">{SUPPORT_CATEGORY_LABELS[t.category as SupportCategory] ?? t.category}</td>
                 <td className="px-4 py-3">{SUPPORT_TICKET_STATUS_LABELS[t.status as SupportTicketStatus] ?? t.status}</td>
-                <td className="px-4 py-3 text-gray-700">{dateFormatter.format(t.updatedAt)}</td>
+                <td className="px-4 py-3 text-ink-700">{dateFormatter.format(t.updatedAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {tickets.length === 0 && <p className="p-6 text-center text-gray-600">לא נמצאו פניות.</p>}
+        {tickets.length === 0 && <p className="p-6 text-center text-ink-500">לא נמצאו פניות.</p>}
       </div>
     </div>
   );

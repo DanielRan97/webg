@@ -15,7 +15,7 @@ export default async function AdminSupportTicketPage({ params }: PageProps<"/adm
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <Link href="/admin/support" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-700 underline">← כל הפניות</Link>
+      <Link href="/admin/support" className="inline-flex min-h-11 items-center text-sm font-semibold text-ink-700 underline">← כל הפניות</Link>
       <TicketStatusControl ticketId={ticket.id} status={ticket.status} />
       <SupportThread role="ADMIN" ticket={ticket} />
     </div>

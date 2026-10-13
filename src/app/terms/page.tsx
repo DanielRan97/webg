@@ -9,8 +9,8 @@ const UPDATED_AT = "ספטמבר 2026";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-      <div className="space-y-2 text-gray-700">{children}</div>
+      <h2 className="text-xl font-bold text-ink-900">{title}</h2>
+      <div className="space-y-2 text-ink-700">{children}</div>
     </section>
   );
 }
@@ -19,10 +19,10 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl space-y-8 px-5 py-16">
       <div className="space-y-4">
-        <Link href="/" className="text-sm font-semibold text-indigo-800 underline">← חזרה ל-WEBG</Link>
-        <h1 className="text-3xl font-extrabold">תנאי שימוש</h1>
-        <p className="text-sm text-gray-500">עודכן לאחרונה: {UPDATED_AT}</p>
-        <p className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+        <Link href="/" className="text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← חזרה ל-WEBG</Link>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">תנאי שימוש</h1>
+        <p className="text-sm text-ink-500">עודכן לאחרונה: {UPDATED_AT}</p>
+        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
           מסמך זה נכתב על ידי צוות המוצר כדי לתאר בשפה פשוטה ומדויקת את תנאי השימוש בפועל, נכון למועד הפרסום. הוא לא
           נבדק ולא אושר על ידי עורך/ת דין. מדובר בטיוטה מעשית לתקופת הבטא, לא בייעוץ משפטי, ואין להסתמך עליה כמסמך
           משפטי מחייב ללא בדיקה פרטנית.
@@ -114,12 +114,12 @@ export default function TermsPage() {
       <Section title="פניות ושאלות">
         <p>
           משתמשים רשומים של WEBG יכולים לפנות אלינו בכל שאלה לגבי תנאי השימוש דרך{" "}
-          <Link href="/support" className="font-semibold text-indigo-800 underline">אזור התמיכה</Link>{" "}
+          <Link href="/support" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">אזור התמיכה</Link>{" "}
           בחשבונם (יש להתחבר; מי שעדיין אין לו חשבון יכול להירשם בחינם).
         </p>
         <p>
           אפשר גם לכתוב לנו במייל:{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>.
+          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">{SUPPORT_EMAIL}</a>.
         </p>
       </Section>
 

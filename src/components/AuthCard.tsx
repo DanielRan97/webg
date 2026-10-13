@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { WebgMark } from "./WebgMark";
 
 /**
  * Shared shell for every auth screen (login, signup, forgot/reset password,
@@ -19,19 +20,19 @@ export function AuthCard({
   footer?: ReactNode;
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-6 sm:py-8">
-      <div className="w-full max-w-md space-y-5 rounded-3xl border border-gray-300 bg-white p-6 shadow-sm sm:p-7">
-        <div className="text-center">
-          <Link href="/" className="inline-flex min-h-8 items-center text-xl font-bold tracking-tight text-indigo-700">WEBG</Link>
-          <h1 className="mt-3 text-2xl font-bold">{heading}</h1>
-          {subtitle && <p className="mt-1 text-gray-700">{subtitle}</p>}
+    <main className="flex min-h-screen items-center justify-center bg-paper px-4 py-6 sm:py-8">
+      <div className="w-full max-w-md space-y-5 rounded-xl border border-ink-200 bg-white p-6 sm:p-8">
+        <div>
+          <Link href="/" aria-label="WEBG - לדף הבית" className="inline-flex min-h-11 items-center"><WebgMark size="sm" /></Link>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-ink-900">{heading}</h1>
+          {subtitle && <p className="mt-2 text-ink-700">{subtitle}</p>}
         </div>
         {children}
         {footer}
         {/* Everyone on these screens is logged out, so the in-app /support area is out of reach - email is their only way to us. */}
-        <p className="text-center text-sm text-gray-600">
+        <p className="border-t border-ink-100 pt-4 text-sm text-ink-700">
           צריכים עזרה או שלא הגיע מייל? כתבו לנו:{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>
+          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">{SUPPORT_EMAIL}</a>
         </p>
       </div>
     </main>

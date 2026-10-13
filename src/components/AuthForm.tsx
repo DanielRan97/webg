@@ -28,9 +28,9 @@ export function AuthForm({
       heading={isLogin ? "ברוכים השבים" : "יוצרים חשבון"}
       subtitle={isLogin ? "התחברו כדי לנהל, לערוך ולפרסם את האתרים שלכם." : "כמה שניות ואפשר להתחיל. בלי כרטיס אשראי."}
       footer={
-        <p className="text-center text-gray-700">
+        <p className="text-start text-ink-700">
           {isLogin ? "אין לכם חשבון? " : "כבר יש לכם חשבון? "}
-          <Link href={isLogin ? "/signup" : "/login"} className="inline-flex min-h-11 items-center font-semibold text-indigo-800 underline">
+          <Link href={isLogin ? "/signup" : "/login"} className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
             {isLogin ? "הרשמה" : "התחברות"}
           </Link>
         </p>
@@ -60,7 +60,7 @@ export function AuthForm({
           />
           {isLogin && (
             <p className="text-start">
-              <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">
+              <Link href="/forgot-password" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
                 שכחת סיסמה?
               </Link>
             </p>
@@ -70,11 +70,11 @@ export function AuthForm({
             {pending ? (isLogin ? "מתחברים..." : "יוצרים את החשבון...") : isLogin ? "התחברות" : "יצירת חשבון"}
           </Button>
           {!isLogin && (
-            <p className="text-center text-xs text-gray-500">
+            <p className="text-start text-xs text-ink-500">
               בהרשמה אתם מאשרים את{" "}
-              <Link href="/terms" className="underline hover:text-gray-700">תנאי השימוש</Link>
+              <Link href="/terms" className="underline hover:text-ink-700">תנאי השימוש</Link>
               {" "}ואת{" "}
-              <Link href="/privacy" className="underline hover:text-gray-700">מדיניות הפרטיות</Link>
+              <Link href="/privacy" className="underline hover:text-ink-700">מדיניות הפרטיות</Link>
               {" "}שלנו.
             </p>
           )}

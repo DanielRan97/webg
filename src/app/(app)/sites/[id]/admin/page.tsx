@@ -12,16 +12,16 @@ import { PlanComparison } from "@/components/PlanComparison";
 export const metadata: Metadata = { title: "מרכז הפניות" };
 export const dynamic = "force-dynamic";
 
-const secondaryBtn = "inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50";
+const secondaryBtn = "inline-flex min-h-11 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-4 text-sm font-semibold text-ink-800 transition hover:bg-ink-50";
 
 function AdminHeader({ site }: { site: { id: string; data: { businessName: string } } }) {
   return (
-    <div className="border-b border-gray-200 bg-white">
+    <div className="border-b border-ink-100 bg-white">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4">
         <div>
-          <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← האתרים שלי</Link>
-          <h1 className="text-2xl font-extrabold">מרכז הפניות</h1>
-          <p className="text-gray-700">{site.data.businessName}</p>
+          <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← האתרים שלי</Link>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">מרכז הפניות</h1>
+          <p className="text-ink-700">{site.data.businessName}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/sites/${site.id}/edit`} className={secondaryBtn}>עריכת האתר</Link>
@@ -73,7 +73,7 @@ export default async function SiteAdminPage({ params, searchParams }: PageProps<
     <>
       <AdminHeader site={site} />
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        <p className="text-gray-700">כל הפניות והלידים שהתקבלו דרך האתר במקום אחד.</p>
+        <p className="text-ink-700">כל הפניות והלידים שהתקבלו דרך האתר במקום אחד.</p>
         <AdminInbox siteId={site.id} interactions={interactions} initialInteractionId={initialInteractionId} />
       </main>
     </>

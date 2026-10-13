@@ -9,8 +9,8 @@ const UPDATED_AT = "ספטמבר 2026";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-      <div className="space-y-2 text-gray-700">{children}</div>
+      <h2 className="text-xl font-bold text-ink-900">{title}</h2>
+      <div className="space-y-2 text-ink-700">{children}</div>
     </section>
   );
 }
@@ -19,10 +19,10 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-3xl space-y-8 px-5 py-16">
       <div className="space-y-4">
-        <Link href="/" className="text-sm font-semibold text-indigo-800 underline">← חזרה ל-WEBG</Link>
-        <h1 className="text-3xl font-extrabold">מדיניות פרטיות</h1>
-        <p className="text-sm text-gray-500">עודכן לאחרונה: {UPDATED_AT}</p>
-        <p className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+        <Link href="/" className="text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← חזרה ל-WEBG</Link>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">מדיניות פרטיות</h1>
+        <p className="text-sm text-ink-500">עודכן לאחרונה: {UPDATED_AT}</p>
+        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
           מסמך זה נכתב על ידי צוות המוצר כדי לתאר בשפה פשוטה ומדויקת מה WEBG עושה עם המידע בפועל, נכון למועד הפרסום.
           הוא לא נבדק ולא אושר על ידי עורך/ת דין, ואינו מהווה הצהרת תאימות לרגולציה כלשהי (כגון GDPR או חוק הגנת הפרטיות
           הישראלי). מדובר בטיוטה מעשית לתקופת הבטא, לא בייעוץ משפטי, ואין להסתמך עליה כמסמך משפטי מחייב ללא בדיקה
@@ -31,30 +31,30 @@ export default function PrivacyPage() {
       </div>
 
       <Section title="איזה מידע אנחנו אוספים">
-        <p className="font-semibold text-gray-900">פרטי חשבון (בעלי אתרים)</p>
+        <p className="font-semibold text-ink-900">פרטי חשבון (בעלי אתרים)</p>
         <p>כתובת אימייל, סיסמה (נשמרת כגיבוב חד-כיווני - hash - ולעולם לא כטקסט גלוי), תאריך הרשמה וסטטוס אימות האימייל.</p>
-        <p className="font-semibold text-gray-900">פרטי העסק שמוזנים לאתר</p>
+        <p className="font-semibold text-ink-900">פרטי העסק שמוזנים לאתר</p>
         <p>
           שם העסק, סוג הפעילות, תיאור, פרטי יצירת קשר (טלפון, וואטסאפ, אימייל, כתובת, עיר), צבעי מותג, שעות פעילות,
           שירותים ומחירים, תמונות שמועלות (לוגו, תמונת רקע, גלריה), המלצות, שאלות נפוצות, ותוכן פורטפוליו (ניסיון
           תעסוקתי, השכלה, כישורים, פרויקטים, הסמכות) - בהתאם לסוג העסק ולבחירת בעל האתר.
         </p>
-        <p className="font-semibold text-gray-900">פניות של לקוחות קצה</p>
+        <p className="font-semibold text-ink-900">פניות של לקוחות קצה</p>
         <p>
           כשמבקר באתר שפורסם דרך WEBG ממלא טופס יצירת קשר או טופס ליד, אנחנו שומרים את הפרטים שהוזנו (שם, טלפון,
           אימייל, הודעה) כדי שבעל האתר יוכל לצפות בהם, לקבל עליהם התראה במייל ולהשיב ללקוח.
         </p>
-        <p className="font-semibold text-gray-900">נתוני התחברות</p>
+        <p className="font-semibold text-ink-900">נתוני התחברות</p>
         <p>
           עוגיית סשן אחת (<span dir="ltr">httpOnly</span>, לא נגישה לקוד JavaScript בדפדפן), שתפקידה לזהות שאתם
           מחוברים לחשבון. היא בתוקף עד 30 יום או עד להתנתקות. אין בשירות עוגיות שיווק או מעקב של צד שלישי.
         </p>
-        <p className="font-semibold text-gray-900">נתוני תנועה</p>
+        <p className="font-semibold text-ink-900">נתוני תנועה</p>
         <p>
           לכל אתר מתפרסם אנחנו שומרים מונה כניסות מצטבר לפי יום (כמות כניסות בלבד). איננו שומרים כתובת IP, עוגיית
           מעקב או טביעת אצבע של מבקרים לצורך זה.
         </p>
-        <p className="font-semibold text-gray-900">מניעת שימוש לרעה</p>
+        <p className="font-semibold text-ink-900">מניעת שימוש לרעה</p>
         <p>
           כדי להגביל קצב פעולות רגישות (התחברות, הרשמה, טפסים) אנחנו שומרים לזמן קצר מזהה טכני (כתובת IP או אימייל)
           המקושר לניסיון הפעולה. הרשומות האלו נמחקות אוטומטית בתוך כ-24 שעות ומשמשות אך ורק למניעת ניצול לרעה של
@@ -127,12 +127,12 @@ export default function PrivacyPage() {
       <Section title="פניות ושאלות">
         <p>
           משתמשים רשומים של WEBG יכולים לפנות אלינו בכל שאלה, כולל שאלות בנושא פרטיות, דרך{" "}
-          <Link href="/support" className="font-semibold text-indigo-800 underline">אזור התמיכה</Link>{" "}
+          <Link href="/support" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">אזור התמיכה</Link>{" "}
           בחשבונם (יש להתחבר; מי שעדיין אין לו חשבון יכול להירשם בחינם).
         </p>
         <p>
           כל אחד, כולל מי שאינו משתמש רשום, יכול לכתוב לנו גם במייל:{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-indigo-800 underline">{SUPPORT_EMAIL}</a>.
+          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">{SUPPORT_EMAIL}</a>.
         </p>
         <p>
           לקוח קצה שפרטיו נמסרו דרך טופס יצירת קשר או ליד באתר שמתפרסם על ידי WEBG מוזמן לפנות קודם לבעל העסק שבאתרו

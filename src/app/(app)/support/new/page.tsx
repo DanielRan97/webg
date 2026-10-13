@@ -14,8 +14,8 @@ export default async function NewSupportTicketPage() {
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
       <div>
-        <Link href="/support" className="inline-flex min-h-11 items-center text-sm font-semibold text-indigo-800 underline">← תמיכה</Link>
-        <h1 className="text-2xl font-extrabold">פנייה חדשה</h1>
+        <Link href="/support" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← תמיכה</Link>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">פנייה חדשה</h1>
       </div>
       <NewSupportTicketForm websites={websites} />
     </main>

@@ -45,7 +45,7 @@ export function CreateDraftRedirect() {
       ) : (
         <>
           <Spinner />
-          <p className="text-gray-700">מכינים את האתר שלכם...</p>
+          <p className="text-ink-700">מכינים את האתר שלכם...</p>
         </>
       )}
     </main>

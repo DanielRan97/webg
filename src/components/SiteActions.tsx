@@ -91,21 +91,21 @@ export function SiteActions({
             <Button className="w-full sm:w-auto" loading={running === "activate"} disabled={isPending} onClick={() => run("activate", activateSubscriptionAction, "האתר הופעל מחדש וחזר להיות זמין.")}>
               {running === "activate" ? "מפעיל..." : "הפעל מחדש"}
             </Button>
-            <p className="text-sm text-gray-700">המנוי הסתיים. אחרי ההפעלה האתר חוזר להיות זמין, וכל המידע שלכם נשמר.</p>
+            <p className="text-sm text-ink-700">המנוי הסתיים. אחרי ההפעלה האתר חוזר להיות זמין, וכל המידע שלכם נשמר.</p>
           </>
         ) : published ? (
           <>
             <Button variant="secondary" className="w-full sm:w-auto" disabled={isPending} onClick={() => setConfirm("unpublish")}>
               הורדה מהאוויר
             </Button>
-            <p className="text-sm text-gray-700">האתר אונליין. הורדה מהאוויר רק מסתירה אותו, שום דבר לא נמחק.</p>
+            <p className="text-sm text-ink-700">האתר אונליין. הורדה מהאוויר רק מסתירה אותו, שום דבר לא נמחק.</p>
           </>
         ) : (
           <>
             <Button className="w-full sm:w-auto" loading={running === "publish"} disabled={isPending} onClick={() => run("publish", publishSiteAction, publishedText)}>
               {running === "publish" ? "מפרסם..." : "פרסום האתר"}
             </Button>
-            <p className="text-sm text-gray-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
+            <p className="text-sm text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
           </>
         )}
       </div>
@@ -113,7 +113,7 @@ export function SiteActions({
       {notice && <Notice kind={notice.kind}>{notice.text}</Notice>}
 
       {isDev && !inactive && (
-        <button type="button" disabled={isPending} onClick={() => setConfirm("deactivate")} className="min-h-11 text-sm text-gray-700 underline hover:text-gray-900" title="הדמיה בלבד, עד שיחובר תשלום">
+        <button type="button" disabled={isPending} onClick={() => setConfirm("deactivate")} className="min-h-11 text-sm text-ink-700 underline hover:text-ink-900" title="הדמיה בלבד, עד שיחובר תשלום">
           הדמיה: סיום מנוי
         </button>
       )}
@@ -141,7 +141,7 @@ export function SiteActions({
 
       <div className="mt-2 border-t-2 border-dashed border-red-200 pt-4">
         <Button type="button" variant="danger" className="w-full sm:w-auto" disabled={isPending} onClick={() => setDeleteOpen(true)}>
-          🗑 מחיקת האתר
+          מחיקת האתר
         </Button>
         <p className="mt-2 text-sm text-red-700">פעולה בלתי הפיכה: מוחקת את האתר, התמונות והמידע שלו לצמיתות.</p>
       </div>

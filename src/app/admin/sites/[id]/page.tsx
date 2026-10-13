@@ -8,13 +8,13 @@ import { PlanOverride } from "@/components/admin/PlanOverride";
 export const metadata: Metadata = { title: "פרטי אתר - WEBG Admin" };
 export const dynamic = "force-dynamic";
 
-const linkClass = "inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-50";
+const linkClass = "inline-flex min-h-11 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-4 text-sm font-semibold text-ink-800 transition hover:bg-ink-50";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-2 text-sm last:border-0">
-      <span className="font-semibold text-gray-600">{label}</span>
-      <span className="text-gray-900">{value}</span>
+    <div className="flex items-center justify-between gap-4 border-b border-ink-100 py-2 text-sm last:border-0">
+      <span className="font-semibold text-ink-500">{label}</span>
+      <span className="text-ink-900">{value}</span>
     </div>
   );
 }
@@ -27,7 +27,7 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/sites" className="text-sm font-semibold text-indigo-700 underline">← כל האתרים</Link>
+        <Link href="/admin/sites" className="text-sm font-semibold text-ink-700 underline">← כל האתרים</Link>
         <h1 className="mt-1 text-2xl font-extrabold">{site.businessName}</h1>
       </div>
 
@@ -38,7 +38,7 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-gray-300 bg-white p-4">
+        <section className="rounded-xl border border-ink-200 bg-white p-4">
           <Row label="בעלים" value={<span dir="ltr">{site.ownerEmail}</span>} />
           <Row label="תוכנית" value={site.plan} />
           <Row label="סטטוס" value={site.status === "PUBLISHED" ? "מפורסם" : "טיוטה"} />
@@ -53,7 +53,7 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
           {site.subscription && <Row label="סטטוס מנוי" value={site.subscription.status} />}
         </section>
 
-        <section className="rounded-2xl border border-gray-300 bg-white p-4">
+        <section className="rounded-xl border border-ink-200 bg-white p-4">
           <PlanOverride siteId={site.id} plan={site.plan} />
         </section>
       </div>

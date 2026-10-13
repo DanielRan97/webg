@@ -24,10 +24,10 @@ export function PlanComparisonModal({ open, onClose }: { open: boolean; onClose:
         e.preventDefault();
         onClose();
       }}
-      className="m-auto w-[min(92vw,36rem)] rounded-3xl p-6 shadow-2xl backdrop:bg-black/50"
+      className="m-auto w-[min(92vw,36rem)] rounded-2xl border border-ink-200 p-6 shadow-2xl backdrop:bg-ink-950/50"
     >
-      <h2 id={titleId} className="text-xl font-bold text-gray-900">מה כולל Pro?</h2>
-      <p className="mt-1 text-sm text-gray-600">אפשר להתחיל עם Basic ולשדרג בכל שלב - שום מידע לא נמחק.</p>
+      <h2 id={titleId} className="text-xl font-bold text-ink-900">מה כולל Pro?</h2>
+      <p className="mt-1 text-sm text-ink-500">אפשר להתחיל עם Basic ולשדרג בכל שלב - שום מידע לא נמחק.</p>
       <div className="mt-4">
         <PlanComparison />
       </div>

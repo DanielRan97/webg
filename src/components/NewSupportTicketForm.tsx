@@ -35,10 +35,10 @@ export function NewSupportTicketForm({ websites }: { websites: { id: string; bus
         e.preventDefault();
         submit();
       }}
-      className="space-y-5 rounded-2xl border border-gray-200 bg-white p-5"
+      className="space-y-5 rounded-xl border border-ink-100 bg-white p-5"
     >
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-gray-900">קטגוריה</p>
+        <p className="text-sm font-semibold text-ink-900">קטגוריה</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {CATEGORIES.map((c) => (
             <ChoiceCard key={c} selected={category === c} onClick={() => setCategory(c)}>
@@ -53,14 +53,14 @@ export function NewSupportTicketForm({ websites }: { websites: { id: string; bus
 
       {websites.length > 0 && (
         <div className="space-y-1.5">
-          <label htmlFor="related-site" className="block text-sm font-semibold text-gray-900">
-            באיזה אתר מדובר? <span className="font-normal text-gray-600">(אופציונלי)</span>
+          <label htmlFor="related-site" className="block text-sm font-semibold text-ink-900">
+            באיזה אתר מדובר? <span className="font-normal text-ink-500">(אופציונלי)</span>
           </label>
           <select
             id="related-site"
             value={relatedWebsiteId}
             onChange={(e) => setRelatedWebsiteId(e.target.value)}
-            className="min-h-12 w-full rounded-xl border border-gray-400 bg-white px-4 text-base outline-none transition focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200"
+            className="min-h-12 w-full rounded-lg border border-ink-300 bg-white px-4 text-base text-ink-900 outline-none transition hover:border-ink-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-600/15 focus-visible:outline-none"
           >
             <option value="">לא קשור לאתר מסוים</option>
             {websites.map((w) => (

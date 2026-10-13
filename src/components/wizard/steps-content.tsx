@@ -16,16 +16,16 @@ const removeAt = <T,>(list: T[], i: number) => list.filter((_, idx) => idx !== i
 function RemoveButton({ what, onClick }: { what: string; onClick: () => void }) {
   return (
     <Button type="button" variant="danger" className="min-h-11" aria-label={`מחיקת ${what}`} onClick={onClick}>
-      🗑 מחיקה
+      מחיקה
     </Button>
   );
 }
 
 function EmptyBox({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center">
+    <div className="rounded-xl border-2 border-dashed border-ink-200 p-6 text-center">
       <p className="font-semibold">{title}</p>
-      <p className="mt-1 text-sm text-gray-700">{text}</p>
+      <p className="mt-1 text-sm text-ink-700">{text}</p>
     </div>
   );
 }
@@ -36,7 +36,7 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
   return (
     <div className="space-y-6">
       <StepTitle title="מה לקוחות אומרים עליכם?" subtitle="המלצות אמיתיות מלקוחות מחזקות אמון. אפשר להוסיף כמה שרוצים." />
-      <p className="flex items-start gap-1.5 text-xs text-gray-500">
+      <p className="flex items-start gap-1.5 text-xs text-ink-500">
         <InfoIcon className="mt-0.5 shrink-0" width="14" height="14" />
         כדאי לבקש מהלקוח רשות לפני שמפרסמים את שמו ואת התמונה שלו.
       </p>
@@ -45,9 +45,9 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
         {list.map((t, i) => {
           const err = errors[`testimonial-${i}`];
           return (
-            <fieldset key={i} aria-label={`המלצה ${i + 1}`} className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3">
+            <fieldset key={i} aria-label={`המלצה ${i + 1}`} className="space-y-3 rounded-xl border border-ink-100 bg-white p-3">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-gray-500">המלצה {i + 1}</span>
+                <span className="text-sm font-semibold text-ink-500">המלצה {i + 1}</span>
                 <button
                   type="button"
                   aria-label={`מחיקת המלצה ${i + 1}`}
@@ -60,7 +60,7 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
               <TextField label="שם הלקוח" placeholder="לדוגמה: דנה כהן" value={t.name} onChange={(v) => update({ testimonials: setAt(list, i, { name: v }) })} error={!t.name.trim() ? err : undefined} maxLength={60} />
               <TextArea label="מה הלקוח אמר?" placeholder="לדוגמה: שירות מעולה, הגיעו בזמן והכול נעשה מסודר." rows={3} value={t.text} onChange={(v) => update({ testimonials: setAt(list, i, { text: v }) })} error={t.name.trim() ? err : undefined} maxLength={500} />
               <div role="group" aria-label={`דירוג: ${t.rating > 0 ? `${t.rating} מתוך 5 כוכבים` : "ללא דירוג"}`} className="space-y-1">
-                <p className="text-sm font-semibold text-gray-900">דירוג (לא חובה)</p>
+                <p className="text-sm font-semibold text-ink-900">דירוג (לא חובה)</p>
                 <div className="flex flex-wrap items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
@@ -71,7 +71,7 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
                       onClick={() => update({ testimonials: setAt(list, i, { rating: n }) })}
                       className={cx(
                         "flex h-11 w-11 items-center justify-center rounded-lg text-2xl transition hover:bg-amber-50 focus-visible:bg-amber-50",
-                        n <= t.rating ? "text-amber-500" : "text-gray-300 hover:text-amber-400",
+                        n <= t.rating ? "text-amber-500" : "text-ink-300 hover:text-amber-400",
                       )}
                     >
                       <span aria-hidden>{n <= t.rating ? "★" : "☆"}</span>
@@ -79,10 +79,10 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
                   ))}
                   {t.rating > 0 && <Button type="button" variant="ghost" className="min-h-11" onClick={() => update({ testimonials: setAt(list, i, { rating: 0 }) })}>ללא דירוג</Button>}
                 </div>
-                <p className="text-xs text-gray-500" aria-live="polite">{t.rating > 0 ? `${t.rating} מתוך 5` : "לא נבחר דירוג"}</p>
+                <p className="text-xs text-ink-500" aria-live="polite">{t.rating > 0 ? `${t.rating} מתוך 5` : "לא נבחר דירוג"}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-gray-900">תמונה של הלקוח (לא חובה)</p>
+                <p className="text-sm font-semibold text-ink-900">תמונה של הלקוח (לא חובה)</p>
                 {t.imageUrl && (
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -126,16 +126,16 @@ export function AreasStep({ data, update }: StepProps) {
         )}
       </Field>
       {data.areas.length === 0 ? (
-        <p className="flex items-center gap-2 text-sm text-gray-500">
+        <p className="flex items-center gap-2 text-sm text-ink-500">
           <LocationIcon className="shrink-0" />
           עדיין לא הוספתם אזורים. הלקוחות יראו באילו ערים אתם עובדים.
         </p>
       ) : (
         <ul className="flex flex-wrap gap-2" aria-label="האזורים שהוספתם">
           {data.areas.map((a, i) => (
-            <li key={a} className="flex items-center gap-1 rounded-full border border-gray-300 bg-gray-50 ps-4">
+            <li key={a} className="flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 ps-4">
               <span className="py-2 text-sm">{a}</span>
-              <button type="button" aria-label={`הסרת ${a}`} onClick={() => update({ areas: removeAt(data.areas, i) })} className="flex h-11 w-11 items-center justify-center rounded-full text-lg text-gray-500 hover:bg-gray-200"><span aria-hidden>×</span></button>
+              <button type="button" aria-label={`הסרת ${a}`} onClick={() => update({ areas: removeAt(data.areas, i) })} className="flex h-11 w-11 items-center justify-center rounded-full text-lg text-ink-500 hover:bg-ink-100"><span aria-hidden>×</span></button>
             </li>
           ))}
         </ul>
@@ -151,7 +151,7 @@ export function DeliveryStep({ data, update }: StepProps) {
   return (
     <div className="space-y-6">
       <StepTitle title="משלוחים" subtitle="מידע כללי בלבד - זה לא כפתור הזמנה או מעקב משלוח." />
-      <div className="rounded-2xl bg-gray-50 p-4">
+      <div className="rounded-xl bg-ink-50 p-4">
         <Toggle checked={del.available} onChange={(v) => set({ available: v })} label="יש לכם משלוחים?" onText="כן" offText="לא" />
       </div>
       {del.available && (
@@ -177,7 +177,7 @@ export function EmergencyStep({ data, update, errors }: StepProps) {
   return (
     <div className="space-y-6">
       <StepTitle title="שירות חירום" subtitle="אם אתם מגיעים גם לתקלות דחופות, הלקוחות יראו את זה בבלוק בולט." />
-      <div className="rounded-2xl bg-gray-50 p-4">
+      <div className="rounded-xl bg-ink-50 p-4">
         <Toggle checked={e.available24x7} onChange={(v) => set({ available24x7: v })} label="זמינים 24 שעות ביממה?" hint="יוצג באתר תג ״זמינים 24/7״." onText="כן" offText="לא" />
       </div>
       <TextField label="טלפון לשעת חירום (לא חובה)" hint="אם תשאירו ריק, נשתמש בטלפון הרגיל של העסק." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={e.phone} onChange={(v) => set({ phone: v })} error={errors["emergency-phone"]} />
@@ -194,12 +194,12 @@ export function BookingStep({ data, update, errors }: StepProps) {
     <div className="space-y-6">
       <StepTitle title="איך קובעים תור?" subtitle="נוסיף לאתר כפתור גדול. זו לא מערכת תורים: הלקוח עובר אליכם בלחיצה." />
       <div role="group" aria-labelledby="booking-how" className="space-y-2">
-        <p id="booking-how" className="text-sm font-semibold text-gray-900">איך הלקוח יקבע תור?</p>
+        <p id="booking-how" className="text-sm font-semibold text-ink-900">איך הלקוח יקבע תור?</p>
         <div className="grid gap-3 sm:grid-cols-3">
           {BOOKING_METHODS.map((m) => (
             <ChoiceCard key={m} selected={b.method === m} onClick={() => set({ method: m })}>
               {BOOKING_LABELS[m].label}
-              <span className="text-xs font-normal text-gray-700">{BOOKING_LABELS[m].hint}</span>
+              <span className="text-xs font-normal text-ink-700">{BOOKING_LABELS[m].hint}</span>
             </ChoiceCard>
           ))}
         </div>
@@ -209,8 +209,8 @@ export function BookingStep({ data, update, errors }: StepProps) {
         <TextField label="הקישור ליומן התורים" hint="הדביקו את הקישור מהאתר שבו קובעים תור." placeholder="לדוגמה: calendly.com/השם-שלכם" dir="ltr" value={b.url} onChange={(v) => set({ url: v })} error={errors["booking-url"]} maxLength={300} />
       )}
       <TextField label="מה יהיה כתוב על הכפתור? (לא חובה)" hint="אם תשאירו ריק, יהיה כתוב ״קבעו תור״." placeholder="לדוגמה: קבעו תור" value={b.buttonText} onChange={(v) => set({ buttonText: v })} maxLength={30} />
-      <p className="text-sm text-gray-700">
-        כך ייראה הכפתור: <span className="ms-1 inline-block rounded-full bg-indigo-700 px-5 py-2 font-semibold text-white">{b.buttonText.trim() || "קבעו תור"}</span>
+      <p className="text-sm text-ink-700">
+        כך ייראה הכפתור: <span className="ms-1 inline-block rounded-full bg-brand-600 px-5 py-2 font-semibold text-white">{b.buttonText.trim() || "קבעו תור"}</span>
       </p>
     </div>
   );
@@ -226,8 +226,8 @@ export function FaqStep({ data, update, errors }: StepProps) {
       {list.map((f, i) => {
         const err = errors[`faq-${i}`];
         return (
-          <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-            <legend className="px-2 text-sm font-semibold text-gray-700">שאלה {i + 1}</legend>
+          <fieldset key={i} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+            <legend className="px-2 text-sm font-semibold text-ink-700">שאלה {i + 1}</legend>
             <TextField label="השאלה" placeholder="לדוגמה: האם אתם מגיעים גם בשבת?" value={f.question} onChange={(v) => update({ faq: setAt(list, i, { question: v }) })} error={!f.question.trim() ? err : undefined} maxLength={200} />
             <TextArea label="התשובה" placeholder="לדוגמה: כן, בתיאום מראש." rows={3} value={f.answer} onChange={(v) => update({ faq: setAt(list, i, { answer: v }) })} error={f.question.trim() ? err : undefined} maxLength={800} />
             <RemoveButton what={`שאלה ${i + 1}`} onClick={() => update({ faq: removeAt(list, i) })} />
@@ -249,8 +249,8 @@ export function HighlightsStep({ data, update, errors }: StepProps) {
       {list.map((h, i) => {
         const err = errors[`highlight-${i}`];
         return (
-          <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-            <legend className="px-2 text-sm font-semibold text-gray-700">כרטיס {i + 1}</legend>
+          <fieldset key={i} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+            <legend className="px-2 text-sm font-semibold text-ink-700">כרטיס {i + 1}</legend>
             <div className="grid gap-3 sm:grid-cols-[9rem_1fr]">
               <TextField label="המספר או הערך" placeholder="לדוגמה: 9" value={h.value} onChange={(v) => update({ highlights: setAt(list, i, { value: v }) })} error={h.label.trim() ? err : undefined} maxLength={30} />
               <TextField label="מה זה אומר?" placeholder="לדוגמה: שנות ניסיון" value={h.label} onChange={(v) => update({ highlights: setAt(list, i, { label: v }) })} error={!h.label.trim() ? err : undefined} maxLength={40} />
@@ -272,8 +272,8 @@ export function ExperienceStep({ data, update }: StepProps) {
       <StepTitle title="ניסיון תעסוקתי" subtitle="תפקידים קודמים: איפה עבדתם, מה עשיתם ומתי. אם התפקיד עדיין נוכחי, אפשר להשאיר את תאריך הסיום ריק." />
       {list.length === 0 && <EmptyBox title="עדיין לא הוספתם ניסיון תעסוקתי" text="הוסיפו תפקיד אחד לפחות, עם הארגון והתפקיד." />}
       {list.map((e, i) => (
-        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-          <legend className="px-2 text-sm font-semibold text-gray-700">תפקיד {i + 1}</legend>
+        <fieldset key={i} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-ink-700">תפקיד {i + 1}</legend>
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="ארגון / חברה" placeholder="לדוגמה: וויקס" value={e.organization} onChange={(v) => update({ experience: setAt(list, i, { organization: v }) })} maxLength={100} />
             <TextField label="תפקיד" placeholder="לדוגמה: מפתחת Full-Stack" value={e.role} onChange={(v) => update({ experience: setAt(list, i, { role: v }) })} maxLength={100} />
@@ -301,8 +301,8 @@ export function EducationStep({ data, update }: StepProps) {
       <StepTitle title="השכלה" subtitle="תארים, קורסים ולימודים שסיימתם." />
       {list.length === 0 && <EmptyBox title="עדיין לא הוספתם השכלה" text="הוסיפו מוסד לימודים אחד לפחות." />}
       {list.map((e, i) => (
-        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-          <legend className="px-2 text-sm font-semibold text-gray-700">לימודים {i + 1}</legend>
+        <fieldset key={i} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-ink-700">לימודים {i + 1}</legend>
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="מוסד לימודים" placeholder="לדוגמה: האוניברסיטה העברית" value={e.institution} onChange={(v) => update({ education: setAt(list, i, { institution: v }) })} maxLength={100} />
             <TextField label="תחום / תואר (לא חובה)" placeholder="לדוגמה: מדעי המחשב, B.Sc" value={e.field} onChange={(v) => update({ education: setAt(list, i, { field: v }) })} maxLength={100} />
@@ -346,9 +346,9 @@ export function SkillsStep({ data, update }: StepProps) {
       ) : (
         <ul className="flex flex-wrap gap-2" aria-label="הכישורים שהוספתם">
           {data.skills.map((s, i) => (
-            <li key={s.name} className="flex items-center gap-1 rounded-full border border-gray-400 bg-white ps-4">
+            <li key={s.name} className="flex items-center gap-1 rounded-lg border border-ink-300 bg-white ps-4">
               <span className="py-2">{s.name}</span>
-              <button type="button" aria-label={`הסרת ${s.name}`} onClick={() => update({ skills: removeAt(data.skills, i) })} className="h-11 w-11 rounded-full text-lg hover:bg-gray-100"><span aria-hidden>×</span></button>
+              <button type="button" aria-label={`הסרת ${s.name}`} onClick={() => update({ skills: removeAt(data.skills, i) })} className="h-11 w-11 rounded-full text-lg hover:bg-ink-50"><span aria-hidden>×</span></button>
             </li>
           ))}
         </ul>
@@ -365,12 +365,12 @@ export function ProjectsStep({ data, update }: StepProps) {
       <StepTitle title="פרויקטים" subtitle="עבודות לדוגמה שממחישות מה אתם יודעים לעשות." />
       {list.length === 0 && <EmptyBox title="עדיין לא הוספתם פרויקטים" text="הוסיפו כותרת ותיאור קצר לכל פרויקט." />}
       {list.map((p, i) => (
-        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-          <legend className="px-2 text-sm font-semibold text-gray-700">פרויקט {i + 1}</legend>
+        <fieldset key={i} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-ink-700">פרויקט {i + 1}</legend>
           <TextField label="כותרת" placeholder="לדוגמה: אתר להזמנת תורים" value={p.title} onChange={(v) => update({ projects: setAt(list, i, { title: v }) })} maxLength={100} />
           <TextArea label="תיאור קצר (לא חובה)" rows={3} value={p.description} onChange={(v) => update({ projects: setAt(list, i, { description: v }) })} maxLength={500} />
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-900">תמונה (לא חובה)</p>
+            <p className="text-sm font-semibold text-ink-900">תמונה (לא חובה)</p>
             {p.imageUrl && (
               <div className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -399,8 +399,8 @@ export function CertificationsStep({ data, update }: StepProps) {
       <StepTitle title="הסמכות וקורסים" subtitle="תעודות, הסמכות והשלמות מקצועיות." />
       {list.length === 0 && <EmptyBox title="עדיין לא הוספתם הסמכות" text="הוסיפו שם התעודה והגורם המנפיק." />}
       {list.map((c, i) => (
-        <fieldset key={i} className="space-y-3 rounded-2xl border border-gray-300 bg-white p-4">
-          <legend className="px-2 text-sm font-semibold text-gray-700">הסמכה {i + 1}</legend>
+        <fieldset key={i} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+          <legend className="px-2 text-sm font-semibold text-ink-700">הסמכה {i + 1}</legend>
           <TextField label="שם ההסמכה" placeholder="לדוגמה: AWS Certified Developer" value={c.name} onChange={(v) => update({ certifications: setAt(list, i, { name: v }) })} maxLength={120} />
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="גורם מנפיק (לא חובה)" placeholder="לדוגמה: Amazon" value={c.issuer} onChange={(v) => update({ certifications: setAt(list, i, { issuer: v }) })} maxLength={100} />
