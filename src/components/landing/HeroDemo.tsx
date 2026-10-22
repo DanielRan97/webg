@@ -42,8 +42,10 @@ export function HeroDemo({ ctaHref }: { ctaHref: string }) {
           <br />
           <span className="text-ink-300">האתר נבנה מולכם.</span>
         </h1>
-        <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-300">
-          ממלאים כמה פרטים, בוחרים עיצוב ומקבלים אתר מקצועי עם כתובת משלו. בלי מתכנת ובלי ידע טכני.
+        <p className="mt-6 max-w-md text-xl leading-relaxed text-ink-300">
+          ממלאים טופס.
+          <br />
+          מקבלים אתר.
         </p>
 
         <div className="mt-10 max-w-md space-y-6">

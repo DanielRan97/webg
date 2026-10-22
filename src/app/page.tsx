@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { CATEGORIES } from "@/lib/categories";
-import { SUPPORT_EMAIL } from "@/lib/constants";
+import { PLANS, PRICE_NOTE } from "@/lib/business";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { WebgMark } from "@/components/WebgMark";
+import { SiteFooter } from "@/components/SiteFooter";
 import { KeyIcon, LockIcon, MailCheckIcon, TrashIcon } from "@/components/icons";
 
 const STEPS = [
@@ -34,6 +35,7 @@ export default async function LandingPage() {
         <header className="relative mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
           <WebgMark tone="dark" />
           <nav className="flex items-center gap-2 text-sm font-semibold">
+            <a href="#pricing" className="hidden min-h-11 items-center px-3 text-ink-300 transition hover:text-white sm:inline-flex">מחירים</a>
             {user ? (
               <Link href="/dashboard" className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-4 text-white transition hover:bg-white/10">האתרים שלי</Link>
             ) : (
@@ -102,6 +104,31 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        <section id="pricing" className="scroll-mt-6 px-5 pb-24">
+          <div className="mx-auto max-w-6xl">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">מחיר אחד לחודש, בלי הפתעות.</h2>
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-600">בלי דמי הקמה ובלי התחייבות. משלמים על כל אתר בנפרד.</p>
+            <ul className="mt-12 grid gap-5 md:grid-cols-2">
+              {PLANS.map((p) => (
+                <li key={p.id} className={`flex flex-col rounded-2xl border bg-white p-7 ${p.id === "PRO" ? "border-brand-600 ring-1 ring-brand-600" : "border-ink-200"}`}>
+                  <h3 className="text-xl font-bold">{p.name}</h3>
+                  <p className="mt-1 text-ink-600">{p.tagline}</p>
+                  <p className="mt-6"><span className="text-5xl font-bold tracking-tight">₪{p.price}</span> <span className="text-ink-500">לחודש</span></p>
+                  <ul className="mt-6 flex-1 space-y-2.5 text-ink-700">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2"><span aria-hidden className="font-bold text-brand-600">✓</span>{f}</li>
+                    ))}
+                  </ul>
+                  <Link href={ctaHref} className={`mt-8 inline-flex min-h-12 items-center justify-center rounded-xl px-6 font-semibold transition ${p.id === "PRO" ? "bg-brand-600 text-white hover:bg-brand-700" : "border border-ink-200 text-ink-900 hover:bg-ink-50"}`}>
+                    בחירת {p.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 text-sm text-ink-500">{PRICE_NOTE} פרטים מלאים ב<Link href="/terms" className="underline underline-offset-2 hover:text-ink-900">תנאי השימוש</Link>.</p>
+          </div>
+        </section>
+
         <section className="px-5 pb-24">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8 rounded-3xl bg-ink-950 px-8 py-14 text-white md:px-14">
             <div>
@@ -115,21 +142,7 @@ export default async function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-ink-100">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8 text-sm text-ink-600">
-          <span className="inline-flex items-center gap-3">
-            <WebgMark size="sm" />
-            <span>© {new Date().getFullYear()}</span>
-          </span>
-          <span className="flex flex-wrap items-center gap-x-5 gap-y-1">
-            <Link href="/privacy" className="hover:text-ink-900">מדיניות פרטיות</Link>
-            <Link href="/terms" className="hover:text-ink-900">תנאי שימוש</Link>
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-ink-900">
-              צור קשר: <span dir="ltr">{SUPPORT_EMAIL}</span>
-            </a>
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

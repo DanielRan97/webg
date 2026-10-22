@@ -1,34 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { BUSINESS } from "@/lib/business";
+import { LegalPage, Section, linkClass } from "@/components/LegalPage";
 
 export const metadata: Metadata = { title: "מדיניות פרטיות" };
 
-const UPDATED_AT = "ספטמבר 2026";
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <h2 className="text-xl font-bold text-ink-900">{title}</h2>
-      <div className="space-y-2 text-ink-700">{children}</div>
-    </section>
-  );
-}
+const UPDATED_AT = "אוקטובר 2026";
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-8 px-5 py-16">
-      <div className="space-y-4">
-        <Link href="/" className="text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← חזרה ל-WEBG</Link>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">מדיניות פרטיות</h1>
-        <p className="text-sm text-ink-500">עודכן לאחרונה: {UPDATED_AT}</p>
-        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
-          מסמך זה נכתב על ידי צוות המוצר כדי לתאר בשפה פשוטה ומדויקת מה WEBG עושה עם המידע בפועל, נכון למועד הפרסום.
-          הוא לא נבדק ולא אושר על ידי עורך/ת דין, ואינו מהווה הצהרת תאימות לרגולציה כלשהי (כגון GDPR או חוק הגנת הפרטיות
-          הישראלי). מדובר בטיוטה מעשית לתקופת הבטא, לא בייעוץ משפטי, ואין להסתמך עליה כמסמך משפטי מחייב ללא בדיקה
-          פרטנית.
+    <LegalPage title="מדיניות פרטיות" updatedAt={UPDATED_AT}>
+      <Section title="מי אחראי על המידע">
+        <p>
+          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>), {BUSINESS.type}, {BUSINESS.address}.
+          {BUSINESS.nameHe} היא האחראית על המידע שנאסף בשירות, כמתואר במדיניות זו.
         </p>
-      </div>
+      </Section>
 
       <Section title="איזה מידע אנחנו אוספים">
         <p className="font-semibold text-ink-900">פרטי חשבון (בעלי אתרים)</p>
@@ -93,20 +81,24 @@ export default function PrivacyPage() {
           <li><span className="font-semibold">Cloudflare R2</span> - אחסון תמונות שמועלות לאתרים בסביבת הייצור.</li>
           <li><span className="font-semibold">Neon (PostgreSQL)</span> - אחסון מסד הנתונים של השירות.</li>
           <li><span className="font-semibold">Vercel</span> - אירוח האפליקציה והרצתה.</li>
+          <li><span className="font-semibold">Grow</span> - סליקה ועיבוד תשלומים עבור המנויים.</li>
         </ul>
         <p>אנחנו לא מוכרים מידע לצדדים שלישיים למטרות שיווק.</p>
       </Section>
 
       <Section title="תשלומים">
         <p>
-          נכון לכתיבת שורות אלה, WEBG אינה מחוברת לספק סליקה או תשלומים אמיתי. השיוך לתוכניות Basic ו-Pro מנוהל כרגע
-          באופן ידני/פנימי, ולא מתבצע כל תשלום בפועל דרך המערכת.
+          תשלום עבור מנוי מתבצע בדף תשלום מאובטח של חברת הסליקה Grow. פרטי כרטיס האשראי מוזנים ונשמרים אצל Grow בלבד,
+          ו-WEBG אינה רואה ואינה שומרת אותם. אצלנו נשמרים רק מזהה המנוי ב-Grow, 4 הספרות האחרונות של הכרטיס, סכומי
+          החיובים ומועדיהם, והקבלות שהונפקו.
         </p>
+        <p>רשומות התשלום נשמרות גם לאחר מחיקת אתר, לתקופה שנדרשת לפי דיני המס וניהול ספרים.</p>
       </Section>
 
       <Section title="שמירת מידע ומחיקה">
         <ul className="list-inside list-disc space-y-1">
           <li>מידע על חשבון ואתר נשמר כל עוד החשבון פעיל.</li>
+          <li>רשומות תשלום נשמרות לתקופה הנדרשת לפי דין, גם לאחר מחיקת האתר.</li>
           <li>מחיקת אתר דרך העורך מוחקת לצמיתות את כל תוכן האתר - כולל תמונות, שירותים ופניות לקוחות שהתקבלו דרכו.</li>
           <li>
             נכון לעכשיו אין בממשק אפשרות עצמאית למחיקת חשבון משתמש במלואו (רק מחיקת אתר) - מי שמעוניין להסיר גם את
@@ -127,12 +119,12 @@ export default function PrivacyPage() {
       <Section title="פניות ושאלות">
         <p>
           משתמשים רשומים של WEBG יכולים לפנות אלינו בכל שאלה, כולל שאלות בנושא פרטיות, דרך{" "}
-          <Link href="/support" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">אזור התמיכה</Link>{" "}
+          <Link href="/support" className={linkClass}>אזור התמיכה</Link>{" "}
           בחשבונם (יש להתחבר; מי שעדיין אין לו חשבון יכול להירשם בחינם).
         </p>
         <p>
           כל אחד, כולל מי שאינו משתמש רשום, יכול לכתוב לנו גם במייל:{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className="font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">{SUPPORT_EMAIL}</a>.
+          <a href={`mailto:${SUPPORT_EMAIL}`} dir="ltr" className={linkClass}>{SUPPORT_EMAIL}</a>.
         </p>
         <p>
           לקוח קצה שפרטיו נמסרו דרך טופס יצירת קשר או ליד באתר שמתפרסם על ידי WEBG מוזמן לפנות קודם לבעל העסק שבאתרו
@@ -141,8 +133,8 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="שינויים במדיניות זו">
-        <p>המדיניות עשויה להתעדכן ככל שהשירות מתפתח, במיוחד בתקופת הבטא. נעדכן את התאריך בראש העמוד בכל שינוי מהותי.</p>
+        <p>המדיניות עשויה להתעדכן. שינוי מהותי יימסר באימייל, והתאריך בראש העמוד יעודכן.</p>
       </Section>
-    </main>
+    </LegalPage>
   );
 }
