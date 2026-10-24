@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { autosaveSiteAction, checkSlugAvailabilityAction, publishSiteAction, updateSiteAction } from "@/server/actions/sites";
-import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
+import { AUTOSAVE_DOMAINS, menuStepLabel, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { needsProToPublish } from "@/lib/plan";
@@ -61,7 +61,7 @@ const STEPS: StepDef[] = [
   { id: "hours", label: () => "שעות פתיחה", Component: HoursStep, show: (d) => sectionOn(d, "hours") },
   {
     id: "services",
-    label: (d) => (sectionOn(d, "menu") && !sectionOn(d, "services") && !sectionOn(d, "prices") ? "תפריט" : "שירותים ומחירים"),
+    label: (d) => (sectionOn(d, "menu") && !sectionOn(d, "services") && !sectionOn(d, "prices") ? menuStepLabel(d.itemKind) : "שירותים ומחירים"),
     Component: ServicesStep,
     show: (d) => sectionOn(d, "services") || sectionOn(d, "prices") || sectionOn(d, "menu"),
   },
@@ -93,9 +93,9 @@ const stepHasError = (stepId: string, errors: Record<string, string>) =>
 const DOMAIN_SELECTORS: Record<AutosaveDomain, (d: SiteData) => unknown> = {
   basics: (d) => [d.businessName, d.subtitle, d.category, d.description, d.phone, d.whatsapp, d.email, d.address, d.city],
   branding: (d) => [d.logoUrl, d.primaryColor, d.secondaryColor, d.templateId, d.navLayout],
-  hours: (d) => [d.hours, d.openSaturday, d.openHolidays],
+  hours: (d) => [d.hours, d.holidayHours, d.openSaturday, d.openHolidays],
   sections: (d) => d.sections,
-  services: (d) => d.services,
+  services: (d) => [d.services, d.itemKind],
   testimonials: (d) => d.testimonials,
   areas: (d) => d.areas,
   delivery: (d) => d.delivery,

@@ -60,9 +60,9 @@ function Hero({ d }: { d: SiteData }) {
           </div>
         </div>
         {d.heroImageUrl && (
-          <div className="flex aspect-[4/5] w-full max-w-sm items-center justify-center overflow-hidden rounded-md border-[3px] border-black bg-t-tint shadow-[8px_8px_0_0_#000] md:justify-self-end">
+          <div className="flex aspect-[4/3] w-full max-w-md items-center justify-center overflow-hidden rounded-md border-[3px] border-black bg-t-tint shadow-[8px_8px_0_0_#000] md:justify-self-end">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={d.heroImageUrl} alt={d.businessName} className="h-full w-full object-contain" />
+            <img src={d.heroImageUrl} alt={d.businessName} className="h-full w-full object-cover" />
           </div>
         )}
       </div>

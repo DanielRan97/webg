@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BOOKING_METHODS, CTA_TYPES, SOCIAL_PLATFORMS, TEMPLATE_IDS } from "./constants";
+import { BOOKING_METHODS, CTA_TYPES, ITEM_KINDS, SOCIAL_PLATFORMS, TEMPLATE_IDS } from "./constants";
 import { ALL_SECTIONS } from "./sections";
 import { isValidNavLayout } from "./nav-layout";
 import { emailProblem, phoneProblem } from "./field-format";
@@ -52,6 +52,18 @@ const siteFields = z.object({
   services: z
     .array(z.object({ name: text(80), description: text(300), price: text(30), category: text(40) }))
     .max(60),
+  itemKind: z.enum(ITEM_KINDS),
+  holidayHours: z
+    .array(
+      z.object({
+        name: text(40),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal("")),
+        isOpen: z.boolean(),
+        openTime: time,
+        closeTime: time,
+      }),
+    )
+    .max(20),
   hours: z
     .array(
       z.object({

@@ -78,7 +78,7 @@ function Hero({ d }: { d: SiteData }) {
             style={{ background: "radial-gradient(65% 80% at 50% 30%, color-mix(in srgb, var(--t-brand) 35%, transparent), transparent 70%)" }}
           />
         )}
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-b from-transparent to-t-bg" />
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent to-t-bg" />
       </div>
       <div className="relative z-10 mx-auto -mt-10 w-full max-w-6xl md:-mt-24">
         <span aria-hidden className="mb-4 block h-[3px] w-20 bg-t-accent md:mb-5" />

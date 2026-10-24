@@ -34,7 +34,7 @@ export const SECTION_META: Record<SectionType, { label: string; hint: string }> 
   about: { label: "קצת עלינו", hint: "כמה משפטים עליכם, כדי שלקוחות יכירו אתכם." },
   services: { label: "שירותים", hint: "מה אתם מציעים, כרטיס לכל שירות." },
   prices: { label: "מחירון", hint: "רשימת מחירים קצרה וברורה." },
-  menu: { label: "תפריט", hint: "המנות שלכם והמחירים." },
+  menu: { label: "תפריט", hint: "המנות, המוצרים או השירותים שלכם, עם מחירים." },
   gallery: { label: "גלריה", hint: "תמונות מהעסק, כדי שלקוחות יראו איך זה נראה." },
   highlights: { label: "למה לבחור בנו", hint: "מספרים בולטים, כמו שנות ניסיון או מספר לקוחות." },
   testimonials: { label: "המלצות", hint: "מה לקוחות מרוצים אומרים עליכם." },

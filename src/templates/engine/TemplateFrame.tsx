@@ -1,8 +1,7 @@
-import { SECTION_META } from "@/lib/sections";
 import { telHref, whatsappHref } from "@/lib/links";
 import type { SiteData } from "@/types/site";
 import { ChatIcon, PhoneIcon } from "../shared/Icons";
-import { visibleSections } from "../shared/helpers";
+import { sectionTitle, visibleSections } from "../shared/helpers";
 import { NavPortalProvider } from "./nav-portal";
 import { SectionFrame, renderSectionBody } from "./Sections";
 import type { NavItem, TemplateConfig } from "./types";
@@ -21,7 +20,7 @@ export function TemplateFrame({ data: d, config }: { data: SiteData; config: Tem
   const pricesVisible = sections.some((s) => s.type === "prices");
   const nav: NavItem[] = sections
     .filter((s) => s.type !== "hero" && !NOT_IN_NAV.has(s.type))
-    .map((s) => ({ type: s.type, label: SECTION_META[s.type].label }));
+    .map((s) => ({ type: s.type, label: sectionTitle(s.type, d) }));
   const wa = d.whatsapp || d.phone;
   let bodyIndex = 0;
 
@@ -34,7 +33,7 @@ export function TemplateFrame({ data: d, config }: { data: SiteData; config: Tem
             s.type === "hero" ? (
               <Hero key="hero" d={d} />
             ) : (
-              <SectionFrame key={s.type} type={s.type} index={bodyIndex++} t={t}>
+              <SectionFrame key={s.type} type={s.type} title={sectionTitle(s.type, d)} index={bodyIndex++} t={t}>
                 {renderSectionBody(s.type, { d, t, pricesVisible })}
               </SectionFrame>
             ),

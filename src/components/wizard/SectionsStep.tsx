@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { getCategory } from "@/lib/categories";
+import { menuStepLabel } from "@/lib/constants";
 import { SECTION_META, type SectionType } from "@/lib/sections";
 import type { SectionData, SiteData } from "@/types/site";
 import { sectionHasContent } from "@/templates/shared/helpers";
@@ -34,7 +35,7 @@ const label = (id: string | number) => SECTION_META[id as SectionType]?.label ??
 function contentStep(type: SectionType, d: SiteData): string {
   const on = (t: SectionType) => d.sections.some((s) => s.type === t && s.enabled);
   if (type === "about" || type === "location" || type === "contact") return "פרטי העסק";
-  if (type === "services" || type === "prices" || type === "menu") return on("menu") && !on("services") && !on("prices") ? "תפריט" : "שירותים ומחירים";
+  if (type === "services" || type === "prices" || type === "menu") return on("menu") && !on("services") && !on("prices") ? menuStepLabel(d.itemKind) : "שירותים ומחירים";
   if (type === "gallery") return "תמונות";
   if (type === "social") return "יצירת קשר";
   return SECTION_META[type].label;

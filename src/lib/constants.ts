@@ -60,6 +60,24 @@ export const TEMPLATE_TIERS: Record<TemplateId, "standard" | "premium"> = {
   luxe: "premium",
 };
 
+/** What the services/menu list holds - drives its wording in the form and its title on the site. */
+export const ITEM_KINDS = ["DISHES", "PRODUCTS", "SERVICES"] as const;
+export type ItemKind = (typeof ITEM_KINDS)[number];
+export const ITEM_KIND_LABELS: Record<ItemKind, { option: string; noun: string; plural: string; title: string }> = {
+  DISHES: { option: "מנות", noun: "מנה", plural: "מנות", title: "תפריט" },
+  PRODUCTS: { option: "מוצרים", noun: "מוצר", plural: "מוצרים", title: "המוצרים שלנו" },
+  SERVICES: { option: "שירותים", noun: "שירות", plural: "שירותים", title: "השירותים שלנו" },
+};
+
+/** The form step's name when the list is shown only as the menu. */
+export const menuStepLabel = (kind: ItemKind) => (kind === "DISHES" ? "תפריט" : (ITEM_KIND_LABELS[kind] ?? ITEM_KIND_LABELS.DISHES).option);
+
+/** Common Israeli holidays offered as one-tap names for special opening hours (any other name can be typed). */
+export const HOLIDAY_SUGGESTIONS = [
+  "ערב ראש השנה", "ראש השנה", "ערב יום כיפור", "יום כיפור", "ערב סוכות", "סוכות", "חול המועד סוכות", "שמחת תורה",
+  "חנוכה", "פורים", "ערב פסח", "פסח", "חול המועד פסח", "שביעי של פסח", "יום הזיכרון", "יום העצמאות", "ערב שבועות", "שבועות",
+] as const;
+
 export const BOOKING_METHODS = ["WHATSAPP", "PHONE", "LINK"] as const;
 export type BookingMethod = (typeof BOOKING_METHODS)[number];
 export const BOOKING_LABELS: Record<BookingMethod, { label: string; hint: string }> = {

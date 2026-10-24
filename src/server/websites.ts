@@ -6,13 +6,14 @@ import { PRO_TEMPLATE_LIVE_ERROR, needsProToPublish } from "@/lib/plan";
 import { isValidSlug, uniqueSlug } from "@/lib/slug";
 import { defaultHours, emptySiteData, normalizeSections, withAllSections } from "@/lib/site-defaults";
 import { removeUploadedImage } from "@/lib/storage";
-import type { BookingMethod } from "@/lib/constants";
+import { ITEM_KINDS, type BookingMethod, type ItemKind } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
 
 const include = {
   profile: true,
   services: { orderBy: { order: "asc" } },
   hours: { orderBy: { day: "asc" } },
+  holidayHours: { orderBy: { order: "asc" } },
   gallery: { orderBy: { order: "asc" } },
   socials: true,
   sections: { orderBy: { order: "asc" } },
@@ -92,7 +93,11 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
         price: s.price ?? "",
         category: s.category ?? "",
       })),
+      itemKind: ((ITEM_KINDS as readonly string[]).includes(p?.itemKind ?? "") ? p!.itemKind : "DISHES") as ItemKind,
       hours,
+      holidayHours: row.holidayHours.map((h) => ({
+        name: h.name, date: h.date ?? "", isOpen: h.isOpen, openTime: h.openTime ?? "", closeTime: h.closeTime ?? "",
+      })),
       gallery: row.gallery.map((g) => ({ url: g.url, title: g.title ?? "", description: g.description ?? "", price: g.price ?? "" })),
       socials,
       testimonials: row.testimonials.map((t) => ({ name: t.name, text: t.text, rating: t.rating ?? 0, imageUrl: t.imageUrl ?? "" })),
@@ -226,6 +231,19 @@ async function writeHours(tx: Prisma.TransactionClient, websiteId: string, d: Si
   });
 }
 
+async function writeHolidayHours(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
+  await tx.holidayHour.deleteMany({ where: { websiteId } });
+  await tx.holidayHour.createMany({
+    data: d.holidayHours
+      .filter((h) => h.name.trim())
+      .map((h, order) => ({
+        websiteId, order, name: h.name.trim(), date: h.date || null, isOpen: h.isOpen,
+        openTime: h.isOpen ? h.openTime || null : null,
+        closeTime: h.isOpen ? h.closeTime || null : null,
+      })),
+  });
+}
+
 async function writeGallery(tx: Prisma.TransactionClient, websiteId: string, d: SiteData) {
   await tx.galleryImage.deleteMany({ where: { websiteId } });
   await tx.galleryImage.createMany({
@@ -314,7 +332,7 @@ async function writeCertifications(tx: Prisma.TransactionClient, websiteId: stri
 const CHILD_WRITERS: Record<AutosaveDomain, ((tx: Prisma.TransactionClient, websiteId: string, d: SiteData) => Promise<void>)[]> = {
   basics: [],
   branding: [],
-  hours: [writeHours],
+  hours: [writeHours, writeHolidayHours],
   sections: [writeSections],
   services: [writeServices],
   testimonials: [writeTestimonials],
@@ -387,6 +405,7 @@ function profileColumns(d: SiteData) {
     ctaType: d.ctaType,
     openSaturday: d.openSaturday,
     openHolidays: d.openHolidays,
+    itemKind: d.itemKind,
     subtitle: d.subtitle.trim() || null,
     resumeUrl: d.resumeUrl.trim() || null,
     emergency24x7: d.emergency.available24x7,
@@ -412,6 +431,7 @@ const WEBSITE_DOMAIN_KEYS: Partial<Record<AutosaveDomain, (keyof ReturnType<type
   images: ["heroImageUrl"],
 };
 const PROFILE_DOMAIN_KEYS: Partial<Record<AutosaveDomain, (keyof ReturnType<typeof profileColumns>)[]>> = {
+  services: ["itemKind"],
   basics: ["subtitle", "phone", "whatsapp", "email", "address", "city"],
   hours: ["openSaturday", "openHolidays"],
   social: ["ctaType", "resumeUrl"],

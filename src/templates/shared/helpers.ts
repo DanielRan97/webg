@@ -1,7 +1,13 @@
-import { CTA_OPTIONS } from "@/lib/constants";
+import { CTA_OPTIONS, ITEM_KIND_LABELS } from "@/lib/constants";
 import { normalizeUrl, telHref, whatsappHref } from "@/lib/links";
-import type { SectionType } from "@/lib/sections";
+import { SECTION_META, type SectionType } from "@/lib/sections";
 import type { ServiceData, SiteData } from "@/types/site";
+
+/** A section's title on the site: its fixed name, except the menu, which says what it holds (מנות / מוצרים / שירותים). */
+export function sectionTitle(type: SectionType, d: Pick<SiteData, "itemKind">): string {
+  if (type === "menu") return (ITEM_KIND_LABELS[d.itemKind] ?? ITEM_KIND_LABELS.DISHES).title;
+  return SECTION_META[type].label;
+}
 
 export interface Cta {
   label: string;

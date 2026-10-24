@@ -58,8 +58,10 @@ function Hero({ d }: { d: SiteData }) {
       {d.heroImageUrl && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={d.heroImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-t-bg via-t-bg/60 to-t-bg/20" />
+          <img src={d.heroImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75" />
+          <div className="absolute inset-0 bg-gradient-to-t from-t-bg via-t-bg/50 to-transparent" />
+          {/* Wide screens: the text sits on the start side, so shade that side too. */}
+          <div className="absolute inset-0 hidden bg-linear-to-l from-t-bg/85 via-t-bg/40 to-transparent md:block" />
         </>
       )}
       <div className="relative mx-auto w-full max-w-5xl">

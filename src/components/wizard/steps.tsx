@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CATEGORIES, getCategory } from "@/lib/categories";
-import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS, type SocialPlatform } from "@/lib/constants";
+import { CTA_OPTIONS, DAY_NAMES, ITEM_KINDS, ITEM_KIND_LABELS, SOCIAL_LABELS, type SocialPlatform } from "@/lib/constants";
 import { isPro } from "@/lib/plan";
 import { sectionsForCategory } from "@/lib/site-defaults";
 import { SLUG_BASE } from "@/lib/slug-format";
@@ -14,6 +14,7 @@ import { UrlPreview } from "./UrlPreview";
 import type { SlugCheck } from "./SiteForm";
 import { TemplatePicker } from "./TemplatePicker";
 import { NavEditor } from "./NavEditor";
+import { HolidayHours } from "./HolidayHours";
 import { ColorStudio } from "./ColorStudio";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
 import { TrashIcon } from "../ui/icons";
@@ -192,8 +193,9 @@ export function HoursStep({ data, update, errors }: StepProps) {
           <p className="text-sm text-ink-500">המידע יוצג באתר לצד שעות הפתיחה.</p>
         </div>
         <Toggle checked={data.openSaturday} onChange={(v) => setDay(6, { isOpen: v })} label="פתוחים בשבת?" onText="כן" offText="לא" />
-        <Toggle checked={data.openHolidays} onChange={(v) => update({ openHolidays: v })} label="פתוחים בחגים?" onText="כן" offText="לא" />
+        <Toggle checked={data.openHolidays} onChange={(v) => update({ openHolidays: v })} label="פתוחים בחגים?" hint="התשובה הכללית. לחגים עם שעות אחרות, הוסיפו אותם למטה." onText="כן" offText="לא" />
       </div>
+      <HolidayHours data={data} update={update} errors={errors} />
     </div>
   );
 }
@@ -203,7 +205,9 @@ export function ServicesStep({ data, update, errors }: StepProps) {
   const cat = getCategory(data.category);
   const on = (t: string) => data.sections.some((s) => s.type === t && s.enabled);
   const menuOnly = on("menu") && !on("services") && !on("prices");
-  const noun = menuOnly ? "מנה" : "שירות";
+  const kind = ITEM_KIND_LABELS[data.itemKind] ?? ITEM_KIND_LABELS.DISHES;
+  const noun = menuOnly ? kind.noun : "שירות";
+  const plural = menuOnly ? kind.plural : "שירותים";
   const example = cat.sampleServices[0];
   const groups = [...new Set(data.services.map((s) => s.category.trim()).filter(Boolean))];
   function setItem(i: number, patch: Partial<SiteData["services"][number]>) {
@@ -212,17 +216,30 @@ export function ServicesStep({ data, update, errors }: StepProps) {
   return (
     <div className="space-y-6">
       <StepTitle
-        title={menuOnly ? "מה יש בתפריט?" : on("prices") ? "מה אתם מציעים ומה המחירים?" : "מה אתם מציעים?"}
+        title={menuOnly ? (data.itemKind === "DISHES" ? "מה יש בתפריט?" : `אילו ${kind.plural} אתם מציעים?`) : on("prices") ? "מה אתם מציעים ומה המחירים?" : "מה אתם מציעים?"}
         subtitle={
           menuOnly
-            ? `הוסיפו ${noun}ים אחד אחד. המחיר לא חובה, ואפשר גם לדלג על השלב. אפשר לחלק לקבוצות, למשל ״ראשונות״ ו״קינוחים״.`
+            ? `הוסיפו ${plural} אחד אחד. המחיר לא חובה, ואפשר גם לדלג על השלב. אפשר לחלק לקבוצות, למשל ${data.itemKind === "DISHES" ? "״ראשונות״ ו״קינוחים״" : "לפי סוג"}.`
             : "הוסיפו את השירותים שלכם. מחיר ותיאור הם לא חובה, ואפשר לקבץ שירותים לפי קטגוריה."
         }
       />
+      {on("menu") && (
+        <div role="group" aria-labelledby="item-kind-label" className="space-y-2">
+          <p id="item-kind-label" className="text-sm font-semibold text-ink-900">מה יש ברשימה?</p>
+          <p className="text-sm text-ink-500">זה קובע את הכותרת באתר: {ITEM_KINDS.map((k) => `״${ITEM_KIND_LABELS[k].title}״`).join(", ")}.</p>
+          <div className="grid grid-cols-3 gap-2">
+            {ITEM_KINDS.map((k) => (
+              <ChoiceCard key={k} selected={data.itemKind === k} onClick={() => update({ itemKind: k })}>
+                {ITEM_KIND_LABELS[k].option}
+              </ChoiceCard>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="space-y-3">
         {data.services.length === 0 && (
           <div className="rounded-xl border-2 border-dashed border-ink-200 p-6 text-center">
-            <p className="font-semibold">עדיין לא הוספתם {noun}ים</p>
+            <p className="font-semibold">עדיין לא הוספתם {plural}</p>
             <p className="mt-1 text-sm text-ink-700">{menuOnly ? "תפריט עם מחירים עוזר ללקוחות להחליט מה להזמין." : "רשימה ברורה עוזרת ללקוחות להבין מה אתם עושים."}</p>
           </div>
         )}

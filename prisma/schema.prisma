@@ -106,10 +106,11 @@ model Website {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   profile        BusinessProfile?
   services       Service[]
   hours          BusinessHour[]
+  holidayHours   HolidayHour[]
   gallery        GalleryImage[]
   socials        SocialLink[]
   sections       WebsiteSection[]
@@ -139,6 +140,10 @@ model BusinessProfile {
   ctaType      String  @default("WHATSAPP") // CALL | WHATSAPP | BOOKING | MESSAGE
   openSaturday Boolean @default(false)
   openHolidays Boolean @default(false)
+  /**
+   * What the services/menu list holds, for its wording on the site and in the form: DISHES | PRODUCTS | SERVICES.
+   */
+  itemKind     String  @default("DISHES")
   /**
    * Short subtitle/role shown under the name in the hero, e.g. "מפתחת Full-Stack". Optional, any category.
    */
@@ -195,6 +200,25 @@ model BusinessHour {
   website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 
   @@unique([websiteId, day])
+}
+
+/**
+ * Opening hours for a specific holiday (e.g. "ערב ראש השנה"), shown under the weekly hours. The date is
+ * optional free choice of the owner; closed by default.
+ */
+model HolidayHour {
+  id        String  @id @default(cuid())
+  websiteId String
+  name      String
+  date      String? // "2026-09-11"
+  isOpen    Boolean @default(false)
+  openTime  String?
+  closeTime String?
+  order     Int     @default(0)
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([websiteId])
 }
 
 model GalleryImage {

@@ -6,7 +6,7 @@ import { dateOrderProblem, dateProblem, emailProblem, phoneProblem, priceProblem
 /** Which error keys belong to which editor step (prefix match). */
 export const STEP_ERROR_KEYS: Record<string, string[]> = {
   basics: ["name", "email", "phone", "whatsapp"],
-  hours: ["hours-"],
+  hours: ["hours-", "holiday-"],
   services: ["service-"],
   images: ["gallery-"],
   delivery: ["delivery-"],
@@ -42,6 +42,12 @@ export function validateSite(d: SiteData, opts: { checkSlug?: boolean } = {}): R
     if (!h.openTime || !h.closeTime) e[`hours-${h.day}`] = `נא לבחור שעות ליום ${DAY_NAMES[h.day]}, או לסמן אותו כסגור.`;
     else if (h.closeTime <= h.openTime) e[`hours-${h.day}`] = "שעת הסגירה צריכה להיות אחרי שעת הפתיחה.";
   }
+
+  d.holidayHours.forEach((h, i) => {
+    if (!h.name.trim() && (h.date || h.isOpen)) e[`holiday-${i}`] = "נא לכתוב את שם החג, או למחוק את השורה.";
+    else if (h.isOpen && (!h.openTime || !h.closeTime)) e[`holiday-${i}`] = `נא לבחור שעות ל${h.name.trim() || "חג"}, או לסמן אותו כסגור.`;
+    else if (h.isOpen && h.closeTime <= h.openTime) e[`holiday-${i}`] = "שעת הסגירה צריכה להיות אחרי שעת הפתיחה.";
+  });
 
   d.services.forEach((s, i) => {
     if (!s.name.trim() && (s.price.trim() || s.description.trim() || s.category.trim())) {

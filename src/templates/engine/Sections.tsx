@@ -77,7 +77,14 @@ function RowList({ d, t, onlyPriced }: Ctx & { onlyPriced?: boolean }) {
   );
 }
 
+/** "2026-09-11" -> "11.9". */
+const shortDate = (iso: string) => {
+  const [, m, day] = iso.split("-");
+  return m && day ? `${Number(day)}.${Number(m)}` : iso;
+};
+
 function Hours({ d, t }: Ctx) {
+  const holidays = (d.holidayHours ?? []).filter((h) => h.name.trim());
   return (
     <div className={`max-w-md ${t.narrow} ${t.card}`}>
       <ul className="divide-y divide-t-line">
@@ -90,7 +97,27 @@ function Hours({ d, t }: Ctx) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-sm text-t-muted">{d.openHolidays ? "פתוחים גם בחגים" : "בחגים סגור"}</p>
+      {holidays.length > 0 && (
+        <div className="mt-5 border-t border-t-line pt-4">
+          <h3 className="mb-1 text-sm font-semibold">שעות בחגים</h3>
+          <ul className="divide-y divide-t-line text-sm">
+            {holidays.map((h, i) => (
+              <li key={i} className="flex justify-between gap-3 py-2">
+                <span className="font-medium">
+                  {h.name}
+                  {h.date && <>{" "}<bdi className="font-normal text-t-muted">{shortDate(h.date)}</bdi></>}
+                </span>
+                <span className={h.isOpen ? "" : "text-t-muted"} dir="ltr">
+                  {h.isOpen ? `${h.openTime || "—"} – ${h.closeTime || "—"}` : "סגור"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="mt-3 text-sm text-t-muted">
+        {holidays.length > 0 ? (d.openHolidays ? "בשאר החגים פתוחים כרגיל" : "בשאר החגים סגור") : d.openHolidays ? "פתוחים גם בחגים" : "בחגים סגור"}
+      </p>
     </div>
   );
 }
@@ -467,8 +494,7 @@ export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
 }
 
 /** Section wrapper: spacing, background rhythm and the template's title style. */
-export function SectionFrame({ type, index, t, children }: { type: SectionType; index: number; t: TemplateTheme; children: ReactNode }) {
-  const title = SECTION_META[type].label;
+export function SectionFrame({ type, title = SECTION_META[type].label, index, t, children }: { type: SectionType; title?: string; index: number; t: TemplateTheme; children: ReactNode }) {
   const bg = t.rhythm === "alt" && index % 2 === 1 ? "bg-t-tint" : "";
   const line = t.rhythm === "lines" ? "border-t border-t-line" : "";
   const c = t.center;
@@ -518,10 +544,19 @@ export function SectionFrame({ type, index, t, children }: { type: SectionType; 
 
   return (
     <section id={`sec-${type}`} aria-labelledby={`h-${type}`} className={`scroll-mt-20 px-5 ${t.section} ${t.sectionExtra} ${bg} ${line}`}>
-      <div className={t.container}>
-        {heading}
-        {children}
-      </div>
+      {t.split ? (
+        <div className={`${t.container} lg:grid lg:grid-cols-12 lg:gap-12`}>
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-24">{heading}</div>
+          </div>
+          <div className="min-w-0 lg:col-span-8">{children}</div>
+        </div>
+      ) : (
+        <div className={t.container}>
+          {heading}
+          {children}
+        </div>
+      )}
     </section>
   );
 }

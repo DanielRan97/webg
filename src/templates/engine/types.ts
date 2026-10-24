@@ -42,6 +42,8 @@ export interface TemplateTheme {
   testimonialStyle?: "card" | "quote";
   highlightStyle?: "card" | "stat";
   projectStyle?: "card" | "poster";
+  /** Wide screens: each section's title in a narrow start column beside its content, instead of above it. */
+  split?: boolean;
 }
 
 export interface NavItem {

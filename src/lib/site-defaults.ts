@@ -55,6 +55,8 @@ export function emptySiteData(categoryId = "other"): SiteData {
     resumeUrl: "",
     services: [],
     hours: defaultHours(),
+    holidayHours: [],
+    itemKind: "DISHES",
     gallery: [],
     socials: { instagram: "", facebook: "", tiktok: "", linkedin: "", github: "" },
     testimonials: [],

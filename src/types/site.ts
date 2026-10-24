@@ -1,4 +1,4 @@
-import type { BookingMethod, CtaType, SocialPlatform } from "@/lib/constants";
+import type { BookingMethod, CtaType, ItemKind, SocialPlatform } from "@/lib/constants";
 import type { SectionType } from "@/lib/sections";
 
 /** One entry in the menu, price list or services list. `category` is an optional group name. */
@@ -11,6 +11,15 @@ export interface ServiceData {
 
 export interface HourData {
   day: number; // 0 = Sunday ... 6 = Saturday
+  isOpen: boolean;
+  openTime: string;
+  closeTime: string;
+}
+
+/** Special opening hours for one holiday. `date` ("2026-09-11") is optional; closed unless `isOpen`. */
+export interface HolidayHourData {
+  name: string;
+  date: string;
   isOpen: boolean;
   openTime: string;
   closeTime: string;
@@ -138,7 +147,10 @@ export interface SiteData {
   resumeUrl: string;
 
   services: ServiceData[];
+  /** What `services` holds when shown as the menu: dishes, products or services. */
+  itemKind: ItemKind;
   hours: HourData[];
+  holidayHours: HolidayHourData[];
   gallery: GalleryImageData[];
   socials: Record<SocialPlatform, string>;
   testimonials: TestimonialData[];
