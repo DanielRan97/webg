@@ -6,6 +6,7 @@ import { INTERACTION_LABELS, type InteractionType } from "@/lib/constants";
 import { telHref, whatsappHref } from "@/lib/links";
 import type { InteractionRecord } from "@/server/interactions";
 import { cx } from "./ui/ui";
+import { formatDateTime } from "@/lib/dates";
 
 type Filter = "ALL" | "UNREAD" | "LEAD" | "CONTACT_MESSAGE" | "BOOKING";
 
@@ -21,7 +22,6 @@ function typeLabel(type: string): string {
   return INTERACTION_LABELS[type as InteractionType] ?? type;
 }
 
-const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" });
 
 function SummaryCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
   return (
@@ -73,7 +73,7 @@ function InteractionRow({
           </div>
           {preview && <p className="mt-1 truncate text-sm text-ink-500">{preview}</p>}
         </div>
-        <span className="shrink-0 text-xs text-ink-500">{dateFormatter.format(item.createdAt)}</span>
+        <span className="shrink-0 text-xs text-ink-500">{formatDateTime(item.createdAt)}</span>
       </button>
 
       {open && (
@@ -98,7 +98,7 @@ function InteractionRow({
               <p className="whitespace-pre-line break-words text-ink-900">{item.message}</p>
             </div>
           )}
-          <p className="text-xs text-ink-500">התקבל: {dateFormatter.format(item.createdAt)}</p>
+          <p className="text-xs text-ink-500">התקבל: {formatDateTime(item.createdAt)}</p>
           <div className="flex flex-wrap gap-2">
             {item.phone && <ActionLink href={telHref(item.phone)} label="התקשר" />}
             {item.phone && <ActionLink href={whatsappHref(item.phone)} label="WhatsApp" />}

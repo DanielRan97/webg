@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getInteractionsOverview, getRecentActivity } from "@/server/admin";
 import { StatCard } from "@/components/admin/StatCard";
+import { formatDateTime } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "פניות - WEBG Admin" };
 export const dynamic = "force-dynamic";
@@ -29,7 +30,7 @@ export default async function AdminInteractionsPage() {
             {recentInteractions.map((a, i) => (
               <li key={i} className="py-2 text-sm">
                 <p className="text-ink-900">{a.label}</p>
-                <p className="text-ink-500">{a.at.toLocaleString("he-IL")}</p>
+                <p className="text-ink-500">{formatDateTime(a.at)}</p>
               </li>
             ))}
           </ul>

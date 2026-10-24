@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { listTicketsForUser } from "@/server/support";
 import { SUPPORT_CATEGORY_LABELS, SUPPORT_EMAIL, SUPPORT_TICKET_STATUS_LABELS, type SupportCategory, type SupportTicketStatus } from "@/lib/constants";
+import { formatDateTime } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "תמיכה" };
 export const dynamic = "force-dynamic";
@@ -10,7 +11,6 @@ export const dynamic = "force-dynamic";
 // cx() itself lives in a "use client" module, so a Server Component (this page) cannot import and call it directly - this tiny local copy is the same one-liner.
 const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
-const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" });
 
 const statusClass: Record<SupportTicketStatus, string> = {
   OPEN: "border-ink-300 bg-ink-50 text-ink-900",
@@ -65,7 +65,7 @@ export default async function SupportPage() {
                 <span className={cx("rounded-full border px-2.5 py-1 text-xs font-semibold", statusClass[t.status as SupportTicketStatus])}>
                   {SUPPORT_TICKET_STATUS_LABELS[t.status as SupportTicketStatus] ?? t.status}
                 </span>
-                <span className="text-xs text-ink-500">{dateFormatter.format(t.updatedAt)}</span>
+                <span className="text-xs text-ink-500">{formatDateTime(t.updatedAt)}</span>
               </div>
             </Link>
           ))}

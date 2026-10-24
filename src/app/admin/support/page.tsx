@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { adminListTickets } from "@/server/support";
 import { SUPPORT_CATEGORY_LABELS, SUPPORT_TICKET_STATUS, SUPPORT_TICKET_STATUS_LABELS, type SupportCategory, type SupportTicketStatus } from "@/lib/constants";
+import { formatDateTime } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "תמיכה - WEBG Admin" };
 export const dynamic = "force-dynamic";
@@ -19,7 +20,6 @@ function isStatusFilter(v: string | undefined): v is StatusFilter {
   return STATUS_FILTERS.some((f) => f.value === v);
 }
 
-const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" });
 
 export default async function AdminSupportPage({ searchParams }: PageProps<"/admin/support">) {
   const sp = await searchParams;
@@ -107,7 +107,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
                 <td className="px-4 py-3 text-ink-700" dir="ltr">{t.userEmail}</td>
                 <td className="px-4 py-3">{SUPPORT_CATEGORY_LABELS[t.category as SupportCategory] ?? t.category}</td>
                 <td className="px-4 py-3">{SUPPORT_TICKET_STATUS_LABELS[t.status as SupportTicketStatus] ?? t.status}</td>
-                <td className="px-4 py-3 text-ink-700">{dateFormatter.format(t.updatedAt)}</td>
+                <td className="px-4 py-3 text-ink-700">{formatDateTime(t.updatedAt)}</td>
               </tr>
             ))}
           </tbody>

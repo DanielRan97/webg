@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getOverviewStats, getTopSitesOverview, getRecentActivity } from "@/server/admin";
 import { StatCard } from "@/components/admin/StatCard";
+import { formatDateTime } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "WEBG Admin" };
 export const dynamic = "force-dynamic";
@@ -60,7 +61,7 @@ export default async function AdminOverviewPage() {
               {activity.map((a, i) => (
                 <li key={i} className="py-2 text-sm">
                   <p className="text-ink-900 [overflow-wrap:anywhere]">{a.label}</p>
-                  <p className="text-ink-500">{a.at.toLocaleString("he-IL")}</p>
+                  <p className="text-ink-500">{formatDateTime(a.at)}</p>
                 </li>
               ))}
             </ul>

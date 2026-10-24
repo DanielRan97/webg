@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getSiteAdminDetail } from "@/server/admin";
 import { basicUrlDisplay, publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
 import { PlanOverride } from "@/components/admin/PlanOverride";
+import { formatDateTime } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "פרטי אתר - WEBG Admin" };
 export const dynamic = "force-dynamic";
@@ -46,8 +47,8 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
           {site.plan === "PRO" && (
             <Row label="כתובת קודמת (Basic)" value={<span dir="ltr">{basicUrlDisplay(site.slug)}</span>} />
           )}
-          <Row label="נוצר" value={site.createdAt.toLocaleString("he-IL")} />
-          <Row label="עודכן" value={site.updatedAt.toLocaleString("he-IL")} />
+          <Row label="נוצר" value={formatDateTime(site.createdAt)} />
+          <Row label="עודכן" value={formatDateTime(site.updatedAt)} />
           <Row label="כניסות" value={site.visits} />
           <Row label="פניות" value={site.interactionCount} />
           {site.subscription && <Row label="סטטוס מנוי" value={site.subscription.status} />}

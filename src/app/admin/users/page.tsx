@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getUsersOverview } from "@/server/admin";
+import { formatDate } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "משתמשים - WEBG Admin" };
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ export default async function AdminUsersPage() {
             {users.map((u) => (
               <tr key={u.id}>
                 <td className="px-4 py-3 font-medium" dir="ltr">{u.email}</td>
-                <td className="px-4 py-3 text-ink-700">{u.createdAt.toLocaleDateString("he-IL")}</td>
+                <td className="px-4 py-3 text-ink-700">{formatDate(u.createdAt)}</td>
                 <td className="px-4 py-3">
                   {u.emailVerifiedAt ? (
                     <span className="text-green-800">מאומת ✓</span>

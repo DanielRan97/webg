@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSitesOverview, type SiteFilter } from "@/server/admin";
+import { formatDate } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "אתרים - WEBG Admin" };
 export const dynamic = "force-dynamic";
@@ -82,8 +83,8 @@ export default async function AdminSitesPage({ searchParams }: PageProps<"/admin
                 <td className="px-4 py-3 text-ink-700" dir="ltr">{s.ownerEmail}</td>
                 <td className="px-4 py-3">{s.plan}</td>
                 <td className="px-4 py-3">{s.status === "PUBLISHED" ? "מפורסם" : "טיוטה"}</td>
-                <td className="px-4 py-3 text-ink-700">{s.createdAt.toLocaleDateString("he-IL")}</td>
-                <td className="px-4 py-3 text-ink-700">{s.updatedAt.toLocaleDateString("he-IL")}</td>
+                <td className="px-4 py-3 text-ink-700">{formatDate(s.createdAt)}</td>
+                <td className="px-4 py-3 text-ink-700">{formatDate(s.updatedAt)}</td>
                 <td className="px-4 py-3">{s.visits}</td>
                 <td className="px-4 py-3">{s.interactionCount}</td>
               </tr>

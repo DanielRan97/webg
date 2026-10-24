@@ -6,8 +6,8 @@ import { adminMarkTicketSeenAction, adminReplyToTicketAction, markTicketSeenActi
 import { SUPPORT_CATEGORY_LABELS, SUPPORT_TICKET_STATUS, SUPPORT_TICKET_STATUS_LABELS, type SupportCategory, type SupportTicketStatus } from "@/lib/constants";
 import type { SupportTicketDetail } from "@/server/support";
 import { Button, Notice, TextArea, cx } from "./ui/ui";
+import { formatDateTime } from "@/lib/dates";
 
-const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" });
 
 const statusClass: Record<SupportTicketStatus, string> = {
   OPEN: "border-ink-300 bg-ink-50 text-ink-900",
@@ -87,7 +87,7 @@ export function SupportThread({
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs font-bold text-ink-700">{label}</span>
-                <span className="text-xs text-ink-500">{dateFormatter.format(m.createdAt)}</span>
+                <span className="text-xs text-ink-500">{formatDateTime(m.createdAt)}</span>
               </div>
               <p className="mt-1 whitespace-pre-line break-words text-ink-900">{m.message}</p>
             </li>
