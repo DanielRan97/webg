@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { CATEGORIES, getCategory } from "@/lib/categories";
-import { COLOR_SWATCHES, isHexColor, readableOn } from "@/lib/color";
 import { CTA_OPTIONS, DAY_NAMES, SOCIAL_LABELS, type SocialPlatform } from "@/lib/constants";
 import { isPro } from "@/lib/plan";
 import { sectionsForCategory } from "@/lib/site-defaults";
@@ -14,6 +13,7 @@ import { UrlPreview } from "./UrlPreview";
 import type { SlugCheck } from "./SiteForm";
 import { TemplatePicker } from "./TemplatePicker";
 import { NavEditor } from "./NavEditor";
+import { ColorStudio } from "./ColorStudio";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
 import { TrashIcon } from "../ui/icons";
 
@@ -126,50 +126,6 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
 }
 
 /* 2 ─ Branding & design */
-function ColorPicker({ label, hint, value, onChange, allowNone }: { label: string; hint: string; value: string; onChange: (v: string) => void; allowNone?: boolean }) {
-  return (
-    <div role="group" aria-label={label} className="space-y-2">
-      <p className="text-sm font-semibold text-ink-900">{label}</p>
-      <p className="text-sm text-ink-500">{hint}</p>
-      <div className="flex flex-wrap items-center gap-2">
-        {allowNone && (
-          <button
-            type="button"
-            aria-pressed={value === ""}
-            aria-label="ללא צבע משני"
-            onClick={() => onChange("")}
-            className={cx(
-              "flex h-11 w-11 items-center justify-center rounded-full border-2 bg-white text-xs font-bold text-ink-500",
-              value === "" ? "border-ink-900 ring-2 ring-ink-900 ring-offset-2" : "border-ink-200",
-            )}
-          >
-            {value === "" ? <span aria-hidden>✓</span> : "ללא"}
-          </button>
-        )}
-        {COLOR_SWATCHES.map((c) => {
-          const on = value.toLowerCase() === c.hex;
-          return (
-            <button
-              key={c.hex}
-              type="button"
-              aria-label={c.name}
-              aria-pressed={on}
-              onClick={() => onChange(c.hex)}
-              className={cx("flex h-11 w-11 items-center justify-center rounded-full border-2 text-lg font-bold", on ? "border-ink-900 ring-2 ring-ink-900 ring-offset-2" : "border-white shadow")}
-              style={{ background: c.hex, color: readableOn(c.hex) }}
-            >
-              {on && <span aria-hidden>✓</span>}
-            </button>
-          );
-        })}
-        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-ink-300 px-4 text-sm font-semibold focus-within:outline focus-within:outline-2 focus-within:outline-brand-600">
-          צבע אחר
-          <input type="color" aria-label={`${label}: צבע אחר`} value={isHexColor(value) ? value : "#2563eb"} onChange={(e) => onChange(e.target.value)} className="h-7 w-7 cursor-pointer border-0 bg-transparent p-0" />
-        </label>
-      </div>
-    </div>
-  );
-}
 
 export function BrandingStep({ data, update, plan, live }: StepProps) {
   return (
@@ -191,8 +147,8 @@ export function BrandingStep({ data, update, plan, live }: StepProps) {
         </div>
       </div>
       <NavEditor data={data} update={update} />
-      <ColorPicker label="הצבע הראשי של העסק" hint="הצבע הזה יופיע בכפתורים, בכותרת ובלוגו." value={data.primaryColor} onChange={(v) => update({ primaryColor: v })} />
-      <ColorPicker label="צבע משני (לא חובה)" hint="לקישוטים קטנים כמו קווים ומחירים. אפשר לוותר." value={data.secondaryColor} onChange={(v) => update({ secondaryColor: v })} allowNone />
+      <ColorStudio label="הצבע הראשי של העסק" hint="הצבע הזה יופיע בכפתורים, בכותרת ובלוגו." value={data.primaryColor} onChange={(v) => update({ primaryColor: v })} />
+      <ColorStudio label="צבע משני (לא חובה)" hint="לקישוטים קטנים כמו קווים ומחירים. אפשר לוותר." value={data.secondaryColor} onChange={(v) => update({ secondaryColor: v })} allowNone />
       <TemplatePicker data={data} plan={plan ?? "BASIC"} live={live} onPick={(id) => update({ templateId: id })} />
     </div>
   );

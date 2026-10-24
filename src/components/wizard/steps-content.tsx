@@ -1,5 +1,6 @@
 "use client";
 
+import { readableOn } from "@/lib/color";
 import { useState } from "react";
 import { BOOKING_LABELS, BOOKING_METHODS } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
@@ -210,7 +211,7 @@ export function BookingStep({ data, update, errors }: StepProps) {
       )}
       <TextField label="מה יהיה כתוב על הכפתור? (לא חובה)" hint="אם תשאירו ריק, יהיה כתוב ״קבעו תור״." placeholder="לדוגמה: קבעו תור" value={b.buttonText} onChange={(v) => set({ buttonText: v })} maxLength={30} />
       <p className="text-sm text-ink-700">
-        כך ייראה הכפתור: <span className="ms-1 inline-block rounded-full bg-brand-600 px-5 py-2 font-semibold text-white">{b.buttonText.trim() || "קבעו תור"}</span>
+        כך ייראה הכפתור: <span className="ms-1 inline-block rounded-full px-5 py-2 font-semibold" style={{ background: data.primaryColor, color: readableOn(data.primaryColor) }}>{b.buttonText.trim() || "קבעו תור"}</span>
       </p>
     </div>
   );

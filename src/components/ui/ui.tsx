@@ -10,7 +10,7 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from "react";
-import { InfoIcon } from "../icons";
+import { InfoIcon, UploadIcon } from "../icons";
 
 export const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
@@ -38,7 +38,7 @@ export function Button({
   loading?: boolean;
 }) {
   const styles = {
-    primary: "bg-brand-600 text-white shadow-sm hover:bg-brand-700",
+    primary: "bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)]",
     secondary: "bg-white text-ink-900 border border-ink-200 shadow-sm hover:border-ink-300 hover:bg-ink-50",
     ghost: "text-ink-800 hover:bg-ink-50",
     danger: "bg-white text-red-700 border border-red-300 hover:bg-red-50",
@@ -49,7 +49,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cx(
-        "inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-6 text-base font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-6 text-base font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100",
         styles,
         className,
       )}
@@ -75,9 +75,13 @@ export function Notice({ kind, children }: { kind: "success" | "error" | "info";
   );
 }
 
-/** Text input: a quiet border at rest, and the field in focus gets a brand-blue border with a soft ring. */
+/**
+ * "Signal" text field: a soft filled surface whose bottom edge is a solid line (ink-400, enough contrast
+ * to read as a field boundary). On focus the surface tints blue and that line is redrawn as a cyan-to-blue
+ * gradient sweeping in from the start edge - a background on the input itself, so no wrapper is needed.
+ */
 export const inputClass =
-  "min-h-12 w-full rounded-lg border border-ink-300 bg-white px-4 text-base text-ink-900 outline-none transition placeholder:text-ink-400 hover:border-ink-500 shadow-sm focus:border-brand-600 focus:ring-4 focus:ring-brand-600/15 focus-visible:outline-none aria-[invalid=true]:border-red-600";
+  "min-h-12 w-full rounded-xl border border-ink-200 border-b-2 border-b-ink-400 bg-ink-50 bg-no-repeat px-4 text-base text-ink-900 outline-none transition-[background-color,background-size,border-color] duration-500 ease-out placeholder:text-ink-400 [background-image:linear-gradient(90deg,#22b8cf,#1546d1)] [background-origin:border-box] [background-position:100%_100%] [background-size:0%_2px] hover:bg-ink-100 focus:border-b-transparent focus:bg-brand-50 focus:[background-size:100%_2px] focus-visible:outline-none aria-[invalid=true]:border-b-red-600 aria-[invalid=true]:bg-red-50";
 
 interface ControlProps {
   id: string;
@@ -141,7 +145,17 @@ export function TextField({
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
   return (
     <Field label={label} hint={hint} error={error} required={required}>
-      {(p) => <input {...p} value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} {...rest} />}
+      {(p) => {
+        const ok = required && !error && value.trim().length >= 2;
+        return (
+          <div className="relative">
+            <input {...p} value={value} onChange={(e) => onChange(e.target.value)} className={cx(inputClass, required && "pe-11")} {...rest} />
+            {ok && (
+              <span aria-hidden className="webg-pop pointer-events-none absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-green-600 text-xs font-bold text-white">✓</span>
+            )}
+          </div>
+        );
+      }}
     </Field>
   );
 }
@@ -277,8 +291,15 @@ export function Toggle({
       </span>
       <span className="flex shrink-0 items-center gap-2">
         {(onText || offText) && <span className="text-sm font-semibold text-ink-800">{checked ? onText : offText}</span>}
-        <span className={cx("relative h-7 w-12 rounded-full transition", checked ? "bg-brand-600" : "bg-ink-400")}>
-          <span className={cx("absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all", checked ? "end-0.5" : "start-0.5")} />
+        <span className={cx("webg-switch relative h-7 w-12 rounded-full transition-colors duration-300", checked ? "bg-brand-600" : "bg-ink-400")}>
+          <span
+            className={cx(
+              "absolute top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold shadow transition-all",
+              checked ? "start-6 text-brand-600" : "start-1 text-transparent",
+            )}
+          >
+            ✓
+          </span>
         </span>
       </span>
     </button>
@@ -301,11 +322,13 @@ export function ChoiceCard({
       aria-pressed={selected}
       onClick={onClick}
       className={cx(
-        "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-lg border p-3 text-center font-semibold transition",
-        selected ? "border-brand-600 bg-brand-50 text-ink-900 ring-1 ring-brand-600" : "border-ink-200 bg-white text-ink-900 hover:border-ink-500",
+        "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border p-3 text-center font-semibold transition duration-200 hover:-translate-y-0.5 active:translate-y-0",
+        selected
+          ? "border-brand-600 bg-brand-50 text-ink-900 shadow-[0_12px_28px_-16px_rgb(21_70_209/0.65)] ring-2 ring-brand-600/25"
+          : "border-ink-200 bg-white text-ink-900 hover:border-ink-400 hover:shadow-md",
       )}
     >
-      {selected && <span aria-hidden className="absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-xs text-white">✓</span>}
+      {selected && <span aria-hidden className="webg-pop absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-xs text-white">✓</span>}
       {children}
     </button>
   );
@@ -333,6 +356,7 @@ export function ImageUploader({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
+  const [over, setOver] = useState(false);
 
   async function handle(files: FileList | null) {
     if (!files?.length) return;
@@ -379,9 +403,31 @@ export function ImageUploader({
         aria-describedby={hintId}
         onChange={(e) => handle(e.target.files)}
       />
-      <Button type="button" variant="secondary" loading={busy} disabled={disabled} onClick={() => ref.current?.click()}>
-        {busy ? "מעלה..." : label}
-      </Button>
+      <button
+        type="button"
+        disabled={disabled || busy}
+        aria-busy={busy || undefined}
+        aria-describedby={hintId}
+        onClick={() => ref.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setOver(false);
+          if (!disabled && !busy) handle(e.dataTransfer.files);
+        }}
+        className={cx(
+          "flex min-h-24 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-5 py-4 text-center transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-64",
+          over ? "border-brand-600 bg-brand-50" : "border-ink-300 bg-white hover:border-brand-400 hover:bg-ink-50",
+        )}
+      >
+        {busy ? <Spinner /> : <UploadIcon className={cx("h-6 w-6 transition", over ? "-translate-y-0.5 text-brand-600" : "text-ink-500")} />}
+        <span className="font-semibold text-ink-900">{busy ? "מעלה..." : label}</span>
+        <span className="text-xs text-ink-500">או גררו קובץ לכאן</span>
+      </button>
       <p id={hintId} className="text-sm text-ink-500">{hint}</p>
       <div aria-live="polite">
         {done && !error && <p className="text-sm font-medium text-green-800">{done}</p>}

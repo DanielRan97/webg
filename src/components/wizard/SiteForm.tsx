@@ -467,7 +467,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
                 </p>
               </div>
               <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-ink-100">
-                <div className="h-2 rounded-full bg-brand-600 transition-all" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+                <div className="h-2 rounded-full bg-linear-to-l from-brand-600 to-cyan-400 shadow-[0_0_12px_rgb(34_184_207/0.45)] transition-[width] duration-500 ease-out" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
               </div>
             </div>
           ) : (
@@ -483,7 +483,10 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
 
           <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-8">
             <StepNoteContext.Provider value={isNew ? (STEP_NOTES[step.id] ?? CONTENT_NOTE) : null}>
-              <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} live={published} />
+              {/* Keyed by step, so each step eases in as the owner moves through the wizard. */}
+              <div key={step.id} className="webg-step-in">
+                <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} live={published} />
+              </div>
             </StepNoteContext.Provider>
           </div>
 

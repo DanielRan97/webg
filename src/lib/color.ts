@@ -76,3 +76,30 @@ export function ensureContrast(color: string, bg: string, min = 4.5): string {
   }
   return pole;
 }
+
+/** Hex to HSL (h 0-359, s/l 0-100). Used by the wizard's hue slider to keep a color's own saturation and lightness. */
+export function hexToHsl(hex: string): [number, number, number] {
+  const [r, g, b] = toRgb(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, Math.round(l * 100)];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return [Math.round(h * 60) % 360, Math.round(s * 100), Math.round(l * 100)];
+}
+
+export function hslToHex(h: number, s: number, l: number): string {
+  const sat = s / 100;
+  const lig = l / 100;
+  const a = sat * Math.min(lig, 1 - lig);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    return lig - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+  };
+  return toHex([f(0) * 255, f(8) * 255, f(4) * 255]);
+}
