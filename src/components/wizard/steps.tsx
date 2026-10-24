@@ -16,6 +16,7 @@ import { TemplatePicker } from "./TemplatePicker";
 import { NavEditor } from "./NavEditor";
 import { HolidayHours } from "./HolidayHours";
 import { AddressFields } from "./PlacePicker";
+import { ContactVerify } from "./ContactVerify";
 import { ColorStudio } from "./ColorStudio";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
 import { InfoIcon, TrashIcon } from "../ui/icons";
@@ -116,10 +117,19 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
         maxLength={600}
       />
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="טלפון" hint="לקוחות יוכלו להתקשר אליכם בלחיצה אחת." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.phone} onChange={(v) => update({ phone: v })} error={errors.phone} />
-        <TextField label="מספר WhatsApp (לא חובה)" hint="אם זה אותו מספר, אפשר להשאיר ריק." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.whatsapp} onChange={(v) => update({ whatsapp: v })} error={errors.whatsapp} />
+        <div className="space-y-2">
+          <TextField label="טלפון" hint="לקוחות יוכלו להתקשר אליכם בלחיצה אחת." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.phone} onChange={(v) => update({ phone: v })} error={errors.phone} />
+          <ContactVerify kind="PHONE" value={data.phone} label="הטלפון" />
+        </div>
+        <div className="space-y-2">
+          <TextField label="מספר WhatsApp (לא חובה)" hint="אם זה אותו מספר, אפשר להשאיר ריק." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.whatsapp} onChange={(v) => update({ whatsapp: v })} error={errors.whatsapp} />
+          <ContactVerify kind="PHONE" value={data.whatsapp} label="מספר ה-WhatsApp" sameAs={data.phone} />
+        </div>
       </div>
-      <TextField label="אימייל (לא חובה)" hint="יופיע באתר כדי שלקוחות יוכלו ליצור קשר." placeholder="לדוגמה: name@gmail.com" type="email" dir="ltr" value={data.email} onChange={(v) => update({ email: v })} error={errors.email} />
+      <div className="space-y-2">
+        <TextField label="אימייל (לא חובה)" hint="יופיע באתר כדי שלקוחות יוכלו ליצור קשר." placeholder="לדוגמה: name@gmail.com" type="email" dir="ltr" value={data.email} onChange={(v) => update({ email: v })} error={errors.email} />
+        <ContactVerify kind="EMAIL" value={data.email} label="האימייל" />
+      </div>
       <AddressFields city={data.city} address={data.address} onChange={update} />
     </div>
   );

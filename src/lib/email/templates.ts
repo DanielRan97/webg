@@ -150,3 +150,18 @@ ${btn(adminTicketUrl, "פתיחת הפנייה בניהול")}${fallbackLink(adm
   const text = `פנייה חדשה למערכת התמיכה\n\nנושא: ${ticketSubject}\nקטגוריה: ${category}\nממשתמש: ${userEmail}\n\nלפתיחה: ${adminTicketUrl}`;
   return { subject, html, text };
 }
+
+/** A one-time code proving the owner reads the email address they put on their site. */
+export function contactCodeEmail(code: string, businessName: string) {
+  const name = escapeHtml(businessName || "האתר שלכם");
+  const subject = `קוד האימות שלכם: ${code}`;
+  const html = wrap(
+    "אימות האימייל של העסק",
+    `<p style="color:#374151;line-height:1.6;font-size:15px">ביקשתם להציג את כתובת האימייל הזו באתר של ״${name}״ ב-WEBG. זה קוד האימות, בתוקף ל-10 דקות:</p><p dir="ltr" style="font-size:30px;font-weight:bold;letter-spacing:6px;color:#0f1b30;text-align:center;margin:20px 0">${code}</p>${helpLine}`,
+  );
+  const text = `קוד האימות לאימייל של ${businessName || "האתר שלכם"} ב-WEBG: ${code}
+הקוד בתוקף ל-10 דקות.
+
+${helpText}`;
+  return { subject, html, text };
+}

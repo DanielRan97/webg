@@ -116,6 +116,7 @@ model Website {
   services       Service[]
   hours          BusinessHour[]
   holidayHours   HolidayHour[]
+  contactChecks  ContactVerification[]
   gallery        GalleryImage[]
   socials        SocialLink[]
   sections       WebsiteSection[]
@@ -503,4 +504,26 @@ model SupportMessage {
   ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   @@index([ticketId, createdAt])
+}
+
+/**
+ * A contact detail shown on a site (its email, or a phone/WhatsApp number) and whether the owner proved
+ * it is theirs with a one-time code. One row per site + kind + value; only the code's hash is stored.
+ * A number used for both phone and WhatsApp is verified once.
+ */
+model ContactVerification {
+  id         String    @id @default(cuid())
+  websiteId  String
+  kind       String // EMAIL | PHONE
+  value      String // normalized: lowercased email, or the phone's digits starting with 0
+  codeHash   String?
+  expiresAt  DateTime?
+  attempts   Int       @default(0)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@unique([websiteId, kind, value])
 }

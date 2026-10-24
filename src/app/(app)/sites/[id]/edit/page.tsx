@@ -8,6 +8,7 @@ import { publicSiteHref } from "@/lib/site-url";
 import { WEBSITE_STATUS } from "@/lib/constants";
 import { SiteForm } from "@/components/wizard/SiteForm";
 import { SiteActions } from "@/components/SiteActions";
+import { phoneVerificationOn, verifiedContacts } from "@/server/contact-verification";
 
 export const metadata: Metadata = { title: "עריכת האתר" };
 export const dynamic = "force-dynamic";
@@ -18,13 +19,14 @@ export default async function EditPage({ params, searchParams }: PageProps<"/sit
   const { tab } = await searchParams;
   const site = await getOwnedWebsite(user.id, id);
   if (!site) notFound();
+  const contacts = { verifiedContacts: await verifiedContacts(site.id), phoneVerification: phoneVerificationOn() };
 
   // Still mid-wizard (never finished onboarding once): show the bare
   // step-by-step flow, same as a brand-new draft, with no publish/delete
   // controls yet - those only make sense once the owner has actually
   // finished setting the site up at least once.
   if (site.wizardStep) {
-    return <SiteForm initial={site.data} siteId={site.id} wizardStep={site.wizardStep} plan={site.plan} />;
+    return <SiteForm initial={site.data} siteId={site.id} wizardStep={site.wizardStep} plan={site.plan} {...contacts} />;
   }
 
   return (
@@ -46,6 +48,7 @@ export default async function EditPage({ params, searchParams }: PageProps<"/sit
         liveUrl={isPubliclyVisible(site) ? publicSiteHref(site) : null}
         published={site.status === WEBSITE_STATUS.PUBLISHED}
         initialTab={typeof tab === "string" ? tab : undefined}
+        {...contacts}
       />
     </>
   );

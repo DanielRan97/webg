@@ -5,7 +5,8 @@ import { requireUser } from "@/lib/session";
 import { AUTOSAVE_DOMAINS, PLAN, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
 import { isValidSlug } from "@/lib/slug";
 import { areasNotInList, getPlaces, getStreets } from "@/lib/places";
-import { splitAddress } from "@/lib/field-format";
+import { normalizeContact, splitAddress } from "@/lib/field-format";
+import { unverifiedContacts } from "../contact-verification";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
 import { INQUIRY_DELIVERY, PRO_TEMPLATE_PUBLISH_ERROR, isPro, needsProToPublish } from "@/lib/plan";
 import type { SiteData } from "@/types/site";
@@ -69,6 +70,26 @@ async function strayAreaError(d: SiteData, before: SiteData): Promise<string | n
   return stray.length ? `״${stray[0]}״ לא נמצא ברשימת הערים והאזורים. בחרו אזור מהרשימה.` : null;
 }
 
+/** "א", "א ו-ב", "א, ב ו-ג". */
+function listHe(items: string[]): string {
+  return items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} ו${items.at(-1)}`;
+}
+
+/**
+ * A live site keeps showing contact details the owner proved are theirs: changing the email, phone or
+ * WhatsApp of a published site needs the new value verified first (drafts are checked when published).
+ */
+async function contactChangeError(siteId: string, d: SiteData, before: { status: string; data: SiteData }): Promise<string | null> {
+  if (before.status !== WEBSITE_STATUS.PUBLISHED) return null;
+  const changed = {
+    email: normalizeContact("EMAIL", d.email) !== normalizeContact("EMAIL", before.data.email) ? d.email : "",
+    phone: normalizeContact("PHONE", d.phone) !== normalizeContact("PHONE", before.data.phone) ? d.phone : "",
+    whatsapp: normalizeContact("PHONE", d.whatsapp) !== normalizeContact("PHONE", before.data.whatsapp) ? d.whatsapp : "",
+  };
+  const missing = await unverifiedContacts(siteId, changed);
+  return missing.length ? `האתר באוויר, ולכן לפני השמירה צריך לאמת את ${listHe(missing)} ${missing.length > 1 ? "החדשים" : "החדש"}. לחצו על ״שליחת קוד אימות״ ליד השדה.` : null;
+}
+
 /**
  * The business address may only be a city from the official list and a street of that city (plus a
  * house number). Checked only when the address changed, so an older site's saved address doesn't block it.
@@ -95,7 +116,8 @@ export async function updateSiteAction(id: string, input: SiteData): Promise<Act
   try {
     const before = await getOwnedWebsite(user.id, id);
     if (!before) return { ok: false, error: "האתר לא נמצא" };
-    const placeProblem = (await addressError(v.data, before.data)) ?? (await strayAreaError(v.data, before.data));
+    const placeProblem =
+      (await contactChangeError(id, v.data, before)) ?? (await addressError(v.data, before.data)) ?? (await strayAreaError(v.data, before.data));
     if (placeProblem) return { ok: false, error: placeProblem };
     // The address step is now a real, reachable step in both the first-time
     // wizard and free-edit mode (see AddressStep) - by the time this save
@@ -190,6 +212,11 @@ export async function publishSiteAction(id: string): Promise<SimpleResult> {
     }
     if (site && needsProToPublish({ plan: site.plan, templateId: site.data.templateId })) {
       return { ok: false, error: PRO_TEMPLATE_PUBLISH_ERROR };
+    }
+    // Every email/phone shown on the site must be the owner's, proven with a code (see contact-verification.ts).
+    const missing = site ? await unverifiedContacts(site.id, site.data) : [];
+    if (missing.length) {
+      return { ok: false, error: `כדי לפרסם, אמתו קודם את ${listHe(missing)} של העסק. עושים את זה בשלב ״פרטי העסק״, עם קוד שנשלח אליכם.` };
     }
     await setWebsiteStatus(user.id, id, WEBSITE_STATUS.PUBLISHED);
     return { ok: true };

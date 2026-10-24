@@ -2,7 +2,7 @@ import "server-only";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { consoleAdapter } from "./console-adapter";
 import { createResendAdapter } from "./resend-adapter";
-import { contactFormEmail, leadFormEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
+import { contactCodeEmail, contactFormEmail, leadFormEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
 import type { EmailAdapter } from "./types";
 
 /**
@@ -61,3 +61,9 @@ export async function sendSupportTicketOpenedEmail(to: string, input: { subject:
 // Prepared for later (Stage 4 asked these be ready to add, not built yet):
 // export async function sendWelcomeEmail(to: string) { ... }
 // export async function sendSubscriptionEmail(to: string, kind: "trial-ending" | "payment-failed" | ...) { ... }
+
+/** The one-time code for verifying a site's contact email. Sent to that address, which the owner typed in themselves. */
+export async function sendContactCodeEmail(to: string, code: string, businessName: string) {
+  const { subject, html, text } = contactCodeEmail(code, businessName);
+  await getAdapter().send({ to, subject, html, text, replyTo: SUPPORT_EMAIL });
+}

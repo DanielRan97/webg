@@ -108,3 +108,10 @@ export function splitAddress(address: string): { street: string; number: string 
   const m = address.trim().match(/^(.*\S)\s+(\d+[א-ת]?(?:\/\d+)?)$/);
   return m ? { street: m[1], number: m[2] } : { street: address.trim(), number: "" };
 }
+
+/** The form a contact detail is verified in: an email lowercased, a phone as its digits starting with 0 ("+972 54-..." -> "054..."). */
+export function normalizeContact(kind: "EMAIL" | "PHONE", value: string): string {
+  if (kind === "EMAIL") return value.trim().toLowerCase();
+  const digits = value.replace(/\D/g, "");
+  return digits.startsWith("972") ? `0${digits.slice(3)}` : digits;
+}

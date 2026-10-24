@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { autosaveSiteAction, checkSlugAvailabilityAction, updateSiteAction } from "@/server/actions/sites";
 import { PublishButton } from "../PlanChoice";
+import { ContactVerifyContext, useContactVerifyState } from "./ContactVerify";
 import { AUTOSAVE_DOMAINS, menuStepLabel, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
@@ -141,11 +142,16 @@ interface Props {
   published?: boolean;
   /** Edit mode only: open this tab (a step id, e.g. "branding") instead of the first one. */
   initialTab?: string;
+  /** Contact details already verified for this site ("EMAIL:x" / "PHONE:05..."), see ContactVerify. */
+  verifiedContacts?: string[];
+  /** Whether phone numbers can be verified (an SMS service is available). */
+  phoneVerification?: boolean;
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 800;
 
-export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published = false, initialTab }: Props) {
+export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published = false, initialTab, verifiedContacts = [], phoneVerification = false }: Props) {
+  const contactVerify = useContactVerifyState(siteId, verifiedContacts, phoneVerification);
   const router = useRouter();
   const isNew = wizardStep !== null;
   const [data, setData] = useState<SiteData>(initial);
@@ -499,139 +505,141 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
 
   return (
     <ValidationContext.Provider value={{ submitted }}>
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        {/* Mobile: switch between form and preview */}
-        <div className="flex rounded-lg bg-ink-50 p-1 lg:hidden">
-          {(["form", "preview"] as const).map((v) => (
-            <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cx("min-h-12 flex-1 rounded-lg font-semibold", view === v ? "bg-white shadow" : "text-ink-700")}>
-              {v === "form" ? "הטופס" : "תצוגה מקדימה"}
-            </button>
-          ))}
-        </div>
-
-        <div className={cx(view === "form" ? "" : "hidden", "lg:block")}>
-          {isNew ? (
-            <div className="mb-6">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                <p className="text-sm font-semibold text-ink-800">שלב {stepIndex + 1} מתוך {steps.length}: {step.label(data)}</p>
-                <p aria-live="polite" className={cx("text-sm", autosaveStatus === "error" ? "font-medium text-red-700" : "text-ink-500")}>
-                  {autosaveStatus === "saving" && "שומר..."}
-                  {autosaveStatus === "saved" && "נשמר"}
-                  {autosaveStatus === "error" && (autosaveError || "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב.")}
-                </p>
-              </div>
-              <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-ink-100">
-                <div className="h-2 rounded-full bg-linear-to-l from-brand-600 to-cyan-400 shadow-[0_0_12px_rgb(34_184_207/0.45)] transition-[width] duration-500 ease-out" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
-              </div>
-              <nav aria-label="שלבי הטופס" className="mt-3">
-                <p className="mb-1.5 text-xs text-ink-500">אפשר לעבור לכל שלב בלחיצה, אחורה או קדימה.</p>
-                <ol className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:flex-wrap lg:overflow-visible">
-                  {steps.map((s, i) => {
-                    const done = i < stepIndex;
-                    const current = i === stepIndex;
-                    return (
-                      <li key={s.id} className="shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => jump(i)}
-                          aria-current={current ? "step" : undefined}
-                          className={cx(
-                            "flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition",
-                            current ? "border-brand-600 bg-brand-600 text-white" : done ? "border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100" : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
-                          )}
-                        >
-                          <span aria-hidden className="tabular-nums">{done ? "✓" : i + 1}</span>
-                          {s.label(data)}
-                          {stepHasError(s.id, errors) && i < stepIndex && <span className="sr-only"> (יש פרטים לתקן)</span>}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </nav>
-            </div>
-          ) : (
-            <nav aria-label="חלקי העריכה" className="mb-6 flex flex-wrap gap-2">
-              {steps.map((s, i) => (
-                <button key={s.id} type="button" onClick={() => go(i)} aria-current={i === stepIndex ? "step" : undefined} className={cx("min-h-11 rounded-full px-4 text-sm font-semibold", i === stepIndex ? "bg-brand-600 text-white" : "bg-ink-50 text-ink-900 hover:bg-ink-100")}>
-                  {s.label(data)}
-                  {stepHasError(s.id, errors) && <span aria-label="יש פרטים לתקן"> ⚠</span>}
-                </button>
-              ))}
-            </nav>
-          )}
-
-          <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-8">
-            <StepNoteContext.Provider value={isNew ? (STEP_NOTES[step.id] ?? CONTENT_NOTE) : null}>
-              {/* Keyed by step, so each step eases in as the owner moves through the wizard. */}
-              <div key={step.id} className="webg-step-in">
-                <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} live={published} />
-              </div>
-            </StepNoteContext.Provider>
+      <ContactVerifyContext.Provider value={contactVerify}>
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* Mobile: switch between form and preview */}
+          <div className="flex rounded-lg bg-ink-50 p-1 lg:hidden">
+            {(["form", "preview"] as const).map((v) => (
+              <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} className={cx("min-h-12 flex-1 rounded-lg font-semibold", view === v ? "bg-white shadow" : "text-ink-700")}>
+                {v === "form" ? "הטופס" : "תצוגה מקדימה"}
+              </button>
+            ))}
           </div>
-
-          <div className="mt-4 space-y-3" aria-live="polite">
-            {error && (!errorIsValidation || Object.keys(errors).length > 0 || slugBlockMessage(step.id)) && <Notice kind="error">{error}</Notice>}
-            {saved && <Notice kind="success">{published ? "השינויים נשמרו, והם כבר מופיעים באתר." : "השינויים נשמרו. האתר עדיין טיוטה, ולקוחות יראו אותו אחרי הפרסום."}</Notice>}
-            {publishedNow && <Notice kind="success">האתר נשמר ופורסם! מעכשיו הלקוחות יכולים לראות אותו.</Notice>}
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+  
+          <div className={cx(view === "form" ? "" : "hidden", "lg:block")}>
             {isNew ? (
-              <>
-                <Button type="button" variant="secondary" disabled={stepIndex === 0 || pending} onClick={() => go(stepIndex - 1)}>חזרה</Button>
-                {last ? (
-                  <Button type="button" onClick={() => save()} loading={pending}>{pending ? "יוצרים את האתר..." : "צור את האתר"}</Button>
-                ) : (
-                  <Button type="button" onClick={next}>המשך</Button>
-                )}
-              </>
-            ) : (
-              <>
-                {/* A draft can go live right from here: save, then choose the plan and publish in the dialog. */}
-                {!published && (
-                  <PublishButton
-                    siteId={siteId}
-                    slug={data.slug}
-                    plan={plan}
-                    templateId={data.templateId}
-                    onPublished={() => setPublishedNow(true)}
-                    trigger={(open) => (
-                      <Button type="button" onClick={() => save({ afterSave: open })} loading={pending}>{pending ? "שומר..." : "שמירה ופרסום"}</Button>
-                    )}
-                  />
-                )}
-                <Button type="button" variant={published ? "primary" : "secondary"} onClick={() => save()} loading={pending}>{pending ? "שומר..." : "שמירת שינויים"}</Button>
-                {liveUrl && (
-                  <Link href={liveUrl} target="_blank" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
-                    צפייה באתר החי
-                  </Link>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        <aside aria-label="תצוגה מקדימה" className={cx(view === "preview" ? "" : "hidden", "scroll-mt-20 lg:block")}>
-          <div className="lg:sticky lg:top-24">
-            <p className="text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
-            <p className="mb-3 text-center text-xs text-ink-500">{isNew ? "תצוגה מקדימה בלבד. שום דבר לא מתפרסם עד שתלחצו על ״פרסום״." : "התצוגה מתעדכנת תוך כדי עריכה."}</p>
-            {needsProToPublish({ plan, templateId: data.templateId }) && (
-              <p className="mb-3 text-center text-xs font-semibold text-brand-700">
-                <span className="me-1.5 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold text-white">Pro</span>
-                התצוגה בעיצוב של מסלול Pro
-              </p>
-            )}
-            {isNew && step.id === "basics" && (
-              <div className="mb-3">
-                <ComingNext />
+              <div className="mb-6">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                  <p className="text-sm font-semibold text-ink-800">שלב {stepIndex + 1} מתוך {steps.length}: {step.label(data)}</p>
+                  <p aria-live="polite" className={cx("text-sm", autosaveStatus === "error" ? "font-medium text-red-700" : "text-ink-500")}>
+                    {autosaveStatus === "saving" && "שומר..."}
+                    {autosaveStatus === "saved" && "נשמר"}
+                    {autosaveStatus === "error" && (autosaveError || "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב.")}
+                  </p>
+                </div>
+                <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-ink-100">
+                  <div className="h-2 rounded-full bg-linear-to-l from-brand-600 to-cyan-400 shadow-[0_0_12px_rgb(34_184_207/0.45)] transition-[width] duration-500 ease-out" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+                </div>
+                <nav aria-label="שלבי הטופס" className="mt-3">
+                  <p className="mb-1.5 text-xs text-ink-500">אפשר לעבור לכל שלב בלחיצה, אחורה או קדימה.</p>
+                  <ol className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:flex-wrap lg:overflow-visible">
+                    {steps.map((s, i) => {
+                      const done = i < stepIndex;
+                      const current = i === stepIndex;
+                      return (
+                        <li key={s.id} className="shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => jump(i)}
+                            aria-current={current ? "step" : undefined}
+                            className={cx(
+                              "flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition",
+                              current ? "border-brand-600 bg-brand-600 text-white" : done ? "border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100" : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
+                            )}
+                          >
+                            <span aria-hidden className="tabular-nums">{done ? "✓" : i + 1}</span>
+                            {s.label(data)}
+                            {stepHasError(s.id, errors) && i < stepIndex && <span className="sr-only"> (יש פרטים לתקן)</span>}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </nav>
               </div>
+            ) : (
+              <nav aria-label="חלקי העריכה" className="mb-6 flex flex-wrap gap-2">
+                {steps.map((s, i) => (
+                  <button key={s.id} type="button" onClick={() => go(i)} aria-current={i === stepIndex ? "step" : undefined} className={cx("min-h-11 rounded-full px-4 text-sm font-semibold", i === stepIndex ? "bg-brand-600 text-white" : "bg-ink-50 text-ink-900 hover:bg-ink-100")}>
+                    {s.label(data)}
+                    {stepHasError(s.id, errors) && <span aria-label="יש פרטים לתקן"> ⚠</span>}
+                  </button>
+                ))}
+              </nav>
             )}
-            <PreviewPane newWindow data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
-            <p className="mt-3 text-center text-xs text-ink-500">מסגרת הטלפון ושורת הכתובת הן רק חלק מהתצוגה. באתר עצמו הלקוחות יראו רק את האתר שלכם.</p>
+  
+            <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-8">
+              <StepNoteContext.Provider value={isNew ? (STEP_NOTES[step.id] ?? CONTENT_NOTE) : null}>
+                {/* Keyed by step, so each step eases in as the owner moves through the wizard. */}
+                <div key={step.id} className="webg-step-in">
+                  <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} live={published} />
+                </div>
+              </StepNoteContext.Provider>
+            </div>
+  
+            <div className="mt-4 space-y-3" aria-live="polite">
+              {error && (!errorIsValidation || Object.keys(errors).length > 0 || slugBlockMessage(step.id)) && <Notice kind="error">{error}</Notice>}
+              {saved && <Notice kind="success">{published ? "השינויים נשמרו, והם כבר מופיעים באתר." : "השינויים נשמרו. האתר עדיין טיוטה, ולקוחות יראו אותו אחרי הפרסום."}</Notice>}
+              {publishedNow && <Notice kind="success">האתר נשמר ופורסם! מעכשיו הלקוחות יכולים לראות אותו.</Notice>}
+            </div>
+  
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              {isNew ? (
+                <>
+                  <Button type="button" variant="secondary" disabled={stepIndex === 0 || pending} onClick={() => go(stepIndex - 1)}>חזרה</Button>
+                  {last ? (
+                    <Button type="button" onClick={() => save()} loading={pending}>{pending ? "יוצרים את האתר..." : "צור את האתר"}</Button>
+                  ) : (
+                    <Button type="button" onClick={next}>המשך</Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* A draft can go live right from here: save, then choose the plan and publish in the dialog. */}
+                  {!published && (
+                    <PublishButton
+                      siteId={siteId}
+                      slug={data.slug}
+                      plan={plan}
+                      templateId={data.templateId}
+                      onPublished={() => setPublishedNow(true)}
+                      trigger={(open) => (
+                        <Button type="button" onClick={() => save({ afterSave: open })} loading={pending}>{pending ? "שומר..." : "שמירה ופרסום"}</Button>
+                      )}
+                    />
+                  )}
+                  <Button type="button" variant={published ? "primary" : "secondary"} onClick={() => save()} loading={pending}>{pending ? "שומר..." : "שמירת שינויים"}</Button>
+                  {liveUrl && (
+                    <Link href={liveUrl} target="_blank" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
+                      צפייה באתר החי
+                    </Link>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </aside>
-      </div>
+  
+          <aside aria-label="תצוגה מקדימה" className={cx(view === "preview" ? "" : "hidden", "scroll-mt-20 lg:block")}>
+            <div className="lg:sticky lg:top-24">
+              <p className="text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
+              <p className="mb-3 text-center text-xs text-ink-500">{isNew ? "תצוגה מקדימה בלבד. שום דבר לא מתפרסם עד שתלחצו על ״פרסום״." : "התצוגה מתעדכנת תוך כדי עריכה."}</p>
+              {needsProToPublish({ plan, templateId: data.templateId }) && (
+                <p className="mb-3 text-center text-xs font-semibold text-brand-700">
+                  <span className="me-1.5 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold text-white">Pro</span>
+                  התצוגה בעיצוב של מסלול Pro
+                </p>
+              )}
+              {isNew && step.id === "basics" && (
+                <div className="mb-3">
+                  <ComingNext />
+                </div>
+              )}
+              <PreviewPane newWindow data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
+              <p className="mt-3 text-center text-xs text-ink-500">מסגרת הטלפון ושורת הכתובת הן רק חלק מהתצוגה. באתר עצמו הלקוחות יראו רק את האתר שלכם.</p>
+            </div>
+          </aside>
+        </div>
+      </ContactVerifyContext.Provider>
     </ValidationContext.Provider>
   );
 }
