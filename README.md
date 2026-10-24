@@ -10,14 +10,10 @@ Stack: Next.js (App Router) · TypeScript · Tailwind CSS 4 · Prisma · **Postg
 npm install
 cp .env.example .env        # fill in DATABASE_URL / DIRECT_URL (see below); everything else has a dev fallback
 npm run db:migrate          # applies migrations to whatever DATABASE_URL points at
-npm run db:seed             # optional: demo user + 2 sample sites - do NOT run against a database with real users
 npm run dev                 # http://localhost:3000
 ```
 
-Demo login after seeding: `demo@webg.co.il` / `demo1234`
-Sample public site: `/s/daniel-barber` (published). `cafe-hapina` is a draft.
-
-Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:reset` (wipes + reseeds - **never** run this against a database with real data).
+Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:reset` (wipes the database - **never** run this against a database with real data).
 
 ### Local development database
 
@@ -75,5 +71,3 @@ Optional hardening once the schema has settled: convert the status strings to Pr
 Phase 2 only **adds** things: new tables (testimonials, service areas, FAQ, highlights), new optional columns (menu/price group, emergency and booking settings), all with defaults. Sites saved before Phase 2 keep every value and every section exactly as it was; sections that did not exist yet are appended **switched off**, so nothing appears or disappears on a live site. Switching templates only changes `templateId`.
 
 Migration: `npm run db:migrate` (or `npx prisma migrate deploy` in production).
-
-`npm run db:seed` resets the `demo@webg.co.il` account and creates one published sample site per business type. Do not use that account for real work.
