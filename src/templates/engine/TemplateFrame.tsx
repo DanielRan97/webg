@@ -25,7 +25,7 @@ export function TemplateFrame({ data: d, config }: { data: SiteData; config: Tem
   let bodyIndex = 0;
 
   return (
-    <div data-webg-site="" dir="rtl" lang="he" style={palette(d)} className={`min-h-screen scroll-smooth bg-t-bg pb-20 text-t-fg md:pb-0 ${t.body}`}>
+    <div data-webg-site="" dir="rtl" lang="he" style={palette(d)} className={`min-h-screen scroll-smooth bg-t-bg pb-20 text-start text-t-fg md:pb-0 ${t.body}`}>
       <NavPortalProvider>
         <Header d={d} nav={nav} />
         <main>

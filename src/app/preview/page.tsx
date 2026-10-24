@@ -28,7 +28,8 @@ export default function PreviewFrame() {
       }
     };
     window.addEventListener("message", onMessage);
-    window.parent.postMessage({ type: "webg:preview-ready" }, window.location.origin);
+    // In the wizard's iframe the editor is the parent; opened as its own window ("פתיחה בחלון חדש") it's the opener.
+    (window.opener ?? window.parent).postMessage({ type: "webg:preview-ready" }, window.location.origin);
     return () => window.removeEventListener("message", onMessage);
   }, []);
 

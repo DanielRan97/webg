@@ -628,7 +628,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
                 <ComingNext />
               </div>
             )}
-            <PreviewPane data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
+            <PreviewPane newWindow data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
             <p className="mt-3 text-center text-xs text-ink-500">מסגרת הטלפון ושורת הכתובת הן רק חלק מהתצוגה. באתר עצמו הלקוחות יראו רק את האתר שלכם.</p>
           </div>
         </aside>

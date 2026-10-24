@@ -101,8 +101,18 @@ export async function autosaveSiteAction(
   const user = await requireUser();
   const parsed = draftSiteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב." };
+  const wanted = validDomains(domains);
   try {
-    const site = await autosaveWebsiteDraft(user.id, id, parsed.data as SiteData, validDomains(domains), wizardStep);
+    let site;
+    try {
+      site = await autosaveWebsiteDraft(user.id, id, parsed.data as SiteData, wanted, wizardStep);
+    } catch (e) {
+      // A taken address (often just the one suggested from the business name) must not hold back the rest
+      // of the draft: save everything else, and let the address step - which checks availability live and
+      // blocks finishing on a taken address - deal with it.
+      if (!(e instanceof SlugError) || !wanted.includes("address")) throw e;
+      site = await autosaveWebsiteDraft(user.id, id, parsed.data as SiteData, wanted.filter((d) => d !== "address"), wizardStep);
+    }
     if (!site) return { ok: false, error: "האתר לא נמצא" };
     return { ok: true };
   } catch (e) {

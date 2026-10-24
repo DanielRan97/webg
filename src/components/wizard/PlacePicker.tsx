@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
-import { Button, Field, cx, inputClass } from "../ui/ui";
+import { WHOLE_COUNTRY } from "@/lib/constants";
+import { Field, cx, inputClass } from "../ui/ui";
 
 /*
- * City and street pickers backed by the government lists (see lib/places.ts and /api/places). They
- * suggest, they never block: if the lists can't load, or a place isn't in them, the owner can still
- * type it - and gets a gentle note to check the spelling.
+ * City, street and area pickers backed by the government lists (see lib/places.ts and /api/places).
+ * The address suggests without blocking (a place missing from the list can still be typed, with a note
+ * to check the spelling). Service/delivery areas are picked from the list only - unless it can't load.
  */
 
 interface City {
@@ -14,19 +15,24 @@ interface City {
   name: string;
 }
 
-let citiesPromise: Promise<City[] | null> | null = null;
+interface Places {
+  cities: City[];
+  regions: string[];
+}
+
+let placesPromise: Promise<Places | null> | null = null;
 const streetsCache = new Map<number, Promise<string[] | null>>();
 
-function loadCities(): Promise<City[] | null> {
-  citiesPromise ??= fetch("/api/places/cities")
+function loadPlaces(): Promise<Places | null> {
+  placesPromise ??= fetch("/api/places/cities")
     .then((r) => (r.ok ? r.json() : null))
-    .then((j: { cities?: City[] } | null) => j?.cities ?? null)
+    .then((j: Partial<Places> | null) => (j?.cities && j.regions ? { cities: j.cities, regions: j.regions } : null))
     .catch(() => null)
-    .then((list) => {
-      if (!list) citiesPromise = null; // let a later mount try again
-      return list;
+    .then((places) => {
+      if (!places) placesPromise = null; // let a later mount try again
+      return places;
     });
-  return citiesPromise;
+  return placesPromise;
 }
 
 function loadStreets(code: number): Promise<string[] | null> {
@@ -48,16 +54,17 @@ function loadStreets(code: number): Promise<string[] | null> {
 const norm = (s: string) =>
   s.replace(/["'״׳`\-–()]/g, " ").replace(/יי/g, "י").replace(/וו/g, "ו").replace(/\s+/g, " ").trim();
 
-function useCities() {
-  const [cities, setCities] = useState<City[] | null>(null);
+/** undefined while loading, null if the lists couldn't be loaded. */
+function usePlaces() {
+  const [places, setPlaces] = useState<Places | null | undefined>(undefined);
   useEffect(() => {
     let live = true;
-    loadCities().then((c) => live && setCities(c));
+    loadPlaces().then((p) => live && setPlaces(p));
     return () => {
       live = false;
     };
   }, []);
-  return cities;
+  return places;
 }
 
 function useStreets(code: number | undefined) {
@@ -78,20 +85,20 @@ const findCity = (cities: City[] | null, name: string) => {
   return n ? cities?.find((c) => norm(c.name) === n) : undefined;
 };
 
-/** Up to 8 matches, the ones that start with what was typed first. */
+/** Up to 8 matches: an exact match first, then names that start with what was typed, then the rest. */
 function matches(options: string[], query: string): string[] {
   const q = norm(query);
   if (!q) return [];
+  const exact: string[] = [];
   const starts: string[] = [];
   const contains: string[] = [];
   for (const o of options) {
     const n = norm(o);
-    if (n === q) continue;
-    if (n.startsWith(q)) starts.push(o);
+    if (n === q) exact.push(o);
+    else if (n.startsWith(q)) starts.push(o);
     else if (n.includes(q)) contains.push(o);
-    if (starts.length >= 8) break;
   }
-  return [...starts, ...contains].slice(0, 8);
+  return [...exact, ...starts, ...contains].slice(0, 8);
 }
 
 /**
@@ -106,6 +113,7 @@ function Combobox({
   onChange,
   onPick,
   pickOnEnter,
+  pickFirstOnEnter,
   options,
   placeholder,
   disabled,
@@ -118,7 +126,10 @@ function Combobox({
   value: string;
   onChange: (v: string) => void;
   onPick?: (v: string) => void;
+  /** Enter with nothing highlighted adds the typed text as is. */
   pickOnEnter?: boolean;
+  /** Enter with nothing highlighted picks the first suggestion. */
+  pickFirstOnEnter?: boolean;
   options: string[] | null;
   placeholder?: string;
   disabled?: boolean;
@@ -129,7 +140,8 @@ function Combobox({
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const list = useMemo(() => (options ? matches(options, value) : []), [options, value]);
-  const shown = open && list.length > 0;
+  // Nothing to suggest when the only match is exactly what's already typed.
+  const shown = open && list.length > 0 && !(list.length === 1 && norm(list[0]) === norm(value));
 
   function pick(v: string) {
     if (onPick) onPick(v);
@@ -177,6 +189,9 @@ function Combobox({
                 if (shown && active >= 0) {
                   e.preventDefault();
                   pick(list[active]);
+                } else if (pickFirstOnEnter && list.length) {
+                  e.preventDefault();
+                  pick(list[0]);
                 } else if (pickOnEnter && value.trim()) {
                   e.preventDefault();
                   pick(value.trim());
@@ -242,7 +257,8 @@ export function AddressFields({
   address: string;
   onChange: (patch: { city?: string; address?: string }) => void;
 }) {
-  const cities = useCities();
+  const places = usePlaces();
+  const cities = places?.cities ?? null;
   const cityMatch = findCity(cities, city);
   const streets = useStreets(cityMatch?.code);
   // Kept apart while typing (re-splitting the saved string would eat a trailing space mid-word, e.g. "בן ").
@@ -299,8 +315,9 @@ export function AddressFields({
 }
 
 /**
- * A list of cities/areas as removable chips. Suggestions come from the official city list; free text
- * ("גוש דן", "כל הצפון") is added with Enter or the button.
+ * A list of cities/areas as removable chips, picked from the official lists: "כל הארץ", districts,
+ * sub-districts, regional councils and cities. "כל הארץ" stands alone - picking it replaces the rest,
+ * and picking anything else drops it. Only if the lists can't load may the owner type a name.
  */
 export function AreaPicker({
   label,
@@ -317,37 +334,43 @@ export function AreaPicker({
   max: number;
   emptyText: string;
 }) {
-  const cities = useCities();
+  const places = usePlaces();
+  const failed = places === null;
   const [draft, setDraft] = useState("");
   const full = values.length >= max;
+  const options = useMemo(
+    () => (places ? [...places.regions, ...places.cities.map((c) => c.name)].filter((n) => !values.includes(n)) : null),
+    [places, values],
+  );
 
   function add(raw: string) {
-    const names = raw.split(/[,،\n]/).map((s) => s.trim()).filter(Boolean);
-    const merged = [...values];
-    for (const n of names) if (!merged.some((m) => norm(m) === norm(n)) && merged.length < max) merged.push(n);
-    onChange(merged);
+    const name = raw.trim();
     setDraft("");
+    if (!name || values.some((v) => norm(v) === norm(name))) return;
+    if (name === WHOLE_COUNTRY) onChange([WHOLE_COUNTRY]);
+    else if (values.length < max) onChange([...values.filter((v) => v !== WHOLE_COUNTRY), name]);
   }
 
   return (
     <div className="space-y-3">
-      <div className="flex items-end gap-2">
-        <div className="min-w-0 flex-1">
-          <Combobox
-            label={label}
-            hint={hint}
-            placeholder="לדוגמה: חיפה"
-            value={draft}
-            onChange={setDraft}
-            onPick={add}
-            pickOnEnter
-            options={cities ? cities.map((c) => c.name).filter((n) => !values.includes(n)) : null}
-            disabled={full}
-            maxLength={60}
-          />
-        </div>
-        <Button type="button" variant="secondary" onClick={() => add(draft)} disabled={!draft.trim() || full}>הוספה</Button>
-      </div>
+      <Combobox
+        label={label}
+        hint={failed ? "לא הצלחנו לטעון את רשימת הערים והאזורים כרגע. אפשר לכתוב שם וללחוץ Enter." : hint}
+        placeholder="לדוגמה: חיפה, נפת השרון או כל הארץ"
+        value={draft}
+        onChange={setDraft}
+        onPick={add}
+        pickFirstOnEnter
+        pickOnEnter={failed}
+        options={options}
+        note={
+          options && norm(draft).length >= 2 && !options.some((o) => norm(o).includes(norm(draft)))
+            ? `לא מצאנו את ״${draft.trim()}״ ברשימה. נסו שם של עיר, מועצה אזורית, נפה (למשל ״נפת תל אביב״) או מחוז.`
+            : undefined
+        }
+        disabled={full}
+        maxLength={60}
+      />
       {values.length === 0 ? (
         <p className="text-sm text-ink-500">{emptyText}</p>
       ) : (

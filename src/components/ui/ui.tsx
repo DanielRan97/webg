@@ -339,24 +339,40 @@ const MAX_BYTES = 5 * 1024 * 1024;
 const OK_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 /** Uploads one or more images. Always shows what is accepted, and clearly reports progress and results. */
+/** Pixel size of an image file, or null if the browser can't read it (the upload still goes ahead). */
+async function imageSize(file: File): Promise<{ w: number; h: number } | null> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const size = { w: bmp.width, h: bmp.height };
+    bmp.close();
+    return size;
+  } catch {
+    return null;
+  }
+}
+
 export function ImageUploader({
   label,
   hint,
   multiple,
   onUploaded,
   disabled,
+  minSize,
 }: {
   label: string;
   hint: string;
   multiple?: boolean;
   onUploaded: (urls: string[]) => void;
   disabled?: boolean;
+  /** Below this the image will look blurry where it's shown: it's still uploaded, with a gentle warning. */
+  minSize?: { w: number; h: number };
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const hintId = useId();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
+  const [small, setSmall] = useState("");
   const [over, setOver] = useState(false);
 
   async function handle(files: FileList | null) {
@@ -364,7 +380,9 @@ export function ImageUploader({
     setBusy(true);
     setError("");
     setDone("");
+    setSmall("");
     const urls: string[] = [];
+    const tooSmall: string[] = [];
     for (const file of Array.from(files)) {
       if (!OK_TYPES.includes(file.type)) {
         setError(`"${file.name}" אינו קובץ תמונה מתאים. אפשר להעלות PNG, JPG, WEBP או GIF.`);
@@ -373,6 +391,10 @@ export function ImageUploader({
       if (file.size > MAX_BYTES) {
         setError(`"${file.name}" גדולה מדי (עד 5MB). נסו תמונה קטנה יותר.`);
         continue;
+      }
+      if (minSize) {
+        const size = await imageSize(file);
+        if (size && (size.w < minSize.w || size.h < minSize.h)) tooSmall.push(`״${file.name}״ (${size.w}×${size.h})`);
       }
       const body = new FormData();
       body.append("file", file);
@@ -384,6 +406,11 @@ export function ImageUploader({
       } catch (e) {
         setError(e instanceof Error ? e.message : "ההעלאה נכשלה. נסו שוב.");
       }
+    }
+    if (tooSmall.length && minSize) {
+      setSmall(
+        `${tooSmall.length === 1 ? "התמונה" : "התמונות"} ${tooSmall.join(", ")} ${tooSmall.length === 1 ? "קטנה מהמומלץ, ולכן עלולה להיראות מטושטשת" : "קטנות מהמומלץ, ולכן עלולות להיראות מטושטשות"} במסך גדול. כדאי להעלות תמונה של לפחות ${minSize.w}×${minSize.h} פיקסלים.`,
+      );
     }
     if (urls.length) {
       onUploaded(urls);
@@ -432,6 +459,7 @@ export function ImageUploader({
       <p id={hintId} className="text-sm text-ink-500">{hint}</p>
       <div aria-live="polite">
         {done && !error && <p className="text-sm font-medium text-green-800">{done}</p>}
+        {small && <p className="flex gap-1.5 text-sm font-medium text-amber-800"><span aria-hidden>⚠</span>{small}</p>}
         {error && <p role="alert" className="flex gap-1.5 text-sm font-medium text-red-700"><span aria-hidden>⚠</span>{error}</p>}
       </div>
     </div>

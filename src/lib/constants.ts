@@ -72,6 +72,9 @@ export const ITEM_KIND_LABELS: Record<ItemKind, { option: string; noun: string; 
 /** The form step's name when the list is shown only as the menu. */
 export const menuStepLabel = (kind: ItemKind) => (kind === "DISHES" ? "תפריט" : (ITEM_KIND_LABELS[kind] ?? ITEM_KIND_LABELS.DISHES).option);
 
+/** The service/delivery area that covers everywhere (see lib/places.ts). */
+export const WHOLE_COUNTRY = "כל הארץ";
+
 /** Common Israeli holidays offered as one-tap names for special opening hours (any other name can be typed). */
 export const HOLIDAY_SUGGESTIONS = [
   "ערב ראש השנה", "ראש השנה", "ערב יום כיפור", "יום כיפור", "ערב סוכות", "סוכות", "חול המועד סוכות", "שמחת תורה",

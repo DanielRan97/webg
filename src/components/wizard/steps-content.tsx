@@ -113,7 +113,7 @@ export function AreasStep({ data, update }: StepProps) {
       <StepTitle title="לאילו אזורים אתם מגיעים?" subtitle="הוסיפו ערים או אזורים שבהם אתם נותנים שירות. הלקוחות יראו אותם באתר." />
       <AreaPicker
         label="עיר או אזור"
-        hint="מתחילים להקליד ובוחרים עיר מהרשימה הרשמית. אפשר גם לכתוב אזור, למשל ״גוש דן״, וללחוץ Enter."
+        hint="מתחילים להקליד ובוחרים מהרשימה הרשמית: עיר, מועצה אזורית, נפה (למשל ״נפת השרון״), מחוז (למשל ״מחוז הצפון״) או ״כל הארץ״."
         values={data.areas}
         onChange={(areas) => update({ areas })}
         max={60}
@@ -137,7 +137,7 @@ export function DeliveryStep({ data, update, errors }: StepProps) {
         <>
           <AreaPicker
             label="לאן אתם שולחים? (לא חובה)"
-            hint="ערים מהרשימה הרשמית, או אזור במילים שלכם (למשל ״הקריות״) עם Enter."
+            hint="בוחרים מהרשימה הרשמית: עיר, מועצה אזורית, נפה, מחוז או ״כל הארץ״."
             values={del.areas.split(/s*,s*/).filter(Boolean)}
             onChange={(list) => set({ areas: list.join(", ") })}
             max={20}
@@ -148,7 +148,7 @@ export function DeliveryStep({ data, update, errors }: StepProps) {
             <TextField label="מינימום הזמנה (לא חובה)" placeholder="לדוגמה: 80 ₪" value={del.minOrder} onChange={(v) => set({ minOrder: v })} error={errors["delivery-minOrder"]} maxLength={30} />
           </div>
           <TextField label="משלוח חינם מעל סכום (לא חובה)" placeholder="לדוגמה: משלוח חינם מעל 200 ₪" value={del.freeOver} onChange={(v) => set({ freeOver: v })} error={errors["delivery-freeOver"]} maxLength={30} />
-          <TextField label="זמן משלוח משוער (לא חובה)" placeholder="לדוגמה: 30–60 דקות" value={del.time} onChange={(v) => set({ time: v })} maxLength={40} />
+          <TextField label="זמן משלוח משוער (לא חובה)" placeholder="לדוגמה: 30–60 דקות, 7 ימי עסקים" value={del.time} onChange={(v) => set({ time: v })} maxLength={40} />
           <TextArea label="הערה קצרה (לא חובה)" placeholder="לדוגמה: משלוחים בימי חול בלבד." rows={2} value={del.note} onChange={(v) => set({ note: v })} maxLength={200} />
         </>
       )}
