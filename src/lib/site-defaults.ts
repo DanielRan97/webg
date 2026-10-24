@@ -42,6 +42,7 @@ export function emptySiteData(categoryId = "other"): SiteData {
     logoUrl: "",
     heroImageUrl: "",
     templateId: "modern",
+    navLayout: "",
     subtitle: "",
     phone: "",
     whatsapp: "",

@@ -9,7 +9,7 @@ import type { NavItem } from "./types";
 const MORE_LABEL = "עוד";
 
 /**
- * The site header's section-navigation, shared by all five templates so the
+ * The site header's section-navigation, shared by every template (via HeaderBar) so the
  * overflow behavior only needs solving once.
  *
  * Desktop (lg+): measures the real rendered width of every item (an
@@ -232,11 +232,10 @@ export function SiteNav({
           portalRoot,
         )}
 
-      {/* Mobile: hamburger + full vertical list, no item-count cap. `ms-auto`
-          keeps it pinned to the end of the header row even though the
-          `flex-1` desktop nav above it is `hidden` (zero width) here, so it
-          can no longer do that pushing job itself. */}
-      <div className="ms-auto flex items-center lg:hidden">
+      {/* Mobile: hamburger + full vertical list, no item-count cap. Where it
+          sits in the header row is decided by HeaderBar's zone (the owner's
+          nav layout), so it carries no alignment of its own. */}
+      <div className="flex items-center lg:hidden">
         <button
           ref={mobileBtnRef}
           type="button"

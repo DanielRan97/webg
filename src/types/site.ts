@@ -121,6 +121,8 @@ export interface SiteData {
   logoUrl: string;
   heroImageUrl: string;
   templateId: string;
+  /** Top-bar arrangement, e.g. "logo:start,name:start,menu:end" (see lib/nav-layout.ts). "" = the template's default. */
+  navLayout: string;
   /** Short subtitle/role under the name in the hero, e.g. "מפתחת Full-Stack". Any category. */
   subtitle: string;
 

@@ -75,3 +75,16 @@ body {
   outline-offset: 2px;
   box-shadow: 0 0 0 5px rgb(21 70 209 / 0.18);
 }
+
+/* WEBG wizard micro-motion: a part popping into place, a springy switch knob. Off under reduced motion (below). */
+@keyframes webg-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.webg-pop { animation: webg-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+.webg-switch > span { transition-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1); transition-duration: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .webg-pop { animation: none; }
+  .webg-switch > span { transition: none; }
+}

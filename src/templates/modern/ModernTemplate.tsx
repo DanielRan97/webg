@@ -3,7 +3,7 @@ import { telHref } from "@/lib/links";
 import type { SiteData } from "@/types/site";
 import { HeroActions, excerpt } from "../engine/hero-parts";
 import { buildVars } from "../engine/palette";
-import { SiteNav } from "../engine/SiteNav";
+import { HeaderBar } from "../engine/HeaderBar";
 import { TemplateFrame } from "../engine/TemplateFrame";
 import type { NavItem, TemplateConfig, TemplateTheme } from "../engine/types";
 import { Logo } from "../shared/Logo";
@@ -34,18 +34,16 @@ const theme: TemplateTheme = {
 
 function Header({ d, nav }: { d: SiteData; nav: NavItem[] }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-t-line bg-t-bg/90 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center gap-4 px-5 py-3">
-        <a href="#sec-hero" className="flex shrink-0 items-center gap-3 font-bold">
-          <Logo logoUrl={d.logoUrl} name={d.businessName} color={d.primaryColor} decorative />
-          <span className="max-w-[10rem] truncate sm:max-w-none">{d.businessName}</span>
-        </a>
-        <SiteNav nav={nav} linkClassName="text-sm font-medium hover:text-t-accent-text" />
-        {d.phone && (
-          <a href={telHref(d.phone)} className="shrink-0 rounded-full bg-t-brand px-4 py-2 text-sm font-semibold text-t-brand-fg lg:hidden">התקשרו</a>
-        )}
-      </div>
-    </header>
+    <HeaderBar
+      d={d}
+      nav={nav}
+      headerClassName="sticky top-0 z-30 border-b border-t-line bg-t-bg/90 backdrop-blur"
+      innerClassName="mx-auto max-w-5xl px-5 py-3"
+      logo={<Logo logoUrl={d.logoUrl} name={d.businessName} color={d.primaryColor} decorative />}
+      name={<span className="max-w-[10rem] truncate font-bold sm:max-w-none">{d.businessName}</span>}
+      linkClassName="text-sm font-medium hover:text-t-accent-text"
+      mobileExtra={d.phone ? <a href={telHref(d.phone)} className="shrink-0 rounded-full bg-t-brand px-4 py-2 text-sm font-semibold text-t-brand-fg">התקשרו</a> : undefined}
+    />
   );
 }
 

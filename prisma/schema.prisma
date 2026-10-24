@@ -90,6 +90,8 @@ model Website {
   logoUrl            String?
   heroImageUrl       String?
   templateId         String   @default("modern")
+  /// Top-bar arrangement ("logo:start,name:start,menu:end"); null = the template's own default. See src/lib/nav-layout.ts.
+  navLayout          String?
   status             String   @default("DRAFT") // DRAFT | PUBLISHED
   subscriptionStatus String   @default("TRIAL") // ACTIVE | INACTIVE | TRIAL (cache of Subscription.status)
   plan               String   @default("BASIC") // BASIC | PRO

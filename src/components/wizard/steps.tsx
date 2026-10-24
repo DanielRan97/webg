@@ -13,6 +13,7 @@ import { PlanComparisonModal } from "../PlanComparisonModal";
 import { UrlPreview } from "./UrlPreview";
 import type { SlugCheck } from "./SiteForm";
 import { TemplatePicker } from "./TemplatePicker";
+import { NavEditor } from "./NavEditor";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
 import { TrashIcon } from "../ui/icons";
 
@@ -189,6 +190,7 @@ export function BrandingStep({ data, update, plan, live }: StepProps) {
           </div>
         </div>
       </div>
+      <NavEditor data={data} update={update} />
       <ColorPicker label="הצבע הראשי של העסק" hint="הצבע הזה יופיע בכפתורים, בכותרת ובלוגו." value={data.primaryColor} onChange={(v) => update({ primaryColor: v })} />
       <ColorPicker label="צבע משני (לא חובה)" hint="לקישוטים קטנים כמו קווים ומחירים. אפשר לוותר." value={data.secondaryColor} onChange={(v) => update({ secondaryColor: v })} allowNone />
       <TemplatePicker data={data} plan={plan ?? "BASIC"} live={live} onPick={(id) => update({ templateId: id })} />

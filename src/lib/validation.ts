@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BOOKING_METHODS, CTA_TYPES, SOCIAL_PLATFORMS, TEMPLATE_IDS } from "./constants";
 import { ALL_SECTIONS } from "./sections";
+import { isValidNavLayout } from "./nav-layout";
 
 const text = (max: number) => z.string().trim().max(max);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal(""));
@@ -34,6 +35,7 @@ export const siteSchema = z.object({
   logoUrl: imageUrl,
   heroImageUrl: imageUrl,
   templateId: z.enum(TEMPLATE_IDS),
+  navLayout: text(60).refine(isValidNavLayout, "סידור סרגל הניווט לא תקין"),
   subtitle: text(80),
 
   phone: text(30),

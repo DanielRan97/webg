@@ -2,7 +2,7 @@ import { telHref } from "@/lib/links";
 import type { SiteData } from "@/types/site";
 import { HeroActions, excerpt } from "../engine/hero-parts";
 import { buildVars } from "../engine/palette";
-import { SiteNav } from "../engine/SiteNav";
+import { HeaderBar } from "../engine/HeaderBar";
 import { TemplateFrame } from "../engine/TemplateFrame";
 import type { NavItem, TemplateConfig, TemplateTheme } from "../engine/types";
 import { Logo } from "../shared/Logo";
@@ -41,18 +41,16 @@ const theme: TemplateTheme = {
 
 function Header({ d, nav }: { d: SiteData; nav: NavItem[] }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-t-line bg-t-bg/90 backdrop-blur">
-      <div className="mx-auto flex h-20 max-w-6xl items-center gap-6 px-5">
-        <a href="#sec-hero" className="flex shrink-0 items-center gap-3">
-          <Logo logoUrl={d.logoUrl} name={d.businessName} color={d.primaryColor} decorative />
-          <span className="max-w-[10rem] truncate text-lg font-[family-name:var(--font-noto-serif)] font-medium sm:max-w-none">{d.businessName}</span>
-        </a>
-        <SiteNav nav={nav} linkClassName="text-sm tracking-wide text-t-muted hover:text-t-fg" />
-        {d.phone && (
-          <a href={telHref(d.phone)} className="shrink-0 text-sm font-semibold tracking-wide underline underline-offset-4 lg:hidden" dir="ltr">{d.phone}</a>
-        )}
-      </div>
-    </header>
+    <HeaderBar
+      d={d}
+      nav={nav}
+      headerClassName="sticky top-0 z-30 border-b border-t-line bg-t-bg/90 backdrop-blur"
+      innerClassName="mx-auto flex h-20 max-w-6xl items-center px-5"
+      logo={<Logo logoUrl={d.logoUrl} name={d.businessName} color={d.primaryColor} decorative />}
+      name={<span className="max-w-[10rem] truncate text-lg font-[family-name:var(--font-noto-serif)] font-medium sm:max-w-none">{d.businessName}</span>}
+      linkClassName="text-sm tracking-wide text-t-muted hover:text-t-fg"
+      mobileExtra={d.phone ? <a href={telHref(d.phone)} className="shrink-0 text-sm font-semibold tracking-wide underline underline-offset-4" dir="ltr">{d.phone}</a> : undefined}
+    />
   );
 }
 

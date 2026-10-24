@@ -90,7 +90,7 @@ const stepHasError = (stepId: string, errors: Record<string, string>) =>
  */
 const DOMAIN_SELECTORS: Record<AutosaveDomain, (d: SiteData) => unknown> = {
   basics: (d) => [d.businessName, d.subtitle, d.category, d.description, d.phone, d.whatsapp, d.email, d.address, d.city],
-  branding: (d) => [d.logoUrl, d.primaryColor, d.secondaryColor, d.templateId],
+  branding: (d) => [d.logoUrl, d.primaryColor, d.secondaryColor, d.templateId, d.navLayout],
   hours: (d) => [d.hours, d.openSaturday, d.openHolidays],
   sections: (d) => d.sections,
   services: (d) => d.services,

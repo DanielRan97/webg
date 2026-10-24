@@ -75,6 +75,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
       logoUrl: row.logoUrl ?? "",
       heroImageUrl: row.heroImageUrl ?? "",
       templateId: row.templateId,
+      navLayout: row.navLayout ?? "",
       subtitle: p?.subtitle ?? "",
       phone: p?.phone ?? "",
       whatsapp: p?.whatsapp ?? "",
@@ -372,6 +373,7 @@ function websiteColumns(d: SiteData) {
     logoUrl: d.logoUrl || null,
     heroImageUrl: d.heroImageUrl || null,
     templateId: d.templateId,
+    navLayout: d.navLayout || null,
   };
 }
 
@@ -406,7 +408,7 @@ function profileColumns(d: SiteData) {
 /** Which `websiteColumns()`/`profileColumns()` keys a given autosave domain owns. A domain not listed here (or with no listed keys) never touches Website/BusinessProfile columns - it's collection-only, see `CHILD_WRITERS`. */
 const WEBSITE_DOMAIN_KEYS: Partial<Record<AutosaveDomain, (keyof ReturnType<typeof websiteColumns>)[]>> = {
   basics: ["businessName", "category", "description"],
-  branding: ["primaryColor", "secondaryColor", "logoUrl", "templateId"],
+  branding: ["primaryColor", "secondaryColor", "logoUrl", "templateId", "navLayout"],
   images: ["heroImageUrl"],
 };
 const PROFILE_DOMAIN_KEYS: Partial<Record<AutosaveDomain, (keyof ReturnType<typeof profileColumns>)[]>> = {
