@@ -99,13 +99,23 @@ body {
   100% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0); }
 }
 .webg-live-dot { animation: webg-live 2s infinite; }
+/* Home hero backdrop: a website outline that draws itself once, and two slowly drifting lights. */
+@keyframes webg-draw { to { stroke-dashoffset: 0; } }
+.webg-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: webg-draw 2.2s cubic-bezier(0.6, 0, 0.2, 1) forwards; }
+@keyframes webg-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-40px, 30px, 0) scale(1.08); }
+}
+.webg-drift { animation: webg-drift 18s ease-in-out infinite alternate; }
 .webg-switch > span { transition-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1); transition-duration: 0.3s; }
 
 @media (prefers-reduced-motion: reduce) {
   .webg-pop,
   .webg-rise,
   .webg-step-in,
-  .webg-live-dot { animation: none; }
+  .webg-live-dot,
+  .webg-drift { animation: none; }
+  .webg-draw { animation: none; stroke-dashoffset: 0; }
   .webg-switch > span { transition: none; }
 }
 

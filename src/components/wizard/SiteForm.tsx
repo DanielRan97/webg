@@ -8,6 +8,7 @@ import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { needsProToPublish } from "@/lib/plan";
+import { ComingNext } from "../ComingNext";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, StepNoteContext, ValidationContext, cx } from "../ui/ui";
@@ -43,7 +44,7 @@ interface StepDef {
  * what the preview is, and what they can still change later. Steps without an entry get CONTENT_NOTE.
  */
 const STEP_NOTES: Partial<Record<string, string>> = {
-  basics: "העיצוב שבתצוגה הוא רק דוגמה לפי סוג העסק. בשלב הבא תבחרו צבעים, לוגו ותבנית עיצוב. את כל מה שכאן אפשר לשנות בכל רגע, גם אחרי שהאתר באוויר.",
+  basics: "העיצוב שבתצוגה הוא רק דוגמה לפי סוג העסק, וכרגע רואים בעיקר את ראש האתר. בשלבים הבאים תבחרו צבעים ועיצוב ותוסיפו שירותים, תמונות ועוד. את כל מה שכאן אפשר לשנות בכל רגע, גם אחרי שהאתר באוויר.",
   branding: "שום בחירה כאן אינה סופית. אפשר להחליף צבעים, לוגו ותבנית בכל רגע, גם אחרי הפרסום, והתוכן שכתבתם נשמר.",
   sections: "אפשר להדליק, לכבות ולסדר את החלקים גם אחר כך. חלק שתכבו לא יופיע באתר, והמידע שבו נשמר.",
   images: "אין עכשיו תמונה טובה? אפשר להמשיך בלי, ולהוסיף או להחליף תמונות בכל רגע.",
@@ -527,6 +528,11 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
                 <span className="me-1.5 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold text-white">Pro</span>
                 התצוגה בעיצוב של מסלול Pro
               </p>
+            )}
+            {isNew && step.id === "basics" && (
+              <div className="mb-3">
+                <ComingNext />
+              </div>
             )}
             <PreviewPane data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
           </div>

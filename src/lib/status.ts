@@ -6,19 +6,19 @@ export const STATUS_INFO = {
   DRAFT: {
     label: "טיוטה",
     icon: "✎",
-    cls: "bg-gray-100 text-gray-900 border-gray-300",
+    cls: "bg-ink-50 text-ink-800 border-ink-200",
     meaning: "האתר שמור אצלכם, אבל הלקוחות עדיין לא רואים אותו.",
   },
   PUBLISHED: {
     label: "מפורסם",
     icon: "✓",
-    cls: "bg-green-100 text-green-900 border-green-300",
+    cls: "bg-emerald-50 text-emerald-800 border-emerald-200",
     meaning: "האתר אונליין והלקוחות יכולים לראות אותו.",
   },
   SUBSCRIPTION_INACTIVE: {
     label: "האתר לא פעיל",
     icon: "⏸",
-    cls: "bg-red-100 text-red-900 border-red-300",
+    cls: "bg-red-50 text-red-800 border-red-200",
     meaning: "המנוי הסתיים. האתר שמור ולא נמחק, אבל הלקוחות לא רואים אותו.",
   },
 } as const;

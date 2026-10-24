@@ -8,6 +8,7 @@ import { readableOn } from "@/lib/color";
 import type { TemplateId } from "@/lib/constants";
 import { PreviewPane } from "../wizard/PreviewPane";
 import { ShieldIcon } from "../icons";
+import { ComingNext } from "../ComingNext";
 import { cx } from "../ui/ui";
 
 /** Each business type shows off a different standard template, so the demo also shows the range. */
@@ -169,6 +170,9 @@ export function HeroDemo({ ctaHref }: { ctaHref: string }) {
           <PreviewPane data={data} address={address} frameClassName="h-[460px] md:h-[560px]" />
         </div>
         <p className="relative mt-4 text-center text-sm text-ink-400">תצוגה אמיתית של WEBG, באותה תבנית שתקבלו.</p>
+        <div className="relative mt-3">
+          <ComingNext tone="dark" />
+        </div>
       </div>
     </div>
   );

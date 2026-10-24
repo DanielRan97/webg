@@ -4,6 +4,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { PLANS, PRICE_NOTE } from "@/lib/business";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { WebgMark } from "@/components/WebgMark";
+import { Blueprint } from "@/components/landing/Blueprint";
 import { SiteFooter } from "@/components/SiteFooter";
 import { KeyIcon, LockIcon, MailCheckIcon, TrashIcon } from "@/components/icons";
 
@@ -28,10 +29,7 @@ export default async function LandingPage() {
   return (
     <div className="bg-white text-ink-900">
       <div className="relative overflow-hidden bg-ink-950">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(255_255_255/0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.035)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
-        />
+        <Blueprint />
         <header className="relative mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
           <WebgMark tone="dark" />
           <nav className="flex items-center gap-2 text-sm font-semibold">
@@ -131,11 +129,8 @@ export default async function LandingPage() {
 
         <section className="px-5 pb-24">
           <div className="relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8 overflow-hidden rounded-3xl bg-ink-950 px-8 py-14 text-white md:px-14">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(255_255_255/0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.035)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]"
-            />
-            <div aria-hidden className="pointer-events-none absolute -top-24 start-1/3 h-64 w-64 rounded-full bg-brand-600/30 blur-3xl" />
+            <div aria-hidden className="webg-drift pointer-events-none absolute -top-24 start-1/3 h-64 w-64 rounded-full bg-brand-600/30 blur-3xl" />
+            <div aria-hidden className="webg-drift pointer-events-none absolute -bottom-28 end-10 h-56 w-56 rounded-full bg-cyan-500/15 blur-3xl" style={{ animationDelay: "-7s" }} />
             <div className="relative">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">האתר שלכם במרחק כמה דקות.</h2>
               <p className="mt-3 text-lg text-ink-300">מתחילים עכשיו, ואפשר לשנות כל פרט גם אחר כך.</p>

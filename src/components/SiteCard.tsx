@@ -17,14 +17,13 @@ import { PLAN, SUBSCRIPTION_STATUS } from "@/lib/constants";
 import { displayState, isPubliclyVisible } from "@/lib/subscription";
 import { isPro, needsProToPublish } from "@/lib/plan";
 import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
-import { nextStep, subscriptionInfo } from "@/lib/status";
+import { STATUS_INFO, nextStep, subscriptionInfo } from "@/lib/status";
 import { getCategory } from "@/lib/categories";
 import type { WebsiteRecord } from "@/server/websites";
 import { Logo } from "@/templates/shared/Logo";
-import { Button, ConfirmDialog, Notice } from "./ui/ui";
+import { Button, ConfirmDialog, Notice, cx } from "./ui/ui";
 import { ExternalLinkIcon, InboxIcon, LightbulbIcon, LockIcon, MoreIcon } from "./ui/icons";
 import { CopyButton } from "./CopyButton";
-import { StatusBadge } from "./StatusBadge";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
 import { ProTemplateNotice } from "./ProTemplateNotice";
 
@@ -139,7 +138,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
   const publishedText = `האתר פורסם! הלקוחות יכולים לראות אותו ב-${address}`;
 
   return (
-    <article aria-labelledby={`t-${site.id}`} className="overflow-hidden rounded-xl border border-ink-200 bg-white">
+    <article aria-labelledby={`t-${site.id}`} className="overflow-hidden rounded-2xl border border-ink-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_-28px_rgb(15_27_48/0.45)]">
       {/* Thumbnail */}
       <div
         className="relative flex aspect-[2/1] items-center justify-center"
@@ -152,6 +151,22 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
         <div className="relative rounded-xl bg-white/90 p-2 shadow">
           <Logo logoUrl={d.logoUrl} name={d.businessName} color={d.primaryColor} size={48} />
         </div>
+        {/* The site's own address, as a browser would show it. */}
+        <div dir="ltr" className="absolute inset-x-3 top-3 flex items-center gap-1.5 rounded-lg bg-white/90 px-2.5 py-1 text-[11px] font-medium text-ink-600 shadow-sm backdrop-blur">
+          <LockIcon width={11} height={11} className="shrink-0 text-emerald-600" />
+          <span className="truncate">{address}</span>
+        </div>
+        {/* Status, readable without color: a light (pulsing while live) plus the words. */}
+        <span className="absolute bottom-3 start-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-ink-900 shadow-sm backdrop-blur">
+          <span
+            aria-hidden
+            className={cx(
+              "h-2 w-2 rounded-full",
+              state === "PUBLISHED" ? "webg-live-dot bg-emerald-500" : state === "SUBSCRIPTION_INACTIVE" ? "bg-red-500" : "bg-ink-400",
+            )}
+          />
+          {STATUS_INFO[state].label}
+        </span>
       </div>
 
       <div className="space-y-4 p-5">
@@ -160,7 +175,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
           <h2 id={`t-${site.id}`} className="truncate text-lg font-bold">{d.businessName}</h2>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="text-sm text-ink-500">{getCategory(d.category).label}</p>
-            <StatusBadge state={state} />
+            <span className={cx("rounded-full px-2 py-0.5 text-[11px] font-bold", pro ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-700")}>{pro ? "Pro" : "Basic"}</span>
           </div>
         </div>
 
