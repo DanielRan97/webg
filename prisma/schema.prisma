@@ -96,6 +96,11 @@ model Website {
   subscriptionStatus String   @default("TRIAL") // ACTIVE | INACTIVE | TRIAL (cache of Subscription.status)
   plan               String   @default("BASIC") // BASIC | PRO
   /**
+   * Pro only: where new inquiries go - BOTH (email + inquiries center), EMAIL (center switched off) or
+   * CENTER (no emails). Basic sites always get email. Inquiries are saved either way.
+   */
+  inquiryDelivery    String   @default("BOTH")
+  /**
    * Non-null while the owner is still walking through the first-time wizard
    * (holds the id of the step they were last on, e.g. "basics") - null once
    * the wizard has been completed at least once, after which the site opens

@@ -71,3 +71,34 @@ export function dateOrderProblem(start: string, end: string): string | undefined
   if (Number.isFinite(a) && Number.isFinite(b) && b < a) return "תאריך הסיום צריך להיות אחרי תאריך ההתחלה.";
   return undefined;
 }
+
+/**
+ * Online booking services a "קביעת תור" link may point to. The booking button is a promise to the
+ * visitor ("book here"), so it may only lead to a real scheduling page, never to an arbitrary site.
+ * A host matches itself and its subdomains (e.g. "salon.simplybook.me").
+ */
+export const BOOKING_HOSTS = [
+  "calendly.com", "cal.com", "acuityscheduling.com", "as.me", "setmore.com", "simplybook.me", "simplybook.it",
+  "booksy.com", "fresha.com", "square.site", "squareup.com", "youcanbook.me", "picktime.com", "appointy.com",
+  "tidycal.com", "zcal.co", "savvycal.com", "vagaro.com", "gettimely.com", "setster.com", "calmark.co.il",
+  "calendar.app.google", "outlook.office.com", "outlook.office365.com",
+] as const;
+
+/** The names shown to owners when a link is refused. */
+export const BOOKING_SERVICE_EXAMPLES = "Calendly, Cal.com, Setmore, SimplyBook, Booksy, Fresha, Calmark או יומן תורים של Google";
+
+export function bookingLinkProblem(v: string): string | undefined {
+  const value = v.trim();
+  if (!value) return undefined;
+  let host: string;
+  try {
+    const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error();
+    host = url.hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "הקישור לא נראה תקין. לדוגמה: calendly.com/השם-שלכם";
+  }
+  const google = host === "calendar.google.com" && /\/calendar\/(u\/\d+\/)?appointments\//.test(value);
+  if (google || BOOKING_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))) return undefined;
+  return `אפשר לקשר רק לעמוד של שירות לקביעת תורים, כמו ${BOOKING_SERVICE_EXAMPLES}. משתמשים בשירות אחר? כתבו לנו ונוסיף אותו.`;
+}

@@ -1,7 +1,7 @@
 import type { SiteData } from "@/types/site";
 import { DAY_NAMES } from "./constants";
 import { isValidSlug } from "./slug-format";
-import { dateOrderProblem, dateProblem, emailProblem, phoneProblem, priceProblem } from "./field-format";
+import { bookingLinkProblem, dateOrderProblem, dateProblem, emailProblem, phoneProblem, priceProblem } from "./field-format";
 
 /** Which error keys belong to which editor step (prefix match). */
 export const STEP_ERROR_KEYS: Record<string, string[]> = {
@@ -119,7 +119,10 @@ export function validateSite(d: SiteData, opts: { checkSlug?: boolean } = {}): R
     if (method === "WHATSAPP" && !(d.whatsapp.trim() || d.phone.trim())) e["booking-method"] = "כדי שהלקוחות ישלחו הודעה, נא למלא טלפון או WhatsApp בשלב ״פרטי העסק״.";
     if (method === "LINK") {
       if (!url.trim()) e["booking-url"] = "נא להדביק את הקישור, או לבחור דרך אחרת לקביעת תור.";
-      else if (!/^(https?:\/\/)?[^\s]+\.[^\s]+$/i.test(url.trim())) e["booking-url"] = "הקישור לא נראה תקין. לדוגמה: calendly.com/השם-שלכם";
+      else {
+        const problem = bookingLinkProblem(url);
+        if (problem) e["booking-url"] = problem;
+      }
     }
   }
 

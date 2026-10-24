@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BOOKING_METHODS, CTA_TYPES, ITEM_KINDS, SOCIAL_PLATFORMS, TEMPLATE_IDS } from "./constants";
 import { ALL_SECTIONS } from "./sections";
 import { isValidNavLayout } from "./nav-layout";
-import { emailProblem, phoneProblem } from "./field-format";
+import { bookingLinkProblem, emailProblem, phoneProblem } from "./field-format";
 
 const text = (max: number) => z.string().trim().max(max);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal(""));
@@ -95,7 +95,7 @@ const siteFields = z.object({
   }),
   delivery: z.object({
     available: z.boolean(),
-    areas: text(120),
+    areas: text(400),
     minOrder: text(30),
     fee: text(30),
     freeOver: text(30),
@@ -123,7 +123,7 @@ const siteFields = z.object({
 });
 
 /**
- * A finished save also checks the email and phone numbers' format, the same rules the wizard shows live.
+ * A finished save also checks the email, the phone numbers and the booking link, the same rules the wizard shows live.
  * Only here, not in the draft schema below: a half-typed number or address is normal while autosaving.
  */
 export const siteSchema = siteFields.superRefine((d, ctx) => {
@@ -136,6 +136,11 @@ export const siteSchema = siteFields.superRefine((d, ctx) => {
   for (const [value, path] of phones) {
     const problem = phoneProblem(value);
     if (problem) ctx.addIssue({ code: "custom", message: problem, path });
+  }
+  const bookingOn = d.sections.some((x) => x.type === "booking" && x.enabled);
+  if (bookingOn && d.booking.method === "LINK") {
+    const problem = bookingLinkProblem(d.booking.url);
+    if (problem) ctx.addIssue({ code: "custom", message: problem, path: ["booking", "url"] });
   }
 });
 

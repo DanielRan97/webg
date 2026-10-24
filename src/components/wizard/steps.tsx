@@ -15,6 +15,7 @@ import type { SlugCheck } from "./SiteForm";
 import { TemplatePicker } from "./TemplatePicker";
 import { NavEditor } from "./NavEditor";
 import { HolidayHours } from "./HolidayHours";
+import { AddressFields } from "./PlacePicker";
 import { ColorStudio } from "./ColorStudio";
 import { Button, ChoiceCard, Field, ImageUploader, Notice, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
 import { TrashIcon } from "../ui/icons";
@@ -119,10 +120,7 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
         <TextField label="מספר WhatsApp (לא חובה)" hint="אם זה אותו מספר, אפשר להשאיר ריק." placeholder="לדוגמה: 050-1234567" type="tel" inputMode="tel" dir="ltr" value={data.whatsapp} onChange={(v) => update({ whatsapp: v })} error={errors.whatsapp} />
       </div>
       <TextField label="אימייל (לא חובה)" hint="יופיע באתר כדי שלקוחות יוכלו ליצור קשר." placeholder="לדוגמה: name@gmail.com" type="email" dir="ltr" value={data.email} onChange={(v) => update({ email: v })} error={errors.email} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="כתובת העסק (לא חובה)" hint="כדי שלקוחות ידעו איך להגיע." placeholder="לדוגמה: דיזנגוף 100" value={data.address} onChange={(v) => update({ address: v })} />
-        <TextField label="עיר (לא חובה)" placeholder="לדוגמה: תל אביב" value={data.city} onChange={(v) => update({ city: v })} />
-      </div>
+      <AddressFields city={data.city} address={data.address} onChange={update} />
     </div>
   );
 }

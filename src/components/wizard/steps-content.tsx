@@ -5,7 +5,9 @@ import { useState } from "react";
 import { BOOKING_LABELS, BOOKING_METHODS } from "@/lib/constants";
 import type { SiteData } from "@/types/site";
 import { Button, ChoiceCard, Field, ImageUploader, StepTitle, TextArea, TextField, Toggle, cx, inputClass } from "../ui/ui";
-import { InfoIcon, LocationIcon, TrashIcon } from "../ui/icons";
+import { InfoIcon, TrashIcon } from "../ui/icons";
+import { BOOKING_SERVICE_EXAMPLES } from "@/lib/field-format";
+import { AreaPicker } from "./PlacePicker";
 import type { StepProps } from "./steps";
 
 /** Small helper: replace one item in a list by index. */
@@ -106,41 +108,17 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
 
 /* ── Service areas ── */
 export function AreasStep({ data, update }: StepProps) {
-  const [draft, setDraft] = useState("");
-  function add() {
-    const names = draft.split(/[,،\n]/).map((s) => s.trim()).filter(Boolean);
-    if (!names.length) return;
-    const merged = [...data.areas];
-    for (const n of names) if (!merged.includes(n) && merged.length < 60) merged.push(n);
-    update({ areas: merged });
-    setDraft("");
-  }
   return (
     <div className="space-y-6">
-      <StepTitle title="לאילו אזורים אתם מגיעים?" subtitle="הוסיפו ערים או אזורים שבהם אתם נותנים שירות." />
-      <Field label="עיר או אזור">
-        {(p) => (
-          <div className="flex gap-2">
-            <input {...p} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} placeholder="לדוגמה: תל אביב, רמת גן, גוש דן" className={inputClass} maxLength={120} />
-            <Button type="button" variant="secondary" onClick={add} disabled={!draft.trim()}>הוספה</Button>
-          </div>
-        )}
-      </Field>
-      {data.areas.length === 0 ? (
-        <p className="flex items-center gap-2 text-sm text-ink-500">
-          <LocationIcon className="shrink-0" />
-          עדיין לא הוספתם אזורים. הלקוחות יראו באילו ערים אתם עובדים.
-        </p>
-      ) : (
-        <ul className="flex flex-wrap gap-2" aria-label="האזורים שהוספתם">
-          {data.areas.map((a, i) => (
-            <li key={a} className="flex items-center gap-1 rounded-full border border-ink-200 bg-ink-50 ps-4">
-              <span className="py-2 text-sm">{a}</span>
-              <button type="button" aria-label={`הסרת ${a}`} onClick={() => update({ areas: removeAt(data.areas, i) })} className="flex h-11 w-11 items-center justify-center rounded-full text-lg text-ink-500 hover:bg-ink-100"><span aria-hidden>×</span></button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <StepTitle title="לאילו אזורים אתם מגיעים?" subtitle="הוסיפו ערים או אזורים שבהם אתם נותנים שירות. הלקוחות יראו אותם באתר." />
+      <AreaPicker
+        label="עיר או אזור"
+        hint="מתחילים להקליד ובוחרים עיר מהרשימה הרשמית. אפשר גם לכתוב אזור, למשל ״גוש דן״, וללחוץ Enter."
+        values={data.areas}
+        onChange={(areas) => update({ areas })}
+        max={60}
+        emptyText="עדיין לא הוספתם אזורים. הלקוחות יראו באילו ערים אתם עובדים."
+      />
     </div>
   );
 }
@@ -157,7 +135,14 @@ export function DeliveryStep({ data, update, errors }: StepProps) {
       </div>
       {del.available && (
         <>
-          <TextField label="אזורי משלוח (לא חובה)" placeholder="לדוגמה: חיפה והקריות" value={del.areas} onChange={(v) => set({ areas: v })} maxLength={120} />
+          <AreaPicker
+            label="לאן אתם שולחים? (לא חובה)"
+            hint="ערים מהרשימה הרשמית, או אזור במילים שלכם (למשל ״הקריות״) עם Enter."
+            values={del.areas.split(/s*,s*/).filter(Boolean)}
+            onChange={(list) => set({ areas: list.join(", ") })}
+            max={20}
+            emptyText="עדיין לא הוספתם אזורי משלוח."
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField label="מחיר משלוח (לא חובה)" placeholder="לדוגמה: 25 ₪" value={del.fee} onChange={(v) => set({ fee: v })} error={errors["delivery-fee"]} maxLength={30} />
             <TextField label="מינימום הזמנה (לא חובה)" placeholder="לדוגמה: 80 ₪" value={del.minOrder} onChange={(v) => set({ minOrder: v })} error={errors["delivery-minOrder"]} maxLength={30} />
@@ -207,7 +192,7 @@ export function BookingStep({ data, update, errors }: StepProps) {
         {errors["booking-method"] && <p role="alert" className="flex gap-1.5 text-sm font-medium text-red-700"><span aria-hidden>⚠</span>{errors["booking-method"]}</p>}
       </div>
       {b.method === "LINK" && (
-        <TextField label="הקישור ליומן התורים" hint="הדביקו את הקישור מהאתר שבו קובעים תור." placeholder="לדוגמה: calendly.com/השם-שלכם" dir="ltr" value={b.url} onChange={(v) => set({ url: v })} error={errors["booking-url"]} maxLength={300} />
+        <TextField label="הקישור ליומן התורים" hint={`הקישור לעמוד קביעת התורים שלכם בשירות כמו ${BOOKING_SERVICE_EXAMPLES}. קישורים לאתרים אחרים לא יתקבלו, כי הכפתור מבטיח ללקוח שאפשר לקבוע בו תור.`} placeholder="לדוגמה: calendly.com/השם-שלכם" dir="ltr" value={b.url} onChange={(v) => set({ url: v })} error={errors["booking-url"]} maxLength={300} />
       )}
       <TextField label="מה יהיה כתוב על הכפתור? (לא חובה)" hint="אם תשאירו ריק, יהיה כתוב ״קבעו תור״." placeholder="לדוגמה: קבעו תור" value={b.buttonText} onChange={(v) => set({ buttonText: v })} maxLength={30} />
       <p className="text-sm text-ink-700">

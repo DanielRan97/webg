@@ -6,7 +6,7 @@ import { sendContactFormEmail } from "@/lib/email";
 import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request";
 import { isPubliclyVisible } from "@/lib/subscription";
-import { isPro } from "@/lib/plan";
+import { emailsInquiries, inquiryCenterOn, isPro } from "@/lib/plan";
 import { proUrlDisplay } from "@/lib/site-url";
 import { contactFormSchema } from "@/lib/validation";
 import { createInteraction } from "../interactions";
@@ -60,20 +60,24 @@ export async function submitContactFormAction(input: {
 
     const interaction = await createInteraction(site.id, { type: "CONTACT_MESSAGE", name, phone, email, message });
 
-    try {
-      await sendContactFormEmail(owner.email, {
-        businessName: site.data.businessName,
-        siteUrl: isPro(site) ? `https://${proUrlDisplay(site.slug)}` : `${appUrl()}/s/${site.slug}`,
-        adminUrl: isPro(site) ? `${appUrl()}/sites/${site.id}/admin?interaction=${interaction.id}` : null,
-        name,
-        phone,
-        email,
-        message,
-        submittedAt: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", dateStyle: "short", timeStyle: "short" }),
-      });
-    } catch (emailError) {
-      console.error("contact form email failed (interaction already saved):", emailError instanceof Error ? emailError.message : emailError);
+    // A Pro owner may have chosen the inquiries center only (no email) - see Website.inquiryDelivery.
+    if (emailsInquiries(site)) {
+      try {
+        await sendContactFormEmail(owner.email, {
+          businessName: site.data.businessName,
+          siteUrl: isPro(site) ? `https://${proUrlDisplay(site.slug)}` : `${appUrl()}/s/${site.slug}`,
+          adminUrl: inquiryCenterOn(site) ? `${appUrl()}/sites/${site.id}/admin?interaction=${interaction.id}` : null,
+          name,
+          phone,
+          email,
+          message,
+          submittedAt: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", dateStyle: "short", timeStyle: "short" }),
+        });
+      } catch (emailError) {
+        console.error("contact form email failed (interaction already saved):", emailError instanceof Error ? emailError.message : emailError);
+      }
     }
+
     return { ok: true };
   } catch (e) {
     console.error("contact form submission failed (non-fatal to the visitor):", e instanceof Error ? e.message : e);

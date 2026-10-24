@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/session";
 import { listWebsites } from "@/server/websites";
 import { getUnreadCounts } from "@/server/interactions";
 import { STATUS_INFO, SUBSCRIPTION_INFO } from "@/lib/status";
-import { isPro } from "@/lib/plan";
+import { inquiryCenterOn, isPro } from "@/lib/plan";
 import { isPubliclyVisible } from "@/lib/subscription";
 import { SiteCard } from "@/components/SiteCard";
 import { VerificationBanner } from "@/components/VerificationBanner";
@@ -101,7 +101,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* A Basic site's real unread count is never sent down at all - not just hidden client-side. */}
-            {sites.map((s) => <SiteCard key={s.id} site={s} unreadCount={isPro(s) ? (unreadCounts[s.id] ?? 0) : 0} />)}
+            {sites.map((s) => <SiteCard key={s.id} site={s} unreadCount={inquiryCenterOn(s) ? (unreadCounts[s.id] ?? 0) : 0} />)}
           </div>
           <Legend />
         </>

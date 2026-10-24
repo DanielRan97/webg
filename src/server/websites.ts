@@ -37,6 +37,8 @@ export interface WebsiteRecord {
   status: string;
   subscriptionStatus: string;
   plan: string;
+  /** Pro only: BOTH | EMAIL | CENTER (see lib/plan.ts). */
+  inquiryDelivery: string;
   /** Non-null while still mid-wizard (holds the last-visited step id); null once the wizard has been completed. */
   wizardStep: string | null;
   updatedAt: Date;
@@ -64,6 +66,7 @@ function toRecord(row: WebsiteRow): WebsiteRecord {
     status: row.status,
     subscriptionStatus: row.subscriptionStatus,
     plan: row.plan,
+    inquiryDelivery: row.inquiryDelivery,
     wizardStep: row.wizardStep,
     updatedAt: row.updatedAt,
     data: {
@@ -722,6 +725,12 @@ export async function setSubscriptionStatus(userId: string, id: string, status: 
 }
 
 /** Mock plan tier (no payment provider yet): flips Website.plan directly. Nothing is ever deleted or hidden. */
+/** Where a Pro site's inquiries go (BOTH | EMAIL | CENTER). Owner-scoped, like setPlan. */
+export async function setInquiryDelivery(userId: string, id: string, inquiryDelivery: string) {
+  const { count } = await db.website.updateMany({ where: { id, userId }, data: { inquiryDelivery } });
+  return count > 0;
+}
+
 export async function setPlan(userId: string, id: string, plan: Plan) {
   const { count } = await db.website.updateMany({ where: { id, userId }, data: { plan } });
   return count > 0;

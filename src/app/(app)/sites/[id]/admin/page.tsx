@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { getOwnedWebsite } from "@/server/websites";
 import { listInteractions } from "@/server/interactions";
-import { canAccessInbox } from "@/lib/plan";
+import { canAccessInbox, inquiryCenterOn, inquiryDelivery } from "@/lib/plan";
 import { AdminInbox } from "@/components/AdminInbox";
 import { LockedFeature } from "@/components/LockedFeature";
 import { PlanComparison } from "@/components/PlanComparison";
 import { InquiryDelivery } from "@/components/InquiryDelivery";
+import { InquirySettings } from "@/components/InquirySettings";
 
 export const metadata: Metadata = { title: "מרכז הפניות" };
 export const dynamic = "force-dynamic";
@@ -65,7 +66,9 @@ export default async function SiteAdminPage({ params, searchParams }: PageProps<
   // Fetched before anything marks interactions seen, so rows unread as of
   // this page load still show a "חדש" badge for the rest of this visit -
   // the actual seenAt write happens client-side, see AdminInbox.
-  const interactions = await listInteractions(user.id, id);
+  // Center switched off by the owner: nothing is fetched or shown until it is switched back on.
+  const centerOn = inquiryCenterOn(site);
+  const interactions = centerOn ? await listInteractions(user.id, id) : [];
   if (!interactions) notFound();
 
   const { interaction } = await searchParams;
@@ -75,8 +78,15 @@ export default async function SiteAdminPage({ params, searchParams }: PageProps<
     <>
       <AdminHeader site={site} />
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        <InquiryDelivery plan={site.plan} email={user.email} />
-        <AdminInbox siteId={site.id} interactions={interactions} initialInteractionId={initialInteractionId} />
+        <InquiryDelivery plan={site.plan} email={user.email} delivery={site.inquiryDelivery} />
+        <InquirySettings siteId={site.id} value={inquiryDelivery(site)} />
+        {centerOn ? (
+          <AdminInbox siteId={site.id} interactions={interactions} initialInteractionId={initialInteractionId} />
+        ) : (
+          <p className="rounded-xl border border-dashed border-ink-300 bg-white p-6 text-center text-ink-700">
+            מרכז הפניות כבוי, ולכן הפניות לא מוצגות כאן. הן מגיעות אליכם במייל וממשיכות להישמר. כדי לראות אותן כאן, בחרו למעלה ״גם במייל וגם במרכז הפניות״.
+          </p>
+        )}
       </main>
     </>
   );

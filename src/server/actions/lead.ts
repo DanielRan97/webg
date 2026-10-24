@@ -6,7 +6,7 @@ import { sendLeadFormEmail } from "@/lib/email";
 import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request";
 import { isPubliclyVisible } from "@/lib/subscription";
-import { isPro } from "@/lib/plan";
+import { emailsInquiries, inquiryCenterOn, isPro } from "@/lib/plan";
 import { proUrlDisplay } from "@/lib/site-url";
 import { leadFormSchema } from "@/lib/validation";
 import { createInteraction } from "../interactions";
@@ -61,19 +61,23 @@ export async function submitLeadFormAction(input: {
 
     const interaction = await createInteraction(site.id, { type: "LEAD", name, phone, email });
 
-    try {
-      await sendLeadFormEmail(owner.email, {
-        businessName: site.data.businessName,
-        siteUrl: isPro(site) ? `https://${proUrlDisplay(site.slug)}` : `${appUrl()}/s/${site.slug}`,
-        adminUrl: isPro(site) ? `${appUrl()}/sites/${site.id}/admin?interaction=${interaction.id}` : null,
-        name,
-        phone,
-        email,
-        submittedAt: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", dateStyle: "short", timeStyle: "short" }),
-      });
-    } catch (emailError) {
-      console.error("lead form email failed (interaction already saved):", emailError instanceof Error ? emailError.message : emailError);
+    // A Pro owner may have chosen the inquiries center only (no email) - see Website.inquiryDelivery.
+    if (emailsInquiries(site)) {
+      try {
+        await sendLeadFormEmail(owner.email, {
+          businessName: site.data.businessName,
+          siteUrl: isPro(site) ? `https://${proUrlDisplay(site.slug)}` : `${appUrl()}/s/${site.slug}`,
+          adminUrl: inquiryCenterOn(site) ? `${appUrl()}/sites/${site.id}/admin?interaction=${interaction.id}` : null,
+          name,
+          phone,
+          email,
+          submittedAt: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", dateStyle: "short", timeStyle: "short" }),
+        });
+      } catch (emailError) {
+        console.error("lead form email failed (interaction already saved):", emailError instanceof Error ? emailError.message : emailError);
+      }
     }
+
     return { ok: true };
   } catch (e) {
     console.error("lead form submission failed (non-fatal to the visitor):", e instanceof Error ? e.message : e);

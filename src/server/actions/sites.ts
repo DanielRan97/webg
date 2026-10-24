@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/session";
 import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
 import { isValidSlug } from "@/lib/slug";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
-import { PRO_TEMPLATE_PUBLISH_ERROR, needsProToPublish } from "@/lib/plan";
+import { INQUIRY_DELIVERY, PRO_TEMPLATE_PUBLISH_ERROR, isPro, needsProToPublish } from "@/lib/plan";
 import type { SiteData } from "@/types/site";
 import {
   ProRequiredError,
@@ -15,6 +15,7 @@ import {
   deleteWebsite,
   getOwnedWebsite,
   isSlugAvailable,
+  setInquiryDelivery,
   setPlan,
   setSubscriptionStatus,
   setWebsiteStatus,
@@ -211,4 +212,17 @@ export async function checkSlugAvailabilityAction(id: string, slugInput: string)
   if (normalized === site.slug) return { available: true, normalized };
   const available = await isSlugAvailable(normalized, id);
   return available ? { available: true, normalized } : { available: false, normalized, error: "הכתובת הזו כבר תפוסה" };
+}
+
+/** Pro: choose where new inquiries go (email, the inquiries center, or both). */
+export async function setInquiryDeliveryAction(id: string, value: string): Promise<SimpleResult> {
+  if (!(INQUIRY_DELIVERY as readonly string[]).includes(value)) return { ok: false, error: "בחירה לא תקינה." };
+  const user = await requireUser();
+  const site = await getOwnedWebsite(user.id, id);
+  if (!site) return { ok: false, error: "האתר לא נמצא" };
+  if (!isPro(site)) return { ok: false, error: "ההגדרה הזו זמינה ב-WEBG Pro. ב-Basic כל פנייה נשלחת אליכם במייל." };
+  await setInquiryDelivery(user.id, id, value);
+  revalidatePath(`/sites/${id}/admin`);
+  revalidatePath("/dashboard");
+  return { ok: true };
 }
