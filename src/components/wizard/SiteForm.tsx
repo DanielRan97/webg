@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { autosaveSiteAction, checkSlugAvailabilityAction, publishSiteAction, updateSiteAction } from "@/server/actions/sites";
+import { autosaveSiteAction, checkSlugAvailabilityAction, updateSiteAction } from "@/server/actions/sites";
+import { PublishButton } from "../PlanChoice";
 import { AUTOSAVE_DOMAINS, menuStepLabel, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
@@ -422,7 +423,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
     go(stepIndex + 1);
   }
 
-  /** Saves the whole site. With `publish` (edit mode, draft site): publishes it right after a successful save. */
+  /** Saves the whole site. `afterSave` (edit mode): runs after a successful save - "שמירה ופרסום" opens the publish dialog with it. */
   /**
    * The wizard's step list: back to any step freely; forward too, as long as every step on the way
    * is fine - otherwise it stops on the first one that needs fixing, with its problems shown.
@@ -449,8 +450,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
     go(target);
   }
 
-  function save(opts?: { publish?: boolean }) {
-    const publish = opts?.publish === true;
+  function save(opts?: { afterSave?: () => void }) {
     setError("");
     setPublishedNow(false);
     const bad = steps.findIndex((s) => stepHasError(s.id, errors));
@@ -486,18 +486,8 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
           router.push(`/sites/${res.id}/created`);
         } else {
           setData((d) => ({ ...d, slug: res.slug }));
-          if (publish) {
-            const pub = await publishSiteAction(siteId);
-            if (!pub.ok) {
-              setSaved(true);
-              fail(pub.error ?? "השינויים נשמרו, אבל לא הצלחנו לפרסם. נסו שוב.", false);
-              router.refresh();
-              return;
-            }
-            setPublishedNow(true);
-          } else {
-            setSaved(true);
-          }
+          if (opts?.afterSave) opts.afterSave();
+          else setSaved(true);
           router.refresh();
         }
       } catch {
@@ -598,9 +588,18 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
               </>
             ) : (
               <>
-                {/* A draft can go live right from here: save, then publish. A Pro design on Basic is explained in the header instead. */}
-                {!published && !needsProToPublish({ plan, templateId: data.templateId }) && (
-                  <Button type="button" onClick={() => save({ publish: true })} loading={pending}>{pending ? "שומר..." : "שמירה ופרסום"}</Button>
+                {/* A draft can go live right from here: save, then choose the plan and publish in the dialog. */}
+                {!published && (
+                  <PublishButton
+                    siteId={siteId}
+                    slug={data.slug}
+                    plan={plan}
+                    templateId={data.templateId}
+                    onPublished={() => setPublishedNow(true)}
+                    trigger={(open) => (
+                      <Button type="button" onClick={() => save({ afterSave: open })} loading={pending}>{pending ? "שומר..." : "שמירה ופרסום"}</Button>
+                    )}
+                  />
                 )}
                 <Button type="button" variant={published ? "primary" : "secondary"} onClick={() => save()} loading={pending}>{pending ? "שומר..." : "שמירת שינויים"}</Button>
                 {liveUrl && (

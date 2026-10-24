@@ -8,14 +8,13 @@ import {
   activateSubscriptionAction,
   deactivateSubscriptionAction,
   deleteSiteAction,
-  publishSiteAction,
   setPlanAction,
   unpublishSiteAction,
   type SimpleResult,
 } from "@/server/actions/sites";
 import { PLAN, SUBSCRIPTION_STATUS } from "@/lib/constants";
 import { displayState, isPubliclyVisible } from "@/lib/subscription";
-import { isPro, needsProToPublish } from "@/lib/plan";
+import { isPro } from "@/lib/plan";
 import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
 import { STATUS_INFO, nextStep, subscriptionInfo } from "@/lib/status";
 import { getCategory } from "@/lib/categories";
@@ -25,7 +24,7 @@ import { Button, ConfirmDialog, Notice, cx } from "./ui/ui";
 import { ExternalLinkIcon, InboxIcon, LightbulbIcon, LockIcon, MoreIcon } from "./ui/icons";
 import { CopyButton } from "./CopyButton";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
-import { ProTemplateNotice } from "./ProTemplateNotice";
+import { PublishButton, UpgradeToPro } from "./PlanChoice";
 
 // Inlined at build time by Next.js - not a secret, just a mode flag.
 const isDev = process.env.NODE_ENV !== "production";
@@ -135,7 +134,6 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
     });
   }
 
-  const publishedText = `האתר פורסם! הלקוחות יכולים לראות אותו ב-${address}`;
 
   return (
     <article aria-labelledby={`t-${site.id}`} className="overflow-hidden rounded-2xl border border-ink-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_-28px_rgb(15_27_48/0.45)]">
@@ -189,12 +187,15 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
             <Link href={`/sites/${site.id}/edit`} className="flex min-h-12 w-full items-center justify-center rounded-lg bg-brand-600 px-6 text-base font-semibold text-white transition hover:bg-brand-700 hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)] active:scale-[0.98]">
               עריכת האתר
             </Link>
-          ) : needsProToPublish({ plan: site.plan, templateId: d.templateId }) ? (
-            <ProTemplateNotice siteId={site.id} compact />
           ) : (
-            <Button className="w-full" loading={running === "publish"} disabled={isPending} onClick={() => run("publish", publishSiteAction, publishedText)}>
-              {running === "publish" ? "מפרסם..." : "פרסום האתר"}
-            </Button>
+            <PublishButton
+              siteId={site.id}
+              slug={site.slug}
+              plan={site.plan}
+              templateId={d.templateId}
+              className="w-full"
+              onPublished={(p) => setNotice({ kind: "success", text: `האתר פורסם! הלקוחות יכולים לראות אותו ב-${publicSiteUrlDisplay({ slug: site.slug, plan: p })}` })}
+            />
           )}
           <div className="flex gap-2">
             {state !== "PUBLISHED" && <Link href={`/sites/${site.id}/edit`} className={secondaryBtn}>עריכת האתר</Link>}
@@ -206,6 +207,9 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
             )}
           </div>
         </div>
+
+        {/* A live Basic site: what Pro adds, one step away. */}
+        {state === "PUBLISHED" && !pro && <UpgradeToPro siteId={site.id} slug={site.slug} compact />}
 
         <Link
           href={`/sites/${site.id}/admin`}

@@ -6,16 +6,14 @@ import {
   activateSubscriptionAction,
   deactivateSubscriptionAction,
   deleteSiteAction,
-  publishSiteAction,
   unpublishSiteAction,
   type SimpleResult,
 } from "@/server/actions/sites";
-import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
+import { PLAN, SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
-import { ProTemplateNotice } from "./ProTemplateNotice";
-import { needsProToPublish } from "@/lib/plan";
+import { PublishButton, UpgradeToPro } from "./PlanChoice";
 
 // Inlined at build time by Next.js - not a secret, just a mode flag. Matches the same gate on SiteCard's dev-only controls.
 const isDev = process.env.NODE_ENV !== "production";
@@ -66,7 +64,6 @@ export function SiteActions({
     });
   }
 
-  const publishedText = `האתר פורסם! הלקוחות יכולים לראות אותו ב-${publicSiteUrlDisplay({ slug, plan })}`;
 
   function runDelete() {
     setNotice(null);
@@ -103,18 +100,20 @@ export function SiteActions({
               הורדה מהאוויר
             </Button>
             <p className="text-sm text-ink-700">האתר אונליין. הורדה מהאוויר רק מסתירה אותו, שום דבר לא נמחק.</p>
+            {plan !== PLAN.PRO && <UpgradeToPro siteId={id} slug={slug} compact />}
           </>
         ) : (
-          needsProToPublish({ plan, templateId }) ? (
-            <ProTemplateNotice siteId={id} />
-          ) : (
-            <>
-              <Button className="w-full sm:w-auto" loading={running === "publish"} disabled={isPending} onClick={() => run("publish", publishSiteAction, publishedText)}>
-              {running === "publish" ? "מפרסם..." : "פרסום האתר"}
-            </Button>
-              <p className="text-sm text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
-            </>
-          )
+          <>
+            <PublishButton
+              siteId={id}
+              slug={slug}
+              plan={plan}
+              templateId={templateId}
+              className="w-full sm:w-auto"
+              onPublished={(p) => setNotice({ kind: "success", text: `האתר פורסם! הלקוחות יכולים לראות אותו ב-${publicSiteUrlDisplay({ slug, plan: p })}` })}
+            />
+            <p className="text-sm text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
+          </>
         )}
       </div>
 

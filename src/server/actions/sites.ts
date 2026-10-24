@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
-import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
+import { AUTOSAVE_DOMAINS, PLAN, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
 import { isValidSlug } from "@/lib/slug";
 import { areasNotInList, getPlaces, getStreets } from "@/lib/places";
 import { splitAddress } from "@/lib/field-format";
@@ -193,6 +193,33 @@ export async function publishSiteAction(id: string): Promise<SimpleResult> {
     }
     await setWebsiteStatus(user.id, id, WEBSITE_STATUS.PUBLISHED);
     return { ok: true };
+  });
+}
+
+/**
+ * The publish dialog: puts the site on the plan the owner chose, then publishes it. Basic can't be chosen
+ * for a site built with a Pro design. Until payments are connected, choosing Pro costs nothing (owner's
+ * decision) - once they are, this is where the Pro choice will go through payment first.
+ */
+export async function publishWithPlanAction(id: string, plan: Plan): Promise<SimpleResult> {
+  if (plan !== PLAN.BASIC && plan !== PLAN.PRO) return { ok: false, error: "בחירה לא תקינה." };
+  const user = await requireUser();
+  const site = await getOwnedWebsite(user.id, id);
+  if (!site) return { ok: false, error: "האתר לא נמצא" };
+  if (!user.emailVerifiedAt) {
+    return { ok: false, error: "יש לאמת את כתובת האימייל לפני פרסום האתר. שלחנו קישור אימות בהרשמה - אפשר לשלוח שוב מלוח הבקרה." };
+  }
+  if (needsProToPublish({ plan, templateId: site.data.templateId })) return { ok: false, error: PRO_TEMPLATE_PUBLISH_ERROR };
+  if (site.plan !== plan) await setPlan(user.id, id, plan);
+  return publishSiteAction(id);
+}
+
+/** "שדרוג ל-Pro" on a site. Free until payments are connected (see publishWithPlanAction). */
+export async function upgradeToProAction(id: string): Promise<SimpleResult> {
+  return withOwnedSite(id, async (user) => {
+    const ok = await setPlan(user.id, id, PLAN.PRO);
+    if (ok) revalidatePath(`/sites/${id}/edit`);
+    return ok ? { ok: true } : { ok: false, error: "האתר לא נמצא" };
   });
 }
 

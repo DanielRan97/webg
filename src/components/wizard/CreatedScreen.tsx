@@ -1,35 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
-import { publishSiteAction } from "@/server/actions/sites";
+import { useState } from "react";
+import { PLAN } from "@/lib/constants";
 import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
-import { needsProToPublish } from "@/lib/plan";
-import { ProTemplateNotice } from "../ProTemplateNotice";
+import { PublishButton, UpgradeToPro } from "../PlanChoice";
 import { CopyButton } from "../CopyButton";
-import { Button, Notice } from "../ui/ui";
+import { Notice } from "../ui/ui";
 import { LockIcon } from "../icons";
 
 /** Shown right after the wizard creates the website. */
 export function CreatedScreen({ id, slug, plan, businessName, templateId, alreadyPublished = false }: { id: string; slug: string; plan: string; businessName: string; templateId: string; alreadyPublished?: boolean }) {
   const [published, setPublished] = useState(alreadyPublished);
-  const needsPro = needsProToPublish({ plan, templateId });
-  const [error, setError] = useState("");
-  const [pending, start] = useTransition();
-  const address = publicSiteUrlDisplay({ slug, plan });
-
-  function publish() {
-    setError("");
-    start(async () => {
-      try {
-        const res = await publishSiteAction(id);
-        if (res.ok) setPublished(true);
-        else setError(res.error ?? "לא הצלחנו לפרסם. נסו שוב.");
-      } catch {
-        setError("לא הצלחנו לפרסם. בדקו את החיבור לאינטרנט ונסו שוב.");
-      }
-    });
-  }
+  // The plan chosen in the publish dialog decides the address shown from then on.
+  const [livePlan, setLivePlan] = useState(plan);
+  const address = publicSiteUrlDisplay({ slug, plan: livePlan });
 
   return (
     <main className="mx-auto max-w-xl px-4 py-12 text-center">
@@ -53,15 +38,18 @@ export function CreatedScreen({ id, slug, plan, businessName, templateId, alread
       {published ? (
         <div className="mt-6 space-y-3">
           <Notice kind="success">האתר פורסם! מעכשיו הלקוחות יכולים לראות אותו.</Notice>
-          <Link href={publicSiteHref({ slug, plan })} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white transition hover:bg-brand-700 hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)] active:scale-[0.98]">
+          <Link href={publicSiteHref({ slug, plan: livePlan })} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white transition hover:bg-brand-700 hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)] active:scale-[0.98]">
             צפייה באתר החי
           </Link>
+          {livePlan !== PLAN.PRO && (
+            <div className="mx-auto max-w-md pt-2 text-start">
+              <UpgradeToPro siteId={id} slug={slug} onUpgraded={() => setLivePlan(PLAN.PRO)} />
+            </div>
+          )}
         </div>
       ) : (
         <div className="mt-6 space-y-3">
           <p className="text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
-          {needsPro && <ProTemplateNotice siteId={id} />}
-          {error && <Notice kind="error">{error}</Notice>}
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href={`/sites/${id}/preview`} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-200 bg-white px-6 font-semibold text-ink-800 shadow-sm transition hover:border-ink-300 hover:bg-ink-50 active:scale-[0.98]">
               תצוגה מקדימה
@@ -69,7 +57,16 @@ export function CreatedScreen({ id, slug, plan, businessName, templateId, alread
             <Link href={`/sites/${id}/edit`} className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-200 bg-white px-6 font-semibold text-ink-800 shadow-sm transition hover:border-ink-300 hover:bg-ink-50 active:scale-[0.98]">
               עריכת האתר
             </Link>
-            {!needsPro && <Button loading={pending} onClick={publish}>{pending ? "מפרסם..." : "פרסום האתר"}</Button>}
+            <PublishButton
+              siteId={id}
+              slug={slug}
+              plan={livePlan}
+              templateId={templateId}
+              onPublished={(p) => {
+                setLivePlan(p);
+                setPublished(true);
+              }}
+            />
           </div>
         </div>
       )}

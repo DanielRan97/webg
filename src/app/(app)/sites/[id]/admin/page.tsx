@@ -7,7 +7,7 @@ import { listInteractions } from "@/server/interactions";
 import { canAccessInbox, inquiryCenterOn, inquiryDelivery } from "@/lib/plan";
 import { AdminInbox } from "@/components/AdminInbox";
 import { LockedFeature } from "@/components/LockedFeature";
-import { PlanComparison } from "@/components/PlanComparison";
+import { UpgradeToPro } from "@/components/PlanChoice";
 import { InquiryDelivery } from "@/components/InquiryDelivery";
 import { InquirySettings } from "@/components/InquirySettings";
 
@@ -39,7 +39,7 @@ function AdminHeader({ site }: { site: { id: string; data: { businessName: strin
  * fetches) any CustomerInteraction data. Nothing is deleted: the moment the
  * site is upgraded, the full history is exactly where it was.
  */
-function LockedInboxView({ site, email }: { site: { id: string; plan: string; data: { businessName: string } }; email: string }) {
+function LockedInboxView({ site, email }: { site: { id: string; slug: string; plan: string; data: { businessName: string } }; email: string }) {
   return (
     <>
       <AdminHeader site={site} />
@@ -49,7 +49,7 @@ function LockedInboxView({ site, email }: { site: { id: string; plan: string; da
           label="מרכז פניות"
           hint="כל הלידים וההודעות מהאתר במקום אחד בתוך WEBG, בנוסף למייל. שום פנייה לא אובדת: גם הפניות שכבר התקבלו יופיעו כאן מיד אחרי מעבר ל-Pro."
         />
-        <PlanComparison />
+        <UpgradeToPro siteId={site.id} slug={site.slug} />
       </main>
     </>
   );
