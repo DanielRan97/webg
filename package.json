@@ -14,7 +14,8 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "places:update": "node scripts/update-places.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.906.0",

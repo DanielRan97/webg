@@ -102,3 +102,9 @@ export function bookingLinkProblem(v: string): string | undefined {
   if (google || BOOKING_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))) return undefined;
   return `אפשר לקשר רק לעמוד של שירות לקביעת תורים, כמו ${BOOKING_SERVICE_EXAMPLES}. משתמשים בשירות אחר? כתבו לנו ונוסיף אותו.`;
 }
+
+/** "הרצל 10" -> street "הרצל", number "10". A number may carry a letter or a slash ("12א", "4/2"). */
+export function splitAddress(address: string): { street: string; number: string } {
+  const m = address.trim().match(/^(.*\S)\s+(\d+[א-ת]?(?:\/\d+)?)$/);
+  return m ? { street: m[1], number: m[2] } : { street: address.trim(), number: "" };
+}

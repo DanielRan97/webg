@@ -5,6 +5,5 @@ import { getPlaces } from "@/lib/places";
 export async function GET() {
   if (!(await getCurrentUser())) return Response.json({ error: "unauthorized" }, { status: 401 });
   const places = await getPlaces();
-  if (!places) return Response.json({ error: "unavailable" }, { status: 503 });
   return Response.json(places, { headers: { "Cache-Control": "private, max-age=86400" } });
 }

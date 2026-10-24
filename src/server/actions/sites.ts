@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/session";
 import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
 import { isValidSlug } from "@/lib/slug";
+import { areasNotInList, getPlaces, getStreets } from "@/lib/places";
+import { splitAddress } from "@/lib/field-format";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
 import { INQUIRY_DELIVERY, PRO_TEMPLATE_PUBLISH_ERROR, isPro, needsProToPublish } from "@/lib/plan";
 import type { SiteData } from "@/types/site";
@@ -54,6 +56,38 @@ export async function createDraftSiteAction(): Promise<ActionResult> {
  * `wizardStep` is cleared - once an owner has gone through one complete,
  * validated save, the site is no longer treated as "still onboarding".
  */
+/**
+ * Service and delivery areas may only be names from the official list (the pickers allow nothing else).
+ * Names a site already had before this rule are left alone, so older sites can still be saved.
+ */
+async function strayAreaError(d: SiteData, before: SiteData): Promise<string | null> {
+  const on = (t: string) => d.sections.some((s) => s.type === t && s.enabled);
+  const split = (v: string) => v.split(/\s*,\s*/).filter(Boolean);
+  const kept = new Set([...before.areas, ...split(before.delivery.areas)]);
+  const names = [...(on("areas") ? d.areas : []), ...(on("delivery") && d.delivery.available ? split(d.delivery.areas) : [])].filter((n) => !kept.has(n));
+  const stray = await areasNotInList(names);
+  return stray.length ? `״${stray[0]}״ לא נמצא ברשימת הערים והאזורים. בחרו אזור מהרשימה.` : null;
+}
+
+/**
+ * The business address may only be a city from the official list and a street of that city (plus a
+ * house number). Checked only when the address changed, so an older site's saved address doesn't block it.
+ */
+async function addressError(d: SiteData, before: SiteData): Promise<string | null> {
+  const city = d.city.trim();
+  const address = d.address.trim();
+  if (city === before.city.trim() && address === before.address.trim()) return null;
+  if (!city) return address ? "כדי לשמור רחוב, בחרו קודם עיר מהרשימה." : null;
+  const { cities } = await getPlaces();
+  const match = cities.find((c) => c.name === city);
+  if (!match) return `״${city}״ לא נמצאת ברשימת הערים. בחרו עיר מהרשימה.`;
+  if (!address) return null;
+  const { street } = splitAddress(address);
+  const streets = await getStreets(match.code);
+  if (!streets.includes(street)) return `״${street}״ לא נמצא ברשימת הרחובות של ${city}. בחרו רחוב מהרשימה.`;
+  return null;
+}
+
 export async function updateSiteAction(id: string, input: SiteData): Promise<ActionResult> {
   const user = await requireUser();
   const v = validate(input);
@@ -61,6 +95,8 @@ export async function updateSiteAction(id: string, input: SiteData): Promise<Act
   try {
     const before = await getOwnedWebsite(user.id, id);
     if (!before) return { ok: false, error: "האתר לא נמצא" };
+    const placeProblem = (await addressError(v.data, before.data)) ?? (await strayAreaError(v.data, before.data));
+    if (placeProblem) return { ok: false, error: placeProblem };
     // The address step is now a real, reachable step in both the first-time
     // wizard and free-edit mode (see AddressStep) - by the time this save
     // runs, `v.data.slug` already holds whatever the owner deliberately

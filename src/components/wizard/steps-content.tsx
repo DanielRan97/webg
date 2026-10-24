@@ -112,8 +112,7 @@ export function AreasStep({ data, update }: StepProps) {
     <div className="space-y-6">
       <StepTitle title="לאילו אזורים אתם מגיעים?" subtitle="הוסיפו ערים או אזורים שבהם אתם נותנים שירות. הלקוחות יראו אותם באתר." />
       <AreaPicker
-        label="עיר או אזור"
-        hint="מתחילים להקליד ובוחרים מהרשימה הרשמית: עיר, מועצה אזורית, נפה (למשל ״נפת השרון״), מחוז (למשל ״מחוז הצפון״) או ״כל הארץ״."
+        label="אזורי השירות"
         values={data.areas}
         onChange={(areas) => update({ areas })}
         max={60}
@@ -137,8 +136,7 @@ export function DeliveryStep({ data, update, errors }: StepProps) {
         <>
           <AreaPicker
             label="לאן אתם שולחים? (לא חובה)"
-            hint="בוחרים מהרשימה הרשמית: עיר, מועצה אזורית, נפה, מחוז או ״כל הארץ״."
-            values={del.areas.split(/s*,s*/).filter(Boolean)}
+            values={del.areas.split(/\s*,\s*/).filter(Boolean)}
             onChange={(list) => set({ areas: list.join(", ") })}
             max={20}
             emptyText="עדיין לא הוספתם אזורי משלוח."
