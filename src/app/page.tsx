@@ -60,8 +60,8 @@ export default async function LandingPage() {
             </p>
             <ol className="mt-12 grid gap-4 md:grid-cols-3">
               {STEPS.map((s, i) => (
-                <li key={s.title} className="rounded-2xl border border-ink-200 bg-white p-6">
-                  <span aria-hidden className="grid h-9 w-9 place-items-center rounded-lg bg-brand-50 text-sm font-bold text-brand-700">{i + 1}</span>
+                <li key={s.title} className="rounded-2xl border border-ink-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-[0_18px_40px_-24px_rgb(21_70_209/0.45)]">
+                  <span aria-hidden className="grid h-10 w-10 place-items-center rounded-xl bg-linear-to-br from-brand-600 to-cyan-400 text-sm font-bold text-white shadow-[0_8px_18px_-8px_rgb(21_70_209/0.7)]">{i + 1}</span>
                   <h3 className="mt-5 text-lg font-bold">{s.title}</h3>
                   <p className="mt-2 leading-relaxed text-ink-600">{s.text}</p>
                 </li>
@@ -77,7 +77,7 @@ export default async function LandingPage() {
             <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2">
               {SECURITY.map(({ Icon, title, text }) => (
                 <li key={title} className="flex gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-white text-brand-600 shadow-sm">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-brand-100 bg-linear-to-br from-white to-brand-50 text-brand-600 shadow-sm">
                     <Icon className="h-5 w-5" />
                   </span>
                   <span>
@@ -110,7 +110,7 @@ export default async function LandingPage() {
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-600">בלי דמי הקמה ובלי התחייבות. משלמים על כל אתר בנפרד.</p>
             <ul className="mt-12 grid gap-5 md:grid-cols-2">
               {PLANS.map((p) => (
-                <li key={p.id} className={`flex flex-col rounded-2xl border bg-white p-7 ${p.id === "PRO" ? "border-brand-600 ring-1 ring-brand-600" : "border-ink-200"}`}>
+                <li key={p.id} className={`flex flex-col rounded-2xl border bg-white p-7 ${p.id === "PRO" ? "border-brand-600 shadow-[0_24px_60px_-30px_rgb(21_70_209/0.6)] ring-1 ring-brand-600" : "border-ink-200"}`}>
                   <h3 className="text-xl font-bold">{p.name}</h3>
                   <p className="mt-1 text-ink-600">{p.tagline}</p>
                   <p className="mt-6"><span className="text-5xl font-bold tracking-tight">₪{p.price}</span> <span className="text-ink-500">לחודש</span></p>
@@ -130,12 +130,17 @@ export default async function LandingPage() {
         </section>
 
         <section className="px-5 pb-24">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8 rounded-3xl bg-ink-950 px-8 py-14 text-white md:px-14">
-            <div>
+          <div className="relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8 overflow-hidden rounded-3xl bg-ink-950 px-8 py-14 text-white md:px-14">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(255_255_255/0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.035)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]"
+            />
+            <div aria-hidden className="pointer-events-none absolute -top-24 start-1/3 h-64 w-64 rounded-full bg-brand-600/30 blur-3xl" />
+            <div className="relative">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">האתר שלכם במרחק כמה דקות.</h2>
               <p className="mt-3 text-lg text-ink-300">מתחילים עכשיו, ואפשר לשנות כל פרט גם אחר כך.</p>
             </div>
-            <Link href={ctaHref} className="inline-flex min-h-14 items-center rounded-xl bg-brand-500 px-8 text-lg font-semibold text-white transition hover:bg-brand-400">
+            <Link href={ctaHref} className="relative inline-flex min-h-14 items-center rounded-xl bg-brand-500 px-8 text-lg font-semibold text-white transition hover:bg-brand-400 hover:shadow-[0_10px_30px_-8px_rgb(90_130_245/0.7)] active:scale-[0.98]">
               יצירת האתר שלי
             </Link>
           </div>

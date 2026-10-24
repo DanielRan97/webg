@@ -87,10 +87,25 @@ body {
   to { opacity: 1; transform: none; }
 }
 .webg-step-in { animation: webg-step-in 0.35s ease-out; }
+/* Home hero: one staged entrance (delays set inline, in reading order), and the pulsing "live" light. */
+@keyframes webg-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.webg-rise { animation: webg-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes webg-live {
+  0% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0.6); }
+  70% { box-shadow: 0 0 0 8px rgb(52 211 153 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0); }
+}
+.webg-live-dot { animation: webg-live 2s infinite; }
 .webg-switch > span { transition-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1); transition-duration: 0.3s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .webg-pop { animation: none; }
+  .webg-pop,
+  .webg-rise,
+  .webg-step-in,
+  .webg-live-dot { animation: none; }
   .webg-switch > span { transition: none; }
 }
 
