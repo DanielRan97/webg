@@ -10,8 +10,8 @@ import { CopyButton } from "../CopyButton";
 import { Button, Notice } from "../ui/ui";
 
 /** Shown right after the wizard creates the website. */
-export function CreatedScreen({ id, slug, plan, businessName, templateId }: { id: string; slug: string; plan: string; businessName: string; templateId: string }) {
-  const [published, setPublished] = useState(false);
+export function CreatedScreen({ id, slug, plan, businessName, templateId, alreadyPublished = false }: { id: string; slug: string; plan: string; businessName: string; templateId: string; alreadyPublished?: boolean }) {
+  const [published, setPublished] = useState(alreadyPublished);
   const needsPro = needsProToPublish({ plan, templateId });
   const [error, setError] = useState("");
   const [pending, start] = useTransition();

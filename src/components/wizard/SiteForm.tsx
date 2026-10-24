@@ -11,7 +11,6 @@ import { needsProToPublish } from "@/lib/plan";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, StepNoteContext, ValidationContext, cx } from "../ui/ui";
-import { CreatedScreen } from "./CreatedScreen";
 import { PreviewPane } from "./PreviewPane";
 import { SectionsStep } from "./SectionsStep";
 import {
@@ -177,7 +176,6 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
   const [error, setError] = useState("");
   const [errorIsValidation, setErrorIsValidation] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [created, setCreated] = useState<{ id: string; slug: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const errors = useMemo(() => validateSite(data, { checkSlug: true }), [data]);
@@ -431,8 +429,8 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
           return;
         }
         if (isNew) {
-          setCreated({ id: res.id, slug: res.slug });
-          window.scrollTo({ top: 0 });
+          // Its own route, so the server refresh that follows this save can't wipe it (see created/page.tsx).
+          router.push(`/sites/${res.id}/created`);
         } else {
           setData((d) => ({ ...d, slug: res.slug }));
           setSaved(true);
@@ -444,7 +442,6 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
     });
   }
 
-  if (created) return <CreatedScreen id={created.id} slug={created.slug} plan={plan} businessName={data.businessName} templateId={data.templateId} />;
 
   return (
     <ValidationContext.Provider value={{ submitted }}>
