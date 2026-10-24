@@ -7,6 +7,7 @@ import { autosaveSiteAction, checkSlugAvailabilityAction, updateSiteAction } fro
 import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
+import { needsProToPublish } from "@/lib/plan";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, StepNoteContext, ValidationContext, cx } from "../ui/ui";
@@ -134,11 +135,15 @@ interface Props {
   /** The site's current plan (BASIC/PRO) - drives the wizard's plan-awareness banner and premium-template gating in the template picker. */
   plan: string;
   liveUrl?: string | null;
+  /** The site is published (whatever its subscription state) - a live Basic site can't save a Pro template. */
+  published?: boolean;
+  /** Edit mode only: open this tab (a step id, e.g. "branding") instead of the first one. */
+  initialTab?: string;
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 800;
 
-export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) {
+export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published = false, initialTab }: Props) {
   const router = useRouter();
   const isNew = wizardStep !== null;
   const [data, setData] = useState<SiteData>(initial);
@@ -153,10 +158,19 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
   // (e.g. a section it depended on got disabled elsewhere), fall back to
   // the first step rather than breaking.
   const [stepIndexRaw, setStepIndex] = useState(() => {
-    if (!wizardStep) return 0;
-    const i = steps.findIndex((s) => s.id === wizardStep);
+    const target = wizardStep ?? initialTab;
+    if (!target) return 0;
+    const i = steps.findIndex((s) => s.id === target);
     return i >= 0 ? i : 0;
   });
+  // A link to this same page with a different ?tab= (e.g. "בחירת עיצוב רגיל" in the header) keeps this
+  // component mounted, so follow the prop when it changes instead of only reading it once.
+  const [seenTab, setSeenTab] = useState(initialTab);
+  if (!wizardStep && initialTab !== seenTab) {
+    setSeenTab(initialTab);
+    const i = initialTab ? steps.findIndex((s) => s.id === initialTab) : -1;
+    if (i >= 0) setStepIndex(i);
+  }
   const stepIndex = Math.min(stepIndexRaw, steps.length - 1);
   const [view, setView] = useState<"form" | "preview">("form");
   const [submitted, setSubmitted] = useState(false);
@@ -430,7 +444,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
     });
   }
 
-  if (created) return <CreatedScreen id={created.id} slug={created.slug} plan={plan} businessName={data.businessName} />;
+  if (created) return <CreatedScreen id={created.id} slug={created.slug} plan={plan} businessName={data.businessName} templateId={data.templateId} />;
 
   return (
     <ValidationContext.Provider value={{ submitted }}>
@@ -472,7 +486,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
 
           <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-8">
             <StepNoteContext.Provider value={isNew ? (STEP_NOTES[step.id] ?? CONTENT_NOTE) : null}>
-              <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} />
+              <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} live={published} />
             </StepNoteContext.Provider>
           </div>
 
@@ -508,6 +522,12 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
           <div className="lg:sticky lg:top-24">
             <p className="text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
             <p className="mb-3 text-center text-xs text-ink-500">{isNew ? "תצוגה מקדימה בלבד. שום דבר לא מתפרסם עד שתלחצו על ״פרסום״." : "התצוגה מתעדכנת תוך כדי עריכה."}</p>
+            {needsProToPublish({ plan, templateId: data.templateId }) && (
+              <p className="mb-3 text-center text-xs font-semibold text-brand-700">
+                <span className="me-1.5 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold text-white">Pro</span>
+                התצוגה בעיצוב של מסלול Pro
+              </p>
+            )}
             <PreviewPane data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
           </div>
         </aside>

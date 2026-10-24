@@ -25,6 +25,8 @@ export interface StepProps {
   plan?: string;
   /** Live slug-availability feedback - only used by AddressStep. */
   slugCheck?: SlugCheck;
+  /** The site is published - BrandingStep uses it to explain that a live Basic site can preview, but not save, a Pro template. */
+  live?: boolean;
 }
 
 /* 1 ─ Business basics */
@@ -49,7 +51,7 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-200 bg-ink-50 p-4">
           <div>
             <p className="font-bold text-ink-950">אתם בונים אתר עם WEBG Basic</p>
-            <p className="mt-1 text-sm text-ink-900">כל הכלים הדרושים לאתר מקצועי כלולים. תכונות Pro יסומנו במנעול 🔒 ותוכלו לשדרג בכל שלב.</p>
+            <p className="mt-1 text-sm text-ink-900">כל הכלים הדרושים לאתר מקצועי כלולים. דברים שמסומנים בתג Pro שייכים למסלול Pro: אפשר לנסות אותם, לראות איך האתר נראה איתם ולהחליט אחר כך.</p>
           </div>
           <Button type="button" variant="secondary" onClick={() => setPlanModalOpen(true)}>מה כולל Pro?</Button>
         </div>
@@ -168,7 +170,7 @@ function ColorPicker({ label, hint, value, onChange, allowNone }: { label: strin
   );
 }
 
-export function BrandingStep({ data, update, plan }: StepProps) {
+export function BrandingStep({ data, update, plan, live }: StepProps) {
   return (
     <div className="space-y-8">
       <StepTitle title="המראה של האתר" subtitle="בחרו לוגו וצבעים. בלי לוגו, ניצור לכם אחד פשוט מהאות הראשונה של העסק." />
@@ -189,7 +191,7 @@ export function BrandingStep({ data, update, plan }: StepProps) {
       </div>
       <ColorPicker label="הצבע הראשי של העסק" hint="הצבע הזה יופיע בכפתורים, בכותרת ובלוגו." value={data.primaryColor} onChange={(v) => update({ primaryColor: v })} />
       <ColorPicker label="צבע משני (לא חובה)" hint="לקישוטים קטנים כמו קווים ומחירים. אפשר לוותר." value={data.secondaryColor} onChange={(v) => update({ secondaryColor: v })} allowNone />
-      <TemplatePicker data={data} plan={plan ?? "BASIC"} onPick={(id) => update({ templateId: id })} />
+      <TemplatePicker data={data} plan={plan ?? "BASIC"} live={live} onPick={(id) => update({ templateId: id })} />
     </div>
   );
 }

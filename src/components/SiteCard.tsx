@@ -15,7 +15,7 @@ import {
 } from "@/server/actions/sites";
 import { PLAN, SUBSCRIPTION_STATUS } from "@/lib/constants";
 import { displayState, isPubliclyVisible } from "@/lib/subscription";
-import { isPro } from "@/lib/plan";
+import { isPro, needsProToPublish } from "@/lib/plan";
 import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
 import { nextStep, subscriptionInfo } from "@/lib/status";
 import { getCategory } from "@/lib/categories";
@@ -26,6 +26,7 @@ import { ExternalLinkIcon, InboxIcon, LightbulbIcon, LockIcon, MoreIcon } from "
 import { CopyButton } from "./CopyButton";
 import { StatusBadge } from "./StatusBadge";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
+import { ProTemplateNotice } from "./ProTemplateNotice";
 
 // Inlined at build time by Next.js - not a secret, just a mode flag.
 const isDev = process.env.NODE_ENV !== "production";
@@ -173,6 +174,8 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
             <Link href={`/sites/${site.id}/edit`} className="flex min-h-12 w-full items-center justify-center rounded-lg bg-brand-600 px-6 text-base font-semibold text-white transition hover:bg-brand-700">
               עריכת האתר
             </Link>
+          ) : needsProToPublish({ plan: site.plan, templateId: d.templateId }) ? (
+            <ProTemplateNotice siteId={site.id} compact />
           ) : (
             <Button className="w-full" loading={running === "publish"} disabled={isPending} onClick={() => run("publish", publishSiteAction, publishedText)}>
               {running === "publish" ? "מפרסם..." : "פרסום האתר"}

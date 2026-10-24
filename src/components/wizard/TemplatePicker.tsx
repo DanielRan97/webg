@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sectionHasContent } from "@/templates/shared/helpers";
 import { withPreviewPlaceholders } from "@/lib/site-defaults";
-import { canUseTemplateTier } from "@/lib/plan";
+import { isPro } from "@/lib/plan";
+import { PLANS } from "@/lib/business";
 import { TEMPLATES, getTemplate } from "@/templates/registry";
 import type { SiteData } from "@/types/site";
-import { LockedBadge } from "../LockedFeature";
 import { PlanComparisonModal } from "../PlanComparisonModal";
 import { Button, cx } from "../ui/ui";
 
@@ -48,17 +48,34 @@ function Thumbnail({ templateId, data }: { templateId: string; data: SiteData })
   );
 }
 
-export function TemplatePicker({ data, plan, onPick }: { data: SiteData; plan: string; onPick: (id: string) => void }) {
-  const [lockedInfoOpen, setLockedInfoOpen] = useState(false);
-  const [lockedClicked, setLockedClicked] = useState<string | null>(null);
+const PRO_PRICE = PLANS.find((p) => p.id === "PRO")?.price;
+
+/** A small "Pro" tag for premium templates: informative, not a lock - every template can be picked and previewed. */
+function ProTag() {
+  return <span className="rounded-full bg-brand-600 px-2.5 py-0.5 text-xs font-bold text-white">Pro</span>;
+}
+
+/**
+ * Every template is selectable on every plan, so owners can see their own site in a Pro design before
+ * deciding. Picking a Pro template on a Basic site shows a calm note explaining what that means for
+ * publishing (see needsProToPublish); a Basic site that is already live can preview it but not save it.
+ */
+export function TemplatePicker({ data, plan, live = false, onPick }: { data: SiteData; plan: string; live?: boolean; onPick: (id: string) => void }) {
+  const [proInfoOpen, setProInfoOpen] = useState(false);
+  const basic = !isPro({ plan });
+  const picked = TEMPLATES.find((t) => t.id === data.templateId);
+  const pickedPro = basic && picked?.tier === "premium";
   return (
     <div role="group" aria-labelledby="tpl-label" className="space-y-2">
       <p id="tpl-label" className="text-sm font-semibold text-ink-900">סגנון עיצוב</p>
-      <p className="text-sm text-ink-500">בחרו איך האתר ייראה. אפשר להחליף בכל רגע.</p>
+      <p className="text-sm text-ink-500">
+        בחרו איך האתר ייראה. אפשר להחליף בכל רגע.
+        {basic && HAS_PREMIUM_TEMPLATE && " עיצובים עם תג Pro שייכים למסלול Pro, ואפשר לנסות גם אותם."}
+      </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((t) => {
           const selected = data.templateId === t.id;
-          const locked = !canUseTemplateTier({ plan }, t.tier);
+          const pro = t.tier === "premium";
           return (
             <div
               key={t.id}
@@ -72,30 +89,40 @@ export function TemplatePicker({ data, plan, onPick }: { data: SiteData; plan: s
                 {selected && (
                   <span aria-hidden className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-sm text-white">✓</span>
                 )}
-                {locked && (
-                  <span className="absolute start-2 top-2"><LockedBadge>Pro</LockedBadge></span>
-                )}
+                {pro && <span className="absolute start-2 top-2"><ProTag /></span>}
               </div>
               <span className="font-semibold">{t.label}</span>
               <span className="text-xs text-ink-700">{t.description}</span>
-              {/* The whole card is one button, kept separate from the preview so no links sit inside it. A locked template stays visible - it's never hidden - and explains itself instead of silently doing nothing. */}
+              {/* The whole card is one button, kept separate from the preview so no links sit inside it. */}
               <button
                 type="button"
                 aria-pressed={selected}
-                aria-label={locked ? `${t.label}: ${t.description} - זמין ב-WEBG Pro` : `${t.label}: ${t.description}`}
-                onClick={() => (locked ? setLockedClicked(t.label) : onPick(t.id))}
+                aria-label={`${t.label}: ${t.description}${pro ? " - עיצוב של מסלול Pro" : ""}`}
+                onClick={() => onPick(t.id)}
                 className="absolute inset-0 rounded-lg"
               />
             </div>
           );
         })}
       </div>
-      {lockedClicked && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ink-200 bg-ink-50 p-3 text-sm text-ink-950">
-          <p>🔒 העיצוב ״{lockedClicked}״ זמין ב-WEBG Pro</p>
-          <Button type="button" variant="secondary" onClick={() => setLockedInfoOpen(true)}>מה כולל Pro?</Button>
-        </div>
-      )}
+      <div aria-live="polite">
+        {pickedPro && (
+          <div className="mt-2 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
+            <div className="max-w-xl space-y-1">
+              <p className="font-bold">בחרתם עיצוב של מסלול Pro</p>
+              {live ? (
+                <p>האתר שלכם כבר באוויר במסלול Basic. אפשר לראות בתצוגה איך הוא נראה בעיצוב ״{picked.label}״, אבל כדי לשמור אותו צריך מסלול Pro.</p>
+              ) : (
+                <p>
+                  אפשר להמשיך לבנות את האתר בעיצוב ״{picked.label}״ ולראות בדיוק איך הוא ייראה. כדי לפרסם אותו בעיצוב הזה צריך מסלול Pro
+                  {PRO_PRICE && <> (₪{PRO_PRICE} לחודש)</>}. אפשר לחזור לעיצוב רגיל בכל רגע, בלי לאבד שום דבר.
+                </p>
+              )}
+            </div>
+            <Button type="button" variant="secondary" onClick={() => setProInfoOpen(true)}>מה כולל Pro?</Button>
+          </div>
+        )}
+      </div>
       {!HAS_PREMIUM_TEMPLATE && (
         <p className="text-xs text-ink-500">עיצובים נוספים ל-Pro יתווספו בהמשך.</p>
       )}
@@ -103,7 +130,7 @@ export function TemplatePicker({ data, plan, onPick }: { data: SiteData; plan: s
         <span aria-hidden>ℹ</span>
         החלפת סגנון לא מוחקת מידע — כל פרטי העסק נשארים.
       </p>
-      <PlanComparisonModal open={lockedInfoOpen} onClose={() => setLockedInfoOpen(false)} />
+      <PlanComparisonModal open={proInfoOpen} onClose={() => setProInfoOpen(false)} />
     </div>
   );
 }

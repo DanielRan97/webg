@@ -5,8 +5,10 @@ import { requireUser } from "@/lib/session";
 import { AUTOSAVE_DOMAINS, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type AutosaveDomain, type Plan } from "@/lib/constants";
 import { isValidSlug } from "@/lib/slug";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
+import { PRO_TEMPLATE_PUBLISH_ERROR, needsProToPublish } from "@/lib/plan";
 import type { SiteData } from "@/types/site";
 import {
+  ProRequiredError,
   SlugError,
   autosaveWebsiteDraft,
   createDraftWebsite,
@@ -68,7 +70,7 @@ export async function updateSiteAction(id: string, input: SiteData): Promise<Act
     revalidatePath(`/s/${site.slug}`);
     return { ok: true, id: site.id, slug: site.slug };
   } catch (e) {
-    if (e instanceof SlugError) return { ok: false, error: e.message };
+    if (e instanceof SlugError || e instanceof ProRequiredError) return { ok: false, error: e.message };
     throw e;
   }
 }
@@ -103,7 +105,7 @@ export async function autosaveSiteAction(
     if (!site) return { ok: false, error: "האתר לא נמצא" };
     return { ok: true };
   } catch (e) {
-    if (e instanceof SlugError) return { ok: false, error: e.message };
+    if (e instanceof SlugError || e instanceof ProRequiredError) return { ok: false, error: e.message };
     console.error("autosave failed:", e instanceof Error ? e.message : e);
     return { ok: false, error: "לא הצלחנו לשמור את השינויים. בדקו את החיבור ונסו שוב." };
   }
@@ -138,6 +140,9 @@ export async function publishSiteAction(id: string): Promise<SimpleResult> {
     const site = await getOwnedWebsite(user.id, id);
     if (site?.subscriptionStatus === SUBSCRIPTION_STATUS.INACTIVE) {
       return { ok: false, error: "האתר לא פעיל. יש להפעיל אותו מחדש לפני הפרסום." };
+    }
+    if (site && needsProToPublish({ plan: site.plan, templateId: site.data.templateId })) {
+      return { ok: false, error: PRO_TEMPLATE_PUBLISH_ERROR };
     }
     await setWebsiteStatus(user.id, id, WEBSITE_STATUS.PUBLISHED);
     return { ok: true };

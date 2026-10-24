@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { getWebsiteBySlug } from "@/server/websites";
 import { recordPageView } from "@/server/traffic";
 import { isPubliclyVisible } from "@/lib/subscription";
-import { canUseProUrl } from "@/lib/plan";
+import { canUseProUrl, needsProToPublish } from "@/lib/plan";
 import { appUrl } from "@/lib/env";
 import { WebsiteRenderer } from "@/templates/WebsiteRenderer";
 import { getCategory } from "@/lib/categories";
@@ -28,6 +28,9 @@ export async function generateMetadata({ params }: PageProps<"/s/[slug]">): Prom
     openGraph: { title, description, locale: "he_IL", type: "website", images: d.heroImageUrl ? [d.heroImageUrl] : undefined },
   };
 }
+
+/** Standard template a Basic site falls back to if it still holds a Pro one. */
+const BASIC_FALLBACK_TEMPLATE = "modern";
 
 export default async function PublicSitePage({ params }: PageProps<"/s/[slug]">) {
   const { slug } = await params;
@@ -72,7 +75,8 @@ export default async function PublicSitePage({ params }: PageProps<"/s/[slug]">)
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <WebsiteRenderer template={d.templateId} data={d} />
+      {/* A Basic site can only reach here with a Pro template if its plan changed after publishing (e.g. a downgrade); Pro design is never served for free. */}
+      <WebsiteRenderer template={needsProToPublish({ plan: site.plan, templateId: d.templateId }) ? BASIC_FALLBACK_TEMPLATE : d.templateId} data={d} />
     </>
   );
 }

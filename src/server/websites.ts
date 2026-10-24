@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { AUTOSAVE_DOMAINS, PLAN, SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, TEMPLATE_TIERS, WEBSITE_STATUS, type AutosaveDomain, type CtaType, type Plan, type SubscriptionStatus, type TemplateId } from "@/lib/constants";
+import { AUTOSAVE_DOMAINS, SOCIAL_PLATFORMS, SUBSCRIPTION_STATUS, TEMPLATE_TIERS, WEBSITE_STATUS, type AutosaveDomain, type CtaType, type Plan, type SubscriptionStatus } from "@/lib/constants";
 import { isSectionType } from "@/lib/sections";
+import { PRO_TEMPLATE_LIVE_ERROR, needsProToPublish } from "@/lib/plan";
 import { isValidSlug, uniqueSlug } from "@/lib/slug";
 import { defaultHours, emptySiteData, normalizeSections, withAllSections } from "@/lib/site-defaults";
 import { removeUploadedImage } from "@/lib/storage";
@@ -344,10 +345,21 @@ async function writeChildrenForDomains(tx: Prisma.TransactionClient, websiteId: 
   );
 }
 
-/** A Basic site can never switch to a premium template by submitting one directly - falls back to whatever it already had. Defense-in-depth: the picker already prevents this in the UI (see TemplatePicker), but a template is only ever a fake premium demo away from mattering for real. */
-function effectiveTemplateId(requested: string, current: string, plan: string): string {
-  const tier = TEMPLATE_TIERS[requested as TemplateId] ?? "standard";
-  return tier === "premium" && plan !== PLAN.PRO ? current : requested;
+/** Thrown when a save would put a Pro-only choice on a Basic site that is already live. The message is shown to the owner as-is. */
+export class ProRequiredError extends Error {}
+
+/**
+ * Any known template may be saved on any plan: a Basic owner can build with a Pro template and see it
+ * in the preview (publishing is what's gated - see needsProToPublish and publishSiteAction). The one
+ * exception is a Basic site that is already live: switching it to a Pro template would put Pro on the
+ * public page for free, so that save is refused. Unknown ids keep the current template.
+ */
+function effectiveTemplateId(requested: string, before: { plan: string; status: string; data: { templateId: string } }): string {
+  if (!(requested in TEMPLATE_TIERS)) return before.data.templateId;
+  const goingLiveWithPro =
+    before.status === WEBSITE_STATUS.PUBLISHED && requested !== before.data.templateId && needsProToPublish({ plan: before.plan, templateId: requested });
+  if (goingLiveWithPro) throw new ProRequiredError(PRO_TEMPLATE_LIVE_ERROR);
+  return requested;
 }
 
 function websiteColumns(d: SiteData) {
@@ -547,7 +559,7 @@ export async function updateWebsite(
       // `wizardStep: undefined` is Prisma's own "leave this column alone" convention -
       // callers outside the wizard (e.g. a normal edit-mode save) omit `opts.wizardStep`
       // entirely and never touch it either way.
-      const templateId = effectiveTemplateId(d.templateId, before.data.templateId, before.plan);
+      const templateId = effectiveTemplateId(d.templateId, before);
       await tx.website.update({ where: { id }, data: { slug, ...websiteColumns(d), templateId, wizardStep: opts.wizardStep } });
     } catch (e) {
       // The pre-check above can still lose a genuine race to another request
@@ -605,7 +617,7 @@ export async function autosaveWebsiteDraft(
     if (pKeys) profileUpdate = { ...profileUpdate, ...pick(fullProfileCols, pKeys) };
   }
   if (websiteUpdate.templateId !== undefined) {
-    websiteUpdate.templateId = effectiveTemplateId(d.templateId, before.data.templateId, before.plan);
+    websiteUpdate.templateId = effectiveTemplateId(d.templateId, before);
   }
 
   let slug: string | undefined;

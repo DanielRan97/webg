@@ -14,6 +14,8 @@ import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "@/lib/constants";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { Button, ConfirmDialog, Notice } from "./ui/ui";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
+import { ProTemplateNotice } from "./ProTemplateNotice";
+import { needsProToPublish } from "@/lib/plan";
 
 // Inlined at build time by Next.js - not a secret, just a mode flag. Matches the same gate on SiteCard's dev-only controls.
 const isDev = process.env.NODE_ENV !== "production";
@@ -28,6 +30,7 @@ export function SiteActions({
   businessName,
   status,
   subscriptionStatus,
+  templateId,
 }: {
   id: string;
   slug: string;
@@ -35,6 +38,7 @@ export function SiteActions({
   businessName: string;
   status: string;
   subscriptionStatus: string;
+  templateId: string;
 }) {
   const router = useRouter();
   const [isPending, start] = useTransition();
@@ -101,12 +105,16 @@ export function SiteActions({
             <p className="text-sm text-ink-700">האתר אונליין. הורדה מהאוויר רק מסתירה אותו, שום דבר לא נמחק.</p>
           </>
         ) : (
-          <>
-            <Button className="w-full sm:w-auto" loading={running === "publish"} disabled={isPending} onClick={() => run("publish", publishSiteAction, publishedText)}>
+          needsProToPublish({ plan, templateId }) ? (
+            <ProTemplateNotice siteId={id} />
+          ) : (
+            <>
+              <Button className="w-full sm:w-auto" loading={running === "publish"} disabled={isPending} onClick={() => run("publish", publishSiteAction, publishedText)}>
               {running === "publish" ? "מפרסם..." : "פרסום האתר"}
             </Button>
-            <p className="text-sm text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
-          </>
+              <p className="text-sm text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
+            </>
+          )
         )}
       </div>
 

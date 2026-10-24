@@ -5,15 +5,17 @@ import { requireUser } from "@/lib/session";
 import { getOwnedWebsite } from "@/server/websites";
 import { isPubliclyVisible } from "@/lib/subscription";
 import { publicSiteHref } from "@/lib/site-url";
+import { WEBSITE_STATUS } from "@/lib/constants";
 import { SiteForm } from "@/components/wizard/SiteForm";
 import { SiteActions } from "@/components/SiteActions";
 
 export const metadata: Metadata = { title: "עריכת האתר" };
 export const dynamic = "force-dynamic";
 
-export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">) {
+export default async function EditPage({ params, searchParams }: PageProps<"/sites/[id]/edit">) {
   const user = await requireUser();
   const { id } = await params;
+  const { tab } = await searchParams;
   const site = await getOwnedWebsite(user.id, id);
   if (!site) notFound();
 
@@ -33,7 +35,7 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
             <Link href="/dashboard" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← האתרים שלי</Link>
             <h1 className="text-2xl font-extrabold">{site.data.businessName}</h1>
           </div>
-          <SiteActions id={site.id} slug={site.slug} plan={site.plan} businessName={site.data.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} />
+          <SiteActions id={site.id} slug={site.slug} plan={site.plan} businessName={site.data.businessName} status={site.status} subscriptionStatus={site.subscriptionStatus} templateId={site.data.templateId} />
         </div>
       </div>
       <SiteForm
@@ -42,6 +44,8 @@ export default async function EditPage({ params }: PageProps<"/sites/[id]/edit">
         wizardStep={null}
         plan={site.plan}
         liveUrl={isPubliclyVisible(site) ? publicSiteHref(site) : null}
+        published={site.status === WEBSITE_STATUS.PUBLISHED}
+        initialTab={typeof tab === "string" ? tab : undefined}
       />
     </>
   );

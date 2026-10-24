@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { publishSiteAction } from "@/server/actions/sites";
 import { publicSiteHref, publicSiteUrlDisplay } from "@/lib/site-url";
+import { needsProToPublish } from "@/lib/plan";
+import { ProTemplateNotice } from "../ProTemplateNotice";
 import { CopyButton } from "../CopyButton";
 import { Button, Notice } from "../ui/ui";
 
 /** Shown right after the wizard creates the website. */
-export function CreatedScreen({ id, slug, plan, businessName }: { id: string; slug: string; plan: string; businessName: string }) {
+export function CreatedScreen({ id, slug, plan, businessName, templateId }: { id: string; slug: string; plan: string; businessName: string; templateId: string }) {
   const [published, setPublished] = useState(false);
+  const needsPro = needsProToPublish({ plan, templateId });
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
   const address = publicSiteUrlDisplay({ slug, plan });
@@ -48,6 +51,7 @@ export function CreatedScreen({ id, slug, plan, businessName }: { id: string; sl
       ) : (
         <div className="mt-6 space-y-3">
           <p className="text-ink-700">רק אחרי הפרסום הלקוחות יוכלו לראות את האתר.</p>
+          {needsPro && <ProTemplateNotice siteId={id} />}
           {error && <Notice kind="error">{error}</Notice>}
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href={`/sites/${id}/preview`} target="_blank" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-6 font-semibold text-ink-800 hover:bg-ink-50">
@@ -56,7 +60,7 @@ export function CreatedScreen({ id, slug, plan, businessName }: { id: string; sl
             <Link href={`/sites/${id}/edit`} className="inline-flex min-h-12 items-center justify-center rounded-lg border border-ink-200 shadow-sm bg-white px-6 font-semibold text-ink-800 hover:bg-ink-50">
               עריכת האתר
             </Link>
-            <Button loading={pending} onClick={publish}>{pending ? "מפרסם..." : "פרסום האתר"}</Button>
+            {!needsPro && <Button loading={pending} onClick={publish}>{pending ? "מפרסם..." : "פרסום האתר"}</Button>}
           </div>
         </div>
       )}
