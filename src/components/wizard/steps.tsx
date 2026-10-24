@@ -275,15 +275,14 @@ export function ServicesStep({ data, update, errors }: StepProps) {
 /* 6 ─ Images */
 export function ImagesStep({ data, update, errors }: StepProps) {
   const room = 12 - data.gallery.length;
+  // Gallery uploads only make sense when the gallery section is on; otherwise this step is just the main image.
   const galleryOn = data.sections.some((s) => s.type === "gallery" && s.enabled);
-  // The gallery section is off for some kinds of business; adding photos switches it on, so they actually appear.
-  const withGalleryOn = () =>
-    galleryOn ? {} : { sections: data.sections.map((s) => (s.type === "gallery" ? { ...s, enabled: true } : s)) };
+  const turnGalleryOn = () => update({ sections: data.sections.map((s) => (s.type === "gallery" ? { ...s, enabled: true } : s)) });
   return (
     <div className="space-y-8">
-      <StepTitle title="תמונות" subtitle="תמונה טובה עושה הבדל גדול. הכול כאן לא חובה." />
+      <StepTitle title={galleryOn ? "תמונות" : "תמונה ראשית"} subtitle="תמונה טובה עושה הבדל גדול. הכול כאן לא חובה." />
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-ink-900">תמונה ראשית</p>
+        <p className="text-sm font-semibold text-ink-900">תמונה ראשית (לא חובה)</p>
         <p className="text-sm text-ink-500">התמונה הגדולה בראש האתר. עדיף תמונה פשוטה בלי הרבה טקסט, כך שם העסק ייקרא היטב. בלי תמונה, נשתמש בצבע העסק.</p>
         {data.heroImageUrl ? (
           <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-xl bg-ink-50 sm:w-72">
@@ -303,46 +302,51 @@ export function ImagesStep({ data, update, errors }: StepProps) {
           {data.heroImageUrl && <Button type="button" variant="ghost" onClick={() => update({ heroImageUrl: "" })}>הסרת התמונה</Button>}
         </div>
       </div>
-      <div className="space-y-3">
-        <p className="text-sm font-semibold text-ink-900">גלריה ({data.gallery.length} מתוך 12)</p>
-        <p className="text-sm text-ink-500">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה.</p>
-        <p className="flex gap-2 rounded-lg bg-brand-50 px-3 py-2.5 text-sm text-brand-900">
-          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>לכל תמונה אפשר להוסיף שם, תיאור קצר ומחיר, למשל מנה, מוצר או עבודה שעשיתם. השם והמחיר יופיעו באתר על התמונה. הכול לא חובה: אפשר להשאיר תמונה בלי פרטים.</span>
-        </p>
-        {!galleryOn && data.gallery.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
-            <span>חלק ״גלריה״ כבוי, ולכן התמונות האלה לא מוצגות באתר.</span>
-            <Button type="button" variant="secondary" className="min-h-10 px-4 text-sm" onClick={() => update(withGalleryOn())}>הצגת הגלריה באתר</Button>
-          </div>
-        )}
-        {data.gallery.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-ink-300 p-4 text-center text-sm text-ink-700">עדיין אין תמונות בגלריה</p>
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {data.gallery.map((g, i) => (
-              <li key={g.url} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
-                <div className="relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={g.url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-lg object-cover" />
-                  <button type="button" aria-label={`הסרת תמונה ${i + 1} מהגלריה`} onClick={() => update({ gallery: data.gallery.filter((_, idx) => idx !== i) })} className="absolute end-1 top-1 h-10 w-10 rounded-full bg-black/80 text-lg text-white">×</button>
-                </div>
-                <TextField label="שם / כותרת (לא חובה)" placeholder="לדוגמה: המבורגר הבית" value={g.title} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, title: v } : x)) })} maxLength={80} />
-                <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: 200 גרם בקר, צ'דר וביצת עין" value={g.description} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, description: v } : x)) })} maxLength={300} />
-                <TextField label="מחיר (לא חובה)" placeholder="לדוגמה: 68 ₪, החל מ-250 ₪" value={g.price} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, price: v } : x)) })} error={errors[`gallery-price-${i}`]} maxLength={30} />
-              </li>
-            ))}
-          </ul>
-        )}
-        <ImageUploader
-          label="הוספת תמונות לגלריה"
-          hint="אפשר לבחור כמה תמונות יחד. מומלץ לפחות 1200×1200 פיקסלים, ריבועיות או לרוחב, עם הדבר החשוב במרכז. JPG, PNG או WEBP, עד 5MB לתמונה."
-          multiple
-          disabled={room <= 0}
-          minSize={{ w: 800, h: 800 }}
-          onUploaded={(u) => update({ gallery: [...data.gallery, ...u.map((url) => ({ url, title: "", description: "", price: "" }))].slice(0, 12), ...withGalleryOn() })}
-        />
-      </div>
+      {galleryOn ? (
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-ink-900">גלריה ({data.gallery.length} מתוך 12)</p>
+          <p className="text-sm text-ink-500">תמונות מהעבודה או מהמקום, כדי שלקוחות יראו איך זה נראה.</p>
+          <p className="flex gap-2 rounded-lg bg-brand-50 px-3 py-2.5 text-sm text-brand-900">
+            <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>לכל תמונה אפשר להוסיף שם, תיאור קצר ומחיר, למשל מנה, מוצר או עבודה שעשיתם. השם והמחיר יופיעו באתר על התמונה. הכול לא חובה: אפשר להשאיר תמונה בלי פרטים.</span>
+          </p>
+          {data.gallery.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-ink-300 p-4 text-center text-sm text-ink-700">עדיין אין תמונות בגלריה</p>
+          ) : (
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {data.gallery.map((g, i) => (
+                <li key={g.url} className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={g.url} alt={`תמונה ${i + 1} בגלריה`} className="aspect-square w-full rounded-lg object-cover" />
+                    <button type="button" aria-label={`הסרת תמונה ${i + 1} מהגלריה`} onClick={() => update({ gallery: data.gallery.filter((_, idx) => idx !== i) })} className="absolute end-1 top-1 h-10 w-10 rounded-full bg-black/80 text-lg text-white">×</button>
+                  </div>
+                  <TextField label="שם / כותרת (לא חובה)" placeholder="לדוגמה: המבורגר הבית" value={g.title} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, title: v } : x)) })} maxLength={80} />
+                  <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: 200 גרם בקר, צ'דר וביצת עין" value={g.description} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, description: v } : x)) })} maxLength={300} />
+                  <TextField label="מחיר (לא חובה)" placeholder="לדוגמה: 68 ₪, החל מ-250 ₪" value={g.price} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, price: v } : x)) })} error={errors[`gallery-price-${i}`]} maxLength={30} />
+                </li>
+              ))}
+            </ul>
+          )}
+          <ImageUploader
+            label="הוספת תמונות לגלריה"
+            hint="אפשר לבחור כמה תמונות יחד. מומלץ לפחות 1200×1200 פיקסלים, ריבועיות או לרוחב, עם הדבר החשוב במרכז. JPG, PNG או WEBP, עד 5MB לתמונה."
+            multiple
+            disabled={room <= 0}
+            minSize={{ w: 800, h: 800 }}
+            onUploaded={(u) => update({ gallery: [...data.gallery, ...u.map((url) => ({ url, title: "", description: "", price: "" }))].slice(0, 12) })}
+          />
+        </div>
+      ) : (
+        <div className="space-y-2 rounded-xl border border-ink-200 bg-ink-50 p-4">
+          <p className="text-sm font-semibold text-ink-900">גלריית תמונות</p>
+          <p className="text-sm text-ink-700">
+            הגלריה לא מופיעה באתר שלכם, ולכן אין כאן העלאת תמונות לגלריה. רוצים להציג תמונות מהעבודה או מהמקום? אפשר להוסיף את החלק ״גלריה״ כאן או בשלב ״מה יופיע באתר״.
+            {data.gallery.length > 0 && ` התמונות שכבר העליתם (${data.gallery.length}) שמורות ויופיעו ברגע שתוסיפו את הגלריה.`}
+          </p>
+          <Button type="button" variant="secondary" className="min-h-10 px-4 text-sm" onClick={turnGalleryOn}>+ הוספת גלריה לאתר</Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -77,7 +77,7 @@ const STEPS: StepDef[] = [
   { id: "skills", label: () => "כישורים", Component: SkillsStep, show: (d) => sectionOn(d, "skills") },
   { id: "projects", label: () => "פרויקטים", Component: ProjectsStep, show: (d) => sectionOn(d, "projects") },
   { id: "certifications", label: () => "הסמכות וקורסים", Component: CertificationsStep, show: (d) => sectionOn(d, "certifications") },
-  { id: "images", label: () => "תמונות", Component: ImagesStep },
+  { id: "images", label: (d) => (sectionOn(d, "gallery") ? "תמונות" : "תמונה ראשית"), Component: ImagesStep },
   { id: "address", label: () => "כתובת האתר", Component: AddressStep },
   { id: "social", label: () => "יצירת קשר", Component: SocialStep },
 ];
