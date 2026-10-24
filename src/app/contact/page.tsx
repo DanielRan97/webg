@@ -34,8 +34,8 @@ export default function ContactPage() {
 
       <Section title="פרטי העסק">
         <p>
-          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>), {BUSINESS.type}
-          {BUSINESS.number && <> מס׳ <span dir="ltr">{BUSINESS.number}</span></>}, {BUSINESS.address}.
+          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>)
+          {BUSINESS.number && <>, מס׳ עוסק <span dir="ltr">{BUSINESS.number}</span></>}, {BUSINESS.address}.
         </p>
       </Section>
     </LegalPage>

@@ -12,8 +12,8 @@ export default function TermsPage() {
     <LegalPage title="תנאי שימוש" updatedAt={UPDATED_AT}>
       <Section title="מי אנחנו">
         <p>
-          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>), {BUSINESS.type}
-          {BUSINESS.number && <> מס׳ <span dir="ltr">{BUSINESS.number}</span></>}, {BUSINESS.address}. טלפון:{" "}
+          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>)
+          {BUSINESS.number && <>, מס׳ עוסק <span dir="ltr">{BUSINESS.number}</span></>}, {BUSINESS.address}. טלפון:{" "}
           <a href={BUSINESS.phoneHref} dir="ltr" className={linkClass}>{BUSINESS.phone}</a>, אימייל:{" "}
           <a href={`mailto:${BUSINESS.email}`} dir="ltr" className={linkClass}>{BUSINESS.email}</a>.
         </p>
@@ -44,7 +44,7 @@ export default function TermsPage() {
           ))}
         </ul>
         <p>
-          המחירים סופיים. {BUSINESS.nameHe} היא {BUSINESS.type}, ולכן לא נגבה מע״מ. אין דמי הקמה ואין התחייבות לתקופה
+          המחירים סופיים, ואין כל תוספת למחיר המוצג. אין דמי הקמה ואין התחייבות לתקופה
           מינימלית. על כל חיוב תישלח קבלה לכתובת האימייל של החשבון.
         </p>
       </Section>

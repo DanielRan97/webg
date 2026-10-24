@@ -18,8 +18,8 @@ export function SiteFooter() {
         <div className="space-y-3">
           <WebgMark size="sm" />
           <p className="max-w-md leading-relaxed">
-            WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>), {BUSINESS.type}
-            {BUSINESS.number && <> מס׳ <span dir="ltr">{BUSINESS.number}</span></>}.
+            WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>)
+            {BUSINESS.number && <>, מס׳ עוסק <span dir="ltr">{BUSINESS.number}</span></>}.
           </p>
           <address className="space-y-1 not-italic">
             <p>{BUSINESS.address}</p>

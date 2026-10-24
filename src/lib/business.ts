@@ -8,7 +8,7 @@ import { SUPPORT_EMAIL } from "./constants";
 export const BUSINESS = {
   name: "Dystems",
   nameHe: "דיסטמס",
-  /** Exempt dealer: prices are final and no VAT is charged; every charge gets a receipt, not a tax invoice. */
+  /** Exempt dealer: prices are final and no VAT is charged; every charge gets a receipt, not a tax invoice. Not shown on the public pages by the owner's choice, so never write "כולל מע״מ" anywhere. */
   type: "עוסק פטור",
   number: "318188505",
   address: "קדיש לוז 8, קריית מוצקין",
@@ -37,4 +37,4 @@ export const PLANS = [
   },
 ] as const;
 
-export const PRICE_NOTE = `המחירים לחודש, סופיים. ${BUSINESS.nameHe} היא ${BUSINESS.type} ולכן לא נגבה מע״מ. המנוי מתחדש מדי חודש, ואפשר לבטל בכל עת.`;
+export const PRICE_NOTE = "המחירים לחודש וסופיים, ללא תוספות. המנוי מתחדש מדי חודש, ואפשר לבטל בכל עת.";

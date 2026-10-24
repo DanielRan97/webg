@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalPage title="מדיניות פרטיות" updatedAt={UPDATED_AT}>
       <Section title="מי אחראי על המידע">
         <p>
-          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>), {BUSINESS.type}, {BUSINESS.address}.
+          WEBG מופעל על ידי {BUSINESS.nameHe} (<span dir="ltr">{BUSINESS.name}</span>), {BUSINESS.address}.
           {BUSINESS.nameHe} היא האחראית על המידע שנאסף בשירות, כמתואר במדיניות זו.
         </p>
       </Section>
