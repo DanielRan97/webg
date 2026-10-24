@@ -20,7 +20,7 @@ export default async function AdminInteractionsPage() {
         <StatCard label="הודעות" value={stats.messages} />
       </div>
 
-      <section className="space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+      <section className="space-y-3 rounded-2xl border border-ink-200 bg-white p-4">
         <h2 className="text-lg font-bold">פעילות אחרונה</h2>
         {recentInteractions.length === 0 ? (
           <p className="text-sm text-ink-500">אין עדיין פניות.</p>

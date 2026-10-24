@@ -31,7 +31,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       {state.ok ? (
         <div className="space-y-4">
           <Notice kind="success">הסיסמה עודכנה בהצלחה. אפשר להתחבר עם הסיסמה החדשה.</Notice>
-          <Link href="/login" className="flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700">
+          <Link href="/login" className="flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700 transition hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)] active:scale-[0.98]">
             מעבר להתחברות
           </Link>
         </div>

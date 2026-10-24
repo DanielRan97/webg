@@ -8,6 +8,7 @@ export function LegalPage({ title, updatedAt, children }: { title: string; updat
       <main className="mx-auto max-w-3xl space-y-8 px-5 py-16">
         <div className="space-y-4">
           <Link href="/" className="text-sm font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">← חזרה ל-WEBG</Link>
+          <span aria-hidden className="block h-1 w-12 rounded-full bg-linear-to-l from-brand-600 to-cyan-400" />
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h1>
           {updatedAt && <p className="text-sm text-ink-500">עודכן לאחרונה: {updatedAt}</p>}
         </div>

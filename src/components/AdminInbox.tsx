@@ -25,7 +25,7 @@ const dateFormatter = new Intl.DateTimeFormat("he-IL", { dateStyle: "short", tim
 
 function SummaryCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
   return (
-    <div className={cx("rounded-xl border p-4", accent ? "border-ink-300 bg-ink-50" : "border-ink-100 bg-white")}>
+    <div className={cx("rounded-2xl border p-4", accent ? "border-brand-200 bg-brand-50" : "border-ink-200 bg-white")}>
       <p className="text-2xl font-extrabold">{value}</p>
       <p className="text-sm text-ink-700">{label}</p>
     </div>
@@ -57,7 +57,7 @@ function InteractionRow({
   return (
     <div
       ref={rowRef}
-      className={cx("rounded-xl border transition", unread ? "border-ink-300 bg-ink-50/60" : "border-ink-100 bg-white")}
+      className={cx("rounded-2xl border transition", unread ? "border-brand-200 bg-brand-50/60" : "border-ink-200 bg-white")}
     >
       <button
         type="button"

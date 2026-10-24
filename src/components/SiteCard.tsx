@@ -186,7 +186,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
               {running === "activate" ? "מפעיל..." : "הפעל מחדש"}
             </Button>
           ) : state === "PUBLISHED" ? (
-            <Link href={`/sites/${site.id}/edit`} className="flex min-h-12 w-full items-center justify-center rounded-lg bg-brand-600 px-6 text-base font-semibold text-white transition hover:bg-brand-700">
+            <Link href={`/sites/${site.id}/edit`} className="flex min-h-12 w-full items-center justify-center rounded-lg bg-brand-600 px-6 text-base font-semibold text-white transition hover:bg-brand-700 hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)] active:scale-[0.98]">
               עריכת האתר
             </Link>
           ) : needsProToPublish({ plan: site.plan, templateId: d.templateId }) ? (
@@ -271,7 +271,7 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
                   ref={menuPanelRef}
                   role="menu"
                   style={{ position: "fixed", top: menuPos?.top ?? 0, left: menuPos?.left ?? 0, visibility: menuPos ? "visible" : "hidden" }}
-                  className="z-50 w-48 rounded-xl border border-ink-200 bg-white p-1.5 shadow-lg"
+                  className="z-50 w-48 rounded-2xl border border-ink-200 bg-white p-1.5 shadow-lg"
                 >
                   {isDev && !inactive && (
                     <button

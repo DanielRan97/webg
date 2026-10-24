@@ -84,7 +84,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps<"/adm
         </form>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-ink-200 bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-ink-200 bg-white">
         <table className="w-full min-w-[800px] text-sm">
           <thead className="border-b border-ink-200 bg-ink-50">
             <tr>

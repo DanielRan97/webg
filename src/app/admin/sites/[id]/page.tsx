@@ -38,7 +38,7 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-ink-200 bg-white p-4">
+        <section className="rounded-2xl border border-ink-200 bg-white p-4">
           <Row label="בעלים" value={<span dir="ltr">{site.ownerEmail}</span>} />
           <Row label="תוכנית" value={site.plan} />
           <Row label="סטטוס" value={site.status === "PUBLISHED" ? "מפורסם" : "טיוטה"} />
@@ -53,7 +53,7 @@ export default async function AdminSiteDetailPage({ params }: PageProps<"/admin/
           {site.subscription && <Row label="סטטוס מנוי" value={site.subscription.status} />}
         </section>
 
-        <section className="rounded-xl border border-ink-200 bg-white p-4">
+        <section className="rounded-2xl border border-ink-200 bg-white p-4">
           <PlanOverride siteId={site.id} plan={site.plan} />
         </section>
       </div>

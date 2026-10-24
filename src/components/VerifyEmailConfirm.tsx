@@ -35,7 +35,7 @@ export function VerifyEmailConfirm({ token }: { token: string }) {
 
 export function VerifyEmailLinks() {
   return (
-    <Link href="/dashboard" className="flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700">
+    <Link href="/dashboard" className="flex min-h-12 items-center justify-center rounded-lg bg-brand-600 px-6 font-semibold text-white hover:bg-brand-700 transition hover:shadow-[0_8px_20px_-8px_rgb(21_70_209/0.55)] active:scale-[0.98]">
       מעבר ללוח הבקרה
     </Link>
   );

@@ -9,7 +9,7 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-bold tracking-tight md:text-4xl">משתמשים ({users.length})</h1>
-      <div className="overflow-x-auto rounded-xl border border-ink-200 bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-ink-200 bg-white">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b border-ink-200 bg-ink-50 text-start">
             <tr>

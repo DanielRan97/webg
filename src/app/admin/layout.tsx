@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const supportUnreadCount = await getAdminUnreadCount();
   return (
     <div dir="rtl" className="min-h-screen bg-paper">
-      <header className="sticky top-0 z-40 border-b border-ink-200 bg-white">
+      <header className="sticky top-0 z-40 border-b border-ink-200 bg-white/85 backdrop-blur-md">
         <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2">
           <div className="flex flex-wrap items-center gap-6">
             <Link href="/admin" aria-label="WEBG Admin" className="flex min-h-11 items-center">

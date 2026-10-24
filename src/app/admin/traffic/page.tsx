@@ -20,7 +20,7 @@ export default async function AdminTrafficPage() {
         <StatCard label="סך הכל" value={totals.allTime} />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-ink-200 bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-ink-200 bg-white">
         <table className="w-full min-w-[600px] text-sm">
           <thead className="border-b border-ink-200 bg-ink-50">
             <tr>

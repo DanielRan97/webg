@@ -29,7 +29,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="min-w-0 space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+        <section className="min-w-0 space-y-3 rounded-2xl border border-ink-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">אתרים עם הכי הרבה כניסות</h2>
             <Link href="/admin/traffic" className="text-sm font-semibold text-ink-700 underline">כל התנועה</Link>
@@ -51,7 +51,7 @@ export default async function AdminOverviewPage() {
           )}
         </section>
 
-        <section className="min-w-0 space-y-3 rounded-xl border border-ink-200 bg-white p-4">
+        <section className="min-w-0 space-y-3 rounded-2xl border border-ink-200 bg-white p-4">
           <h2 className="text-lg font-bold">פעילות אחרונה</h2>
           {activity.length === 0 ? (
             <p className="text-sm text-ink-500">אין עדיין פעילות.</p>
