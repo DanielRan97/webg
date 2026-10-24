@@ -8,6 +8,7 @@ import { canAccessInbox } from "@/lib/plan";
 import { AdminInbox } from "@/components/AdminInbox";
 import { LockedFeature } from "@/components/LockedFeature";
 import { PlanComparison } from "@/components/PlanComparison";
+import { InquiryDelivery } from "@/components/InquiryDelivery";
 
 export const metadata: Metadata = { title: "מרכז הפניות" };
 export const dynamic = "force-dynamic";
@@ -37,14 +38,15 @@ function AdminHeader({ site }: { site: { id: string; data: { businessName: strin
  * fetches) any CustomerInteraction data. Nothing is deleted: the moment the
  * site is upgraded, the full history is exactly where it was.
  */
-function LockedInboxView({ site }: { site: { id: string; data: { businessName: string } } }) {
+function LockedInboxView({ site, email }: { site: { id: string; plan: string; data: { businessName: string } }; email: string }) {
   return (
     <>
       <AdminHeader site={site} />
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
+        <InquiryDelivery plan={site.plan} email={email} />
         <LockedFeature
           label="מרכז פניות"
-          hint="לידים מ״השאירו פרטים״, הודעות מ״שליחת הודעה״, וכל פנייה אחרת מלקוחות - נשמרים במקום אחד בתוך WEBG, בנוסף לעדכונים שנשלחים אליכם במייל כבר עכשיו. שום פנייה לא אובדת: הפניות שכבר התקבלו לא נמחקות - שדרוג ל-Pro יחשוף אותן מיד."
+          hint="כל הלידים וההודעות מהאתר במקום אחד בתוך WEBG, בנוסף למייל. שום פנייה לא אובדת: גם הפניות שכבר התקבלו יופיעו כאן מיד אחרי מעבר ל-Pro."
         />
         <PlanComparison />
       </main>
@@ -58,7 +60,7 @@ export default async function SiteAdminPage({ params, searchParams }: PageProps<
   const site = await getOwnedWebsite(user.id, id);
   if (!site) notFound();
 
-  if (!canAccessInbox(site)) return <LockedInboxView site={site} />;
+  if (!canAccessInbox(site)) return <LockedInboxView site={site} email={user.email} />;
 
   // Fetched before anything marks interactions seen, so rows unread as of
   // this page load still show a "חדש" badge for the rest of this visit -
@@ -73,7 +75,7 @@ export default async function SiteAdminPage({ params, searchParams }: PageProps<
     <>
       <AdminHeader site={site} />
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        <p className="text-ink-700">כל הפניות והלידים שהתקבלו דרך האתר במקום אחד.</p>
+        <InquiryDelivery plan={site.plan} email={user.email} />
         <AdminInbox siteId={site.id} interactions={interactions} initialInteractionId={initialInteractionId} />
       </main>
     </>

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { SiteData } from "@/types/site";
 import { LockIcon } from "../icons";
+import { PREVIEW_SCROLL_EVENT } from "./preview-scroll";
 
 /** Live preview: an iframe running the real WebsiteRenderer, fed the form data via postMessage. `address` adds a browser-style address bar above it. */
 export function PreviewPane({
@@ -29,6 +30,16 @@ export function PreviewPane({
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  // "Show this section": wait a frame or two, so a preview that was just switched into view has its layout.
+  useEffect(() => {
+    const onShow = (e: Event) => {
+      const section = (e as CustomEvent<string>).detail;
+      setTimeout(() => frame.current?.contentWindow?.postMessage({ type: "webg:preview-scroll", section }, window.location.origin), 80);
+    };
+    window.addEventListener(PREVIEW_SCROLL_EVENT, onShow);
+    return () => window.removeEventListener(PREVIEW_SCROLL_EVENT, onShow);
   }, []);
 
   return (

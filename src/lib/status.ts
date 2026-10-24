@@ -37,6 +37,6 @@ export function subscriptionInfo(status: string) {
 export function nextStep(site: { status: string; subscriptionStatus: string }): string {
   const state = displayState(site);
   if (state === "SUBSCRIPTION_INACTIVE") return "לחצו על ״הפעל מחדש״ כדי להחזיר את האתר לאוויר.";
-  if (state === "DRAFT") return "בדקו את האתר בתצוגה מקדימה, ואז לחצו על ״פרסום״.";
-  return isPubliclyVisible(site) ? "אפשר לשלוח את הכתובת ללקוחות." : "לחצו על ״פרסום״ כדי שהלקוחות יראו את האתר.";
+  if (state === "DRAFT") return "האתר עדיין טיוטה, ולקוחות לא רואים אותו. רוצים לבדוק? ״תצוגה מקדימה״ פותחת אותו, ואפשר לפרסם משם או מכאן, בכפתור ״פרסום האתר״.";
+  return isPubliclyVisible(site) ? "אפשר לשלוח את הכתובת ללקוחות." : "לחצו על ״פרסום האתר״ כדי שהלקוחות יראו את האתר.";
 }

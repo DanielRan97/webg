@@ -5,6 +5,7 @@ import { PLANS, PRICE_NOTE } from "@/lib/business";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { WebgMark } from "@/components/WebgMark";
 import { Blueprint } from "@/components/landing/Blueprint";
+import { HeroSpotlight } from "@/components/landing/HeroSpotlight";
 import { SiteFooter } from "@/components/SiteFooter";
 import { KeyIcon, LockIcon, MailCheckIcon, TrashIcon } from "@/components/icons";
 
@@ -30,6 +31,7 @@ export default async function LandingPage() {
     <div className="bg-white text-ink-900">
       <div className="relative overflow-hidden bg-ink-950">
         <Blueprint />
+        <HeroSpotlight />
         <header className="relative mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
           <WebgMark tone="dark" />
           <nav className="flex items-center gap-2 text-sm font-semibold">
@@ -51,7 +53,7 @@ export default async function LandingPage() {
 
       <main>
         <section id="how" className="scroll-mt-6 px-5 py-24">
-          <div className="mx-auto max-w-6xl">
+          <div className="webg-reveal mx-auto max-w-6xl">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">שלושה צעדים, ויש לכם אתר.</h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-600">
               לא צריך לדעת מה זה אחסון, דומיין או קוד. WEBG עושה את החלק הטכני.
@@ -69,7 +71,7 @@ export default async function LandingPage() {
         </section>
 
         <section className="border-y border-ink-100 bg-paper px-5 py-24">
-          <div className="mx-auto max-w-6xl">
+          <div className="webg-reveal mx-auto max-w-6xl">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">בנוי לעסקים שצריכים לסמוך על האתר שלהם.</h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-600">אבטחה מובנית בכל אתר, בלי הגדרות ובלי תוספות.</p>
             <ul className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2">
@@ -89,7 +91,7 @@ export default async function LandingPage() {
         </section>
 
         <section className="px-5 py-24">
-          <div className="mx-auto max-w-6xl">
+          <div className="webg-reveal mx-auto max-w-6xl">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">מותאם לסוג העסק שלכם.</h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-600">
               בוחרים סוג עסק, ו-WEBG מציע את החלקים שמתאימים לו: תפריט למסעדה, קביעת תור לספר, שירות חירום לחשמלאי.
@@ -103,7 +105,7 @@ export default async function LandingPage() {
         </section>
 
         <section id="pricing" className="scroll-mt-6 px-5 pb-24">
-          <div className="mx-auto max-w-6xl">
+          <div className="webg-reveal mx-auto max-w-6xl">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">מחיר אחד לחודש, בלי הפתעות.</h2>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-600">בלי דמי הקמה ובלי התחייבות. משלמים על כל אתר בנפרד.</p>
             <ul className="mt-12 grid gap-5 md:grid-cols-2">
@@ -117,18 +119,27 @@ export default async function LandingPage() {
                       <li key={f} className="flex items-start gap-2"><span aria-hidden className="font-bold text-brand-600">✓</span>{f}</li>
                     ))}
                   </ul>
-                  <Link href={ctaHref} className={`mt-8 inline-flex min-h-12 items-center justify-center rounded-xl px-6 font-semibold transition ${p.id === "PRO" ? "bg-brand-600 text-white hover:bg-brand-700" : "border border-ink-200 text-ink-900 hover:bg-ink-50"}`}>
-                    בחירת {p.name}
-                  </Link>
                 </li>
               ))}
             </ul>
+            {/* No per-plan buttons: the plan is picked inside the site-building form, so the cards only explain. */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-brand-200 bg-brand-50 p-6">
+              <div className="max-w-2xl">
+                <h3 className="font-bold text-ink-950">איך בוחרים חבילה?</h3>
+                <p className="mt-1.5 leading-relaxed text-ink-700">
+                  לא צריך לבחור עכשיו. את החבילה בוחרים בתוך טופס בניית האתר. מתחילים לבנות, אפשר לנסות גם עיצובים ויכולות שמסומנים ב-Pro, ומחליטים לפני שמפרסמים.
+                </p>
+              </div>
+              <Link href={ctaHref} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-brand-600 px-6 font-semibold text-white transition hover:bg-brand-700">
+                מתחילים לבנות את האתר
+              </Link>
+            </div>
             <p className="mt-6 text-sm text-ink-500">{PRICE_NOTE} פרטים מלאים ב<Link href="/terms" className="underline underline-offset-2 hover:text-ink-900">תנאי השימוש</Link>.</p>
           </div>
         </section>
 
         <section className="px-5 pb-24">
-          <div className="relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8 overflow-hidden rounded-3xl bg-ink-950 px-8 py-14 text-white md:px-14">
+          <div className="webg-reveal relative mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-8 overflow-hidden rounded-3xl bg-ink-950 px-8 py-14 text-white md:px-14">
             <div aria-hidden className="webg-drift pointer-events-none absolute -top-24 start-1/3 h-64 w-64 rounded-full bg-brand-600/30 blur-3xl" />
             <div aria-hidden className="webg-drift pointer-events-none absolute -bottom-28 end-10 h-56 w-56 rounded-full bg-cyan-500/15 blur-3xl" style={{ animationDelay: "-7s" }} />
             <div className="relative">

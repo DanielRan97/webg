@@ -1,5 +1,5 @@
 import { PLANS, PRICE_NOTE } from "@/lib/business";
-import { cx } from "./ui/ui";
+import { cx } from "@/lib/cx";
 
 /** Compact BASIC/PRO comparison: price and what's included. Reused by the wizard's "מה כולל Pro?" modal and any other locked-feature explanation. */
 export function PlanComparison() {

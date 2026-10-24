@@ -7,6 +7,11 @@ import type { GalleryLayout, TemplateTheme } from "./types";
  * 1 -> one wide, 2 -> halves, 3 -> thirds, 4 -> 2x2, 5 -> 3+2, 7 -> 3+2+2x2.
  */
 const SPAN_CLASS: Record<number, string> = { 2: "md:col-span-2", 3: "md:col-span-3", 6: "md:col-span-6" };
+/**
+ * Mosaic tile shapes: proportions instead of one fixed height, so a wide tile isn't a thin strip
+ * cut out of the photo (the old "zoomed in" look). A lone image stays a moderate size, centered.
+ */
+const SPAN_SHAPE: Record<number, string> = { 2: "md:aspect-square", 3: "md:aspect-[4/3]", 6: "md:aspect-[3/2] md:mx-auto md:w-full md:max-w-3xl" };
 function gallerySpans(n: number): number[] {
   if (n === 1) return [6];
   if (n === 2) return [3, 3];
@@ -40,9 +45,9 @@ function Mosaic({ d, t }: Props) {
     <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
       {d.gallery.map((g, i) => (
         <div key={g.url + i}
-          className={`relative overflow-hidden ${t.media} ${SPAN_CLASS[spans[i]]} ${odd && i === d.gallery.length - 1 ? "col-span-2" : ""}`}>
+          className={`relative overflow-hidden ${t.media} ${SPAN_CLASS[spans[i]]} ${SPAN_SHAPE[spans[i]]} ${odd && i === d.gallery.length - 1 ? "col-span-2 aspect-[4/3]" : "aspect-square"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={g.url} alt={alt(d, i)} loading="lazy" className="h-44 w-full object-cover sm:h-56 md:h-64" />
+          <img src={g.url} alt={alt(d, i)} loading="lazy" className="h-full w-full object-cover" />
           <Caption g={g} />
         </div>
       ))}
@@ -91,7 +96,7 @@ function Chunky({ d }: Props) {
         const last = odd && i === d.gallery.length - 1;
         return (
           <div key={g.url + i}
-            className={`relative overflow-hidden rounded-md border-[3px] border-black shadow-[4px_4px_0_0_#000] ${last ? "col-span-2 aspect-video" : i % 2 === 0 ? "aspect-square" : "aspect-[4/5]"}`}>
+            className={`relative overflow-hidden rounded-md border-[3px] border-black shadow-[4px_4px_0_0_#000] ${last ? "col-span-2 aspect-[4/3]" : i % 2 === 0 ? "aspect-square" : "aspect-[4/5]"}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={g.url} alt={alt(d, i)} loading="lazy" className="h-full w-full object-cover" />
             <Caption g={g} />
@@ -124,11 +129,11 @@ function Showcase({ d, t }: Props) {
   const n = d.gallery.length;
   if (n <= 2) {
     return (
-      <div className={`grid gap-4 md:gap-5 ${n === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
+      <div className={`grid gap-4 md:gap-5 ${n === 1 ? "mx-auto max-w-3xl grid-cols-1" : "grid-cols-1 sm:grid-cols-2"}`}>
         {d.gallery.map((g, i) => (
-          <div key={g.url + i} className={`group relative overflow-hidden ${t.media} aspect-[16/10]`}>
+          <div key={g.url + i} className={`group relative overflow-hidden ${t.media} aspect-[4/3]`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={g.url} alt={alt(d, i)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <img src={g.url} alt={alt(d, i)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
             <Caption g={g} />
           </div>
         ))}
@@ -142,16 +147,16 @@ function Showcase({ d, t }: Props) {
   const spans = gallerySpans(rest.length);
   return (
     <div className="space-y-4 md:space-y-5">
-      <div className={`group relative overflow-hidden ${t.media} aspect-[16/9] md:aspect-[21/9]`}>
+      <div className={`group relative overflow-hidden ${t.media} aspect-[4/3] md:aspect-[16/9]`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={lead.url} alt={alt(d, 0)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        <img src={lead.url} alt={alt(d, 0)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
         <Caption g={lead} />
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-6 md:gap-5">
         {rest.map((g, i) => (
           <div key={g.url + i} className={`group relative overflow-hidden ${t.media} ${SPAN_CLASS[spans[i]]} aspect-[4/5]`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={g.url} alt={alt(d, i + 1)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <img src={g.url} alt={alt(d, i + 1)} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
             <Caption g={g} />
           </div>
         ))}

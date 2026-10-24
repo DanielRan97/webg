@@ -17,6 +17,15 @@ export default function PreviewFrame() {
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === "webg:preview") setData(e.data.data as SiteData);
+      if (e.data?.type === "webg:preview-scroll" && typeof e.data.section === "string") {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        // Scroll only this frame (scrollIntoView would also scroll the wizard page around it).
+        const el = document.getElementById(`sec-${e.data.section}`);
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - (parseFloat(getComputedStyle(el).scrollMarginTop) || 0);
+          window.scrollTo({ top, behavior: reduce ? "auto" : "smooth" });
+        }
+      }
     };
     window.addEventListener("message", onMessage);
     window.parent.postMessage({ type: "webg:preview-ready" }, window.location.origin);

@@ -9,6 +9,7 @@ import { SLUG_BASE } from "@/lib/slug-format";
 import type { SiteData } from "@/types/site";
 import { Logo } from "@/templates/shared/Logo";
 import { PlanComparisonModal } from "../PlanComparisonModal";
+import { InquiryDelivery } from "../InquiryDelivery";
 import { UrlPreview } from "./UrlPreview";
 import type { SlugCheck } from "./SiteForm";
 import { TemplatePicker } from "./TemplatePicker";
@@ -139,7 +140,7 @@ export function BrandingStep({ data, update, plan, live }: StepProps) {
           <div className="flex flex-wrap items-center gap-2">
             <ImageUploader
               label={data.logoUrl ? "החלפת לוגו" : "העלאת לוגו"}
-              hint="PNG, JPG או WEBP, עד 5MB."
+              hint="הכי טוב: קובץ PNG עם רקע שקוף, ברוחב 512 פיקסלים לפחות. לוגו ריבועי או רחב ייראה טוב בסרגל העליון. אפשר גם JPG או WEBP, עד 5MB."
               onUploaded={(u) => update({ logoUrl: u[0] })}
             />
             {data.logoUrl && <Button type="button" variant="ghost" onClick={() => update({ logoUrl: "" })}>הסרת הלוגו</Button>}
@@ -241,7 +242,7 @@ export function ServicesStep({ data, update, errors }: StepProps) {
             </div>
             <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
               <TextField label={`שם ה${noun}`} placeholder={example ? `לדוגמה: ${example.name}` : undefined} value={s.name} onChange={(v) => setItem(i, { name: v })} error={errors[`service-${i}`]} maxLength={80} />
-              <TextField label="מחיר (לא חובה)" hint="אפשר גם טקסט חופשי." placeholder="לדוגמה: 70 ₪" value={s.price} onChange={(v) => setItem(i, { price: v })} maxLength={30} />
+              <TextField label="מחיר (לא חובה)" hint="מספר, ואפשר להוסיף מילה. לדוגמה: החל מ-70 ₪" placeholder="לדוגמה: 70 ₪" value={s.price} onChange={(v) => setItem(i, { price: v })} error={errors[`service-price-${i}`]} maxLength={30} />
             </div>
             <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: כולל ייעוץ, טיפול וסידור." value={s.description} onChange={(v) => setItem(i, { description: v })} maxLength={300} />
             <TextField label="קבוצה (לא חובה)" hint="שירותים באותה קבוצה יוצגו יחד, תחת כותרת. לדוגמה: תספורות, טיפולי פנים, משלוחים." placeholder={menuOnly ? "לדוגמה: ראשונות" : "לדוגמה: תספורות"} list="group-suggestions" value={s.category} onChange={(v) => setItem(i, { category: v })} maxLength={40} />
@@ -256,7 +257,7 @@ export function ServicesStep({ data, update, errors }: StepProps) {
 }
 
 /* 6 ─ Images */
-export function ImagesStep({ data, update }: StepProps) {
+export function ImagesStep({ data, update, errors }: StepProps) {
   const room = 12 - data.gallery.length;
   return (
     <div className="space-y-8">
@@ -275,7 +276,7 @@ export function ImagesStep({ data, update }: StepProps) {
         <div className="space-y-2">
           <ImageUploader
             label={data.heroImageUrl ? "החלפת תמונה" : "העלאת תמונה ראשית"}
-            hint="קובץ PNG, JPG או WEBP, עד 5MB. מומלץ תמונה לרוחב, לפחות 1600×900 פיקסלים."
+            hint="מומלץ תמונה לרוחב, לפחות 1600×900 פיקסלים, עם הדבר החשוב במרכז (בטלפון רואים בעיקר את המרכז). JPG, PNG או WEBP, עד 5MB."
             onUploaded={(u) => update({ heroImageUrl: u[0] })}
           />
           {data.heroImageUrl && <Button type="button" variant="ghost" onClick={() => update({ heroImageUrl: "" })}>הסרת התמונה</Button>}
@@ -297,14 +298,14 @@ export function ImagesStep({ data, update }: StepProps) {
                 </div>
                 <TextField label="שם / כותרת (לא חובה)" placeholder="לדוגמה: המבורגר הבית" value={g.title} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, title: v } : x)) })} maxLength={80} />
                 <TextField label="תיאור קצר (לא חובה)" placeholder="לדוגמה: 200 גרם בקר, צ'דר וביצת עין" value={g.description} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, description: v } : x)) })} maxLength={300} />
-                <TextField label="מחיר (לא חובה)" placeholder="לדוגמה: 68 ₪, החל מ-250 ₪" value={g.price} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, price: v } : x)) })} maxLength={30} />
+                <TextField label="מחיר (לא חובה)" placeholder="לדוגמה: 68 ₪, החל מ-250 ₪" value={g.price} onChange={(v) => update({ gallery: data.gallery.map((x, idx) => (idx === i ? { ...x, price: v } : x)) })} error={errors[`gallery-price-${i}`]} maxLength={30} />
               </li>
             ))}
           </ul>
         )}
         <ImageUploader
           label="הוספת תמונות לגלריה"
-          hint="אפשר לבחור כמה תמונות יחד. PNG, JPG או WEBP, עד 5MB לתמונה. מומלץ לפחות 800×800 פיקסלים."
+          hint="אפשר לבחור כמה תמונות יחד. מומלץ לפחות 1200×1200 פיקסלים, ריבועיות או לרוחב, עם הדבר החשוב במרכז. JPG, PNG או WEBP, עד 5MB לתמונה."
           multiple
           disabled={room <= 0}
           onUploaded={(u) => update({ gallery: [...data.gallery, ...u.map((url) => ({ url, title: "", description: "", price: "" }))].slice(0, 12) })}
@@ -324,7 +325,7 @@ const SOCIAL_URL_EXAMPLES: Record<SocialPlatform, string> = {
   github: "https://github.com/username",
 };
 
-export function SocialStep({ data, update }: StepProps) {
+export function SocialStep({ data, update, plan }: StepProps) {
   const cat = getCategory(data.category);
   const isPortfolio = cat.id === "portfolio";
   return (
@@ -350,6 +351,7 @@ export function SocialStep({ data, update }: StepProps) {
           <TextField key={p} label={SOCIAL_LABELS[p]} hint="הקישור המלא לעמוד, לא רק שם המשתמש." dir="ltr" placeholder={`לדוגמה: ${SOCIAL_URL_EXAMPLES[p]}`} value={data.socials[p]} onChange={(v) => update({ socials: { ...data.socials, [p]: v } })} />
         ))}
       </div>
+      {plan !== undefined && <InquiryDelivery plan={plan} />}
       {isPortfolio && (
         <TextField label="קישור להורדת קורות חיים (לא חובה)" hint="קישור לקובץ PDF שהעליתם לאחסון חיצוני (Google Drive וכדומה)." dir="ltr" placeholder="לדוגמה: drive.google.com/..." value={data.resumeUrl} onChange={(v) => update({ resumeUrl: v })} maxLength={300} />
       )}

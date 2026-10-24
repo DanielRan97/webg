@@ -12,7 +12,8 @@ import {
 } from "react";
 import { InfoIcon, UploadIcon } from "../icons";
 
-export const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
+import { cx } from "@/lib/cx";
+export { cx };
 
 /** Tells fields to show their errors even if the user has not touched them yet (after pressing "continue"/"save"). */
 export const ValidationContext = createContext({ submitted: false });

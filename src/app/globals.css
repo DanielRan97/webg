@@ -107,6 +107,33 @@ body {
   to { transform: translate3d(-40px, 30px, 0) scale(1.08); }
 }
 .webg-drift { animation: webg-drift 18s ease-in-out infinite alternate; }
+/* Hero headline: the second line types itself in (revealed from the start edge, RTL), then a cursor blinks. */
+@keyframes webg-type { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+@keyframes webg-blink { 50% { opacity: 0; } }
+.webg-type { display: inline-block; animation: webg-type 0.9s steps(11, end) 0.55s both; }
+.webg-caret {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.85em;
+  margin-inline-start: 0.12em;
+  vertical-align: -0.05em;
+  border-radius: 2px;
+  background: #22b8cf;
+  animation: webg-blink 1s steps(1) 1.5s infinite;
+}
+/* Sections ease up as they scroll into view - only where the browser supports scroll-driven animations,
+   so everywhere else (and under reduced motion) they are simply there. */
+@keyframes webg-reveal { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .webg-reveal { animation: webg-reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 45%; }
+  }
+}
+/* Hero spotlight: a soft light that follows the pointer (position set by HeroSpotlight). */
+.webg-spotlight {
+  background: radial-gradient(520px circle at var(--spot-x, 70%) var(--spot-y, 30%), rgb(90 130 245 / 0.14), transparent 60%);
+  transition: background 0.2s;
+}
 .webg-switch > span { transition-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1); transition-duration: 0.3s; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -114,7 +141,9 @@ body {
   .webg-rise,
   .webg-step-in,
   .webg-live-dot,
-  .webg-drift { animation: none; }
+  .webg-drift,
+  .webg-type { animation: none; }
+  .webg-caret { animation: none; opacity: 0; }
   .webg-draw { animation: none; stroke-dashoffset: 0; }
   .webg-switch > span { transition: none; }
 }

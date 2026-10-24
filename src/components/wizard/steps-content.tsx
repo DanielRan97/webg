@@ -91,7 +91,7 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
                     <Button type="button" variant="ghost" onClick={() => update({ testimonials: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
                   </div>
                 )}
-                <ImageUploader label={t.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="JPG, PNG או WEBP, עד 5MB." onUploaded={(u) => update({ testimonials: setAt(list, i, { imageUrl: u[0] }) })} />
+                <ImageUploader label={t.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונת פנים ריבועית, לפחות 400×400 פיקסלים. JPG, PNG או WEBP, עד 5MB." onUploaded={(u) => update({ testimonials: setAt(list, i, { imageUrl: u[0] }) })} />
               </div>
             </fieldset>
           );
@@ -146,7 +146,7 @@ export function AreasStep({ data, update }: StepProps) {
 }
 
 /* ── Delivery ── */
-export function DeliveryStep({ data, update }: StepProps) {
+export function DeliveryStep({ data, update, errors }: StepProps) {
   const del = data.delivery;
   const set = (patch: Partial<SiteData["delivery"]>) => update({ delivery: { ...del, ...patch } });
   return (
@@ -159,10 +159,10 @@ export function DeliveryStep({ data, update }: StepProps) {
         <>
           <TextField label="אזורי משלוח (לא חובה)" placeholder="לדוגמה: חיפה והקריות" value={del.areas} onChange={(v) => set({ areas: v })} maxLength={120} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <TextField label="מחיר משלוח (לא חובה)" placeholder="לדוגמה: 25 ₪" value={del.fee} onChange={(v) => set({ fee: v })} maxLength={30} />
-            <TextField label="מינימום הזמנה (לא חובה)" placeholder="לדוגמה: 80 ₪" value={del.minOrder} onChange={(v) => set({ minOrder: v })} maxLength={30} />
+            <TextField label="מחיר משלוח (לא חובה)" placeholder="לדוגמה: 25 ₪" value={del.fee} onChange={(v) => set({ fee: v })} error={errors["delivery-fee"]} maxLength={30} />
+            <TextField label="מינימום הזמנה (לא חובה)" placeholder="לדוגמה: 80 ₪" value={del.minOrder} onChange={(v) => set({ minOrder: v })} error={errors["delivery-minOrder"]} maxLength={30} />
           </div>
-          <TextField label="משלוח חינם מעל סכום (לא חובה)" placeholder="לדוגמה: משלוח חינם מעל 200 ₪" value={del.freeOver} onChange={(v) => set({ freeOver: v })} maxLength={30} />
+          <TextField label="משלוח חינם מעל סכום (לא חובה)" placeholder="לדוגמה: משלוח חינם מעל 200 ₪" value={del.freeOver} onChange={(v) => set({ freeOver: v })} error={errors["delivery-freeOver"]} maxLength={30} />
           <TextField label="זמן משלוח משוער (לא חובה)" placeholder="לדוגמה: 30–60 דקות" value={del.time} onChange={(v) => set({ time: v })} maxLength={40} />
           <TextArea label="הערה קצרה (לא חובה)" placeholder="לדוגמה: משלוחים בימי חול בלבד." rows={2} value={del.note} onChange={(v) => set({ note: v })} maxLength={200} />
         </>
@@ -266,7 +266,7 @@ export function HighlightsStep({ data, update, errors }: StepProps) {
 }
 
 /* ── Experience (portfolio) ── */
-export function ExperienceStep({ data, update }: StepProps) {
+export function ExperienceStep({ data, update, errors }: StepProps) {
   const list = data.experience;
   return (
     <div className="space-y-6">
@@ -280,8 +280,8 @@ export function ExperienceStep({ data, update }: StepProps) {
             <TextField label="תפקיד" placeholder="לדוגמה: מפתחת Full-Stack" value={e.role} onChange={(v) => update({ experience: setAt(list, i, { role: v }) })} maxLength={100} />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <TextField label="תאריך התחלה (לא חובה)" placeholder="לדוגמה: 2021" value={e.startDate} onChange={(v) => update({ experience: setAt(list, i, { startDate: v }) })} maxLength={30} />
-            <TextField label="תאריך סיום (לא חובה)" hint="השאירו ריק אם זה התפקיד הנוכחי שלכם." placeholder="לדוגמה: 2023" value={e.endDate} onChange={(v) => update({ experience: setAt(list, i, { endDate: v }) })} maxLength={30} />
+            <TextField label="תאריך התחלה (לא חובה)" placeholder="לדוגמה: 2021 או 03/2021" value={e.startDate} onChange={(v) => update({ experience: setAt(list, i, { startDate: v }) })} error={errors[`experience-start-${i}`]} maxLength={30} />
+            <TextField label="תאריך סיום (לא חובה)" hint="השאירו ריק אם זה התפקיד הנוכחי שלכם." placeholder="לדוגמה: 2023" value={e.endDate} onChange={(v) => update({ experience: setAt(list, i, { endDate: v }) })} error={errors[`experience-end-${i}`]} maxLength={30} />
           </div>
           <TextArea label="תיאור קצר (לא חובה)" rows={3} value={e.description} onChange={(v) => update({ experience: setAt(list, i, { description: v }) })} maxLength={400} />
           <RemoveButton what={`תפקיד ${i + 1}`} onClick={() => update({ experience: removeAt(list, i) })} />
@@ -295,7 +295,7 @@ export function ExperienceStep({ data, update }: StepProps) {
 }
 
 /* ── Education (portfolio) ── */
-export function EducationStep({ data, update }: StepProps) {
+export function EducationStep({ data, update, errors }: StepProps) {
   const list = data.education;
   return (
     <div className="space-y-6">
@@ -308,7 +308,7 @@ export function EducationStep({ data, update }: StepProps) {
             <TextField label="מוסד לימודים" placeholder="לדוגמה: האוניברסיטה העברית" value={e.institution} onChange={(v) => update({ education: setAt(list, i, { institution: v }) })} maxLength={100} />
             <TextField label="תחום / תואר (לא חובה)" placeholder="לדוגמה: מדעי המחשב, B.Sc" value={e.field} onChange={(v) => update({ education: setAt(list, i, { field: v }) })} maxLength={100} />
           </div>
-          <TextField label="תאריכים (לא חובה)" placeholder="לדוגמה: 2018 - 2021" value={e.dates} onChange={(v) => update({ education: setAt(list, i, { dates: v }) })} maxLength={40} />
+          <TextField label="תאריכים (לא חובה)" placeholder="לדוגמה: 2018 - 2021" value={e.dates} onChange={(v) => update({ education: setAt(list, i, { dates: v }) })} error={errors[`education-dates-${i}`]} maxLength={40} />
           <TextArea label="תיאור קצר (לא חובה)" rows={2} value={e.description} onChange={(v) => update({ education: setAt(list, i, { description: v }) })} maxLength={400} />
           <RemoveButton what={`לימודים ${i + 1}`} onClick={() => update({ education: removeAt(list, i) })} />
         </fieldset>
@@ -379,7 +379,7 @@ export function ProjectsStep({ data, update }: StepProps) {
                 <Button type="button" variant="ghost" onClick={() => update({ projects: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
               </div>
             )}
-            <ImageUploader label={p.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="PNG, JPG או WEBP, עד 5MB." onUploaded={(u) => update({ projects: setAt(list, i, { imageUrl: u[0] }) })} />
+            <ImageUploader label={p.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונה לאורך או ריבועית, לפחות 1000×1250 פיקסלים. JPG, PNG או WEBP, עד 5MB." onUploaded={(u) => update({ projects: setAt(list, i, { imageUrl: u[0] }) })} />
           </div>
           <TextField label="קישור (לא חובה)" dir="ltr" placeholder="לדוגמה: github.com/yourname/project" value={p.link} onChange={(v) => update({ projects: setAt(list, i, { link: v }) })} maxLength={300} />
           <RemoveButton what={`פרויקט ${i + 1}`} onClick={() => update({ projects: removeAt(list, i) })} />
@@ -393,7 +393,7 @@ export function ProjectsStep({ data, update }: StepProps) {
 }
 
 /* ── Certifications (portfolio) ── */
-export function CertificationsStep({ data, update }: StepProps) {
+export function CertificationsStep({ data, update, errors }: StepProps) {
   const list = data.certifications;
   return (
     <div className="space-y-6">
@@ -405,7 +405,7 @@ export function CertificationsStep({ data, update }: StepProps) {
           <TextField label="שם ההסמכה" placeholder="לדוגמה: AWS Certified Developer" value={c.name} onChange={(v) => update({ certifications: setAt(list, i, { name: v }) })} maxLength={120} />
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField label="גורם מנפיק (לא חובה)" placeholder="לדוגמה: Amazon" value={c.issuer} onChange={(v) => update({ certifications: setAt(list, i, { issuer: v }) })} maxLength={100} />
-            <TextField label="תאריך (לא חובה)" placeholder="לדוגמה: 2023" value={c.date} onChange={(v) => update({ certifications: setAt(list, i, { date: v }) })} maxLength={30} />
+            <TextField label="תאריך (לא חובה)" placeholder="לדוגמה: 2023" value={c.date} onChange={(v) => update({ certifications: setAt(list, i, { date: v }) })} error={errors[`certification-date-${i}`]} maxLength={30} />
           </div>
           <TextField label="קישור לאימות (לא חובה)" dir="ltr" value={c.link} onChange={(v) => update({ certifications: setAt(list, i, { link: v }) })} maxLength={300} />
           <RemoveButton what={`הסמכה ${i + 1}`} onClick={() => update({ certifications: removeAt(list, i) })} />

@@ -24,7 +24,11 @@ const PART_HINTS: Record<NavPart, (d: SiteData) => string> = {
   logo: (d) => (d.logoUrl ? "הלוגו שהעליתם" : "הסימן שנוצר מהאות הראשונה"),
   name: (d) => d.businessName.trim() || "שם העסק",
   menu: () => "קישורים לחלקי האתר",
+  call: (d) => (d.phone.trim() ? "מופיע רק בטלפון, ומחייג אליכם בלחיצה" : "יופיע אחרי שתמלאו טלפון בשלב ״פרטי העסק״"),
 };
+
+/** Shorter names for the chips on the board. */
+const CHIP_LABELS: Record<NavPart, string> = { ...NAV_PART_LABELS, call: "התקשרו (בטלפון)" };
 
 /** One part on the board. Pointer-only: the rows below are the keyboard and screen-reader path to the same choices. */
 function Chip({ part, off }: { part: NavPart; off: boolean }) {
@@ -41,7 +45,7 @@ function Chip({ part, off }: { part: NavPart; off: boolean }) {
       )}
     >
       <span aria-hidden className="font-mono text-xs text-ink-400">⋮⋮</span>
-      {NAV_PART_LABELS[part]}
+      {CHIP_LABELS[part]}
     </div>
   );
 }
@@ -109,16 +113,16 @@ export function NavEditor({ data, update }: { data: SiteData; update: (patch: Pa
     <div className="space-y-4">
       <div>
         <p className="text-sm font-semibold text-ink-900">סרגל הניווט של האתר</p>
-        <p className="text-sm text-ink-500">בחרו מה יופיע בפס העליון ואיפה. אפשר לגרור, או להשתמש בכפתורים שמתחת. כל חלק אפשר לכבות ולהחזיר בלחיצה.</p>
+        <p className="text-sm text-ink-500">בחרו מה יופיע בפס העליון ואיפה. אפשר לגרור, או להשתמש בכפתורים שמתחת. כל חלק, גם כפתור ״התקשרו״, אפשר לכבות ולהחזיר בלחיצה.</p>
       </div>
 
       {/* Visual board: drag between the three zones of a desktop bar, or into "מוסתרים" to hide. */}
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      <DndContext id="nav-editor" sensors={sensors} onDragEnd={onDragEnd}>
         <div aria-hidden className="rounded-xl border border-ink-200 bg-ink-50 p-3">
           <div className="mb-2 flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-ink-300" />
             <span className="h-2 w-2 rounded-full bg-ink-300" />
-            <span className="ms-2 font-mono text-[11px] text-ink-400">כך הסרגל ייראה במחשב</span>
+            <span className="ms-2 font-mono text-[11px] text-ink-400">כך הסרגל ייראה (כפתור התקשרו מופיע רק בטלפון)</span>
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
             {NAV_SLOTS.map((slot) => (
@@ -193,7 +197,7 @@ export function NavEditor({ data, update }: { data: SiteData; update: (patch: Pa
       </ul>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-ink-500">בטלפון, התפריט מוצג ככפתור ☰ באותו צד.</p>
+        <p className="text-xs text-ink-500">בטלפון, התפריט מוצג ככפתור ☰ באותו צד, וכפתור ״התקשרו״ מופיע רק שם.</p>
         {data.navLayout && (
           <button
             type="button"

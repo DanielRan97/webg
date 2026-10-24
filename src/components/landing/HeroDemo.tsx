@@ -9,6 +9,7 @@ import type { TemplateId } from "@/lib/constants";
 import { PreviewPane } from "../wizard/PreviewPane";
 import { ShieldIcon } from "../icons";
 import { ComingNext } from "../ComingNext";
+import { BuildStatus } from "./BuildStatus";
 import { cx } from "../ui/ui";
 
 /** Each business type shows off a different standard template, so the demo also shows the range. */
@@ -70,14 +71,16 @@ export function HeroDemo({ ctaHref }: { ctaHref: string }) {
           כל אתר עולה עם חיבור HTTPS מאובטח
         </p>
         <h1 style={rise(1)} className="webg-rise mt-6 text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
-          כותבים את שם{" "}העסק.
-          <br />
-          <span className="text-ink-300">האתר נבנה מולכם.</span>
-        </h1>
-        <p style={rise(2)} className="webg-rise mt-6 max-w-md text-xl leading-relaxed text-ink-300">
           ממלאים טופס.
           <br />
-          מקבלים אתר.
+          {/* Types itself in once on load, then a cursor blinks after it (static under reduced motion). */}
+          <span className="text-ink-300">
+            <span className="webg-type">מקבלים אתר.</span>
+            <span aria-hidden className="webg-caret" />
+          </span>
+        </h1>
+        <p style={rise(2)} className="webg-rise mt-6 max-w-md text-xl leading-relaxed text-ink-300">
+          כותבים את שם העסק ורואים את האתר נבנה מולכם.
         </p>
 
         <div style={rise(3)} className="webg-rise mt-10 max-w-md space-y-6">
@@ -168,6 +171,9 @@ export function HeroDemo({ ctaHref }: { ctaHref: string }) {
         </p>
         <div className="relative rounded-[2rem] ring-1 ring-white/15">
           <PreviewPane data={data} address={address} frameClassName="h-[460px] md:h-[560px]" />
+        </div>
+        <div className="relative mt-3 flex justify-center xl:absolute xl:-start-68 xl:bottom-44 xl:mt-0 xl:block">
+          <BuildStatus address={address} signature={`${slugify(name)}|${typeId}|${colorIndex}`} />
         </div>
         <p className="relative mt-4 text-center text-sm text-ink-400">תצוגה אמיתית של WEBG, באותה תבנית שתקבלו.</p>
         <div className="relative mt-3">

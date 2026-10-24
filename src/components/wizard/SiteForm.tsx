@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { autosaveSiteAction, checkSlugAvailabilityAction, updateSiteAction } from "@/server/actions/sites";
+import { autosaveSiteAction, checkSlugAvailabilityAction, publishSiteAction, updateSiteAction } from "@/server/actions/sites";
 import { AUTOSAVE_DOMAINS, type AutosaveDomain } from "@/lib/constants";
 import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
@@ -13,6 +13,7 @@ import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
 import { Button, Notice, StepNoteContext, ValidationContext, cx } from "../ui/ui";
 import { PreviewPane } from "./PreviewPane";
+import { PREVIEW_SCROLL_EVENT } from "./preview-scroll";
 import { SectionsStep } from "./SectionsStep";
 import {
   AddressStep, BasicsStep, BrandingStep, HoursStep, ImagesStep, ServicesStep, SocialStep,
@@ -173,10 +174,22 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
   }
   const stepIndex = Math.min(stepIndexRaw, steps.length - 1);
   const [view, setView] = useState<"form" | "preview">("form");
+  // On small screens the preview is behind the form/preview switch: "show in preview" flips to it.
+  useEffect(() => {
+    const onShow = () => {
+      if (!window.matchMedia("(min-width: 1024px)").matches) {
+        setView("preview");
+        setTimeout(() => document.querySelector("aside[aria-label=\"תצוגה מקדימה\"]")?.scrollIntoView({ block: "start" }), 0);
+      }
+    };
+    window.addEventListener(PREVIEW_SCROLL_EVENT, onShow);
+    return () => window.removeEventListener(PREVIEW_SCROLL_EVENT, onShow);
+  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [errorIsValidation, setErrorIsValidation] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [publishedNow, setPublishedNow] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const errors = useMemo(() => validateSite(data, { checkSlug: true }), [data]);
@@ -366,6 +379,16 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
     return null;
   }
 
+  // Phones scroll the step list sideways: keep the current step in view.
+  useEffect(() => {
+    if (!isNew) return;
+    const chip = document.querySelector<HTMLElement>('nav[aria-label="שלבי הטופס"] [aria-current="step"]');
+    const list = chip?.closest("ol");
+    if (chip && list && list.scrollWidth > list.clientWidth) {
+      list.scrollTo({ left: chip.offsetLeft - list.clientWidth / 2 + chip.offsetWidth / 2, behavior: "smooth" });
+    }
+  }, [stepIndex, isNew]);
+
   function go(i: number) {
     setError("");
     setSubmitted(false);
@@ -399,8 +422,37 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
     go(stepIndex + 1);
   }
 
-  function save() {
+  /** Saves the whole site. With `publish` (edit mode, draft site): publishes it right after a successful save. */
+  /**
+   * The wizard's step list: back to any step freely; forward too, as long as every step on the way
+   * is fine - otherwise it stops on the first one that needs fixing, with its problems shown.
+   */
+  function jump(target: number) {
+    if (target === stepIndex) return;
+    if (target < stepIndex) {
+      go(target);
+      return;
+    }
+    for (let i = stepIndex; i < target; i++) {
+      const id = steps[i].id;
+      const slugMsg = slugBlockMessage(id);
+      if (stepHasError(id, errors) || slugMsg) {
+        if (i !== stepIndex) go(i);
+        setTimeout(() => {
+          setSubmitted(true);
+          fail(slugMsg ?? `יש כמה פרטים לתקן בשלב ״${steps[i].label(data)}״ לפני שממשיכים. הם מסומנים למעלה.`, true);
+          focusFirstInvalid();
+        }, 0);
+        return;
+      }
+    }
+    go(target);
+  }
+
+  function save(opts?: { publish?: boolean }) {
+    const publish = opts?.publish === true;
     setError("");
+    setPublishedNow(false);
     const bad = steps.findIndex((s) => stepHasError(s.id, errors));
     if (bad >= 0) {
       if (bad !== stepIndex) setStepIndex(bad);
@@ -434,7 +486,18 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
           router.push(`/sites/${res.id}/created`);
         } else {
           setData((d) => ({ ...d, slug: res.slug }));
-          setSaved(true);
+          if (publish) {
+            const pub = await publishSiteAction(siteId);
+            if (!pub.ok) {
+              setSaved(true);
+              fail(pub.error ?? "השינויים נשמרו, אבל לא הצלחנו לפרסם. נסו שוב.", false);
+              router.refresh();
+              return;
+            }
+            setPublishedNow(true);
+          } else {
+            setSaved(true);
+          }
           router.refresh();
         }
       } catch {
@@ -470,6 +533,32 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
               <div role="progressbar" aria-label="התקדמות" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1} className="h-2 rounded-full bg-ink-100">
                 <div className="h-2 rounded-full bg-linear-to-l from-brand-600 to-cyan-400 shadow-[0_0_12px_rgb(34_184_207/0.45)] transition-[width] duration-500 ease-out" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
               </div>
+              <nav aria-label="שלבי הטופס" className="mt-3">
+                <p className="mb-1.5 text-xs text-ink-500">אפשר לעבור לכל שלב בלחיצה, אחורה או קדימה.</p>
+                <ol className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:flex-wrap lg:overflow-visible">
+                  {steps.map((s, i) => {
+                    const done = i < stepIndex;
+                    const current = i === stepIndex;
+                    return (
+                      <li key={s.id} className="shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => jump(i)}
+                          aria-current={current ? "step" : undefined}
+                          className={cx(
+                            "flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition",
+                            current ? "border-brand-600 bg-brand-600 text-white" : done ? "border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100" : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
+                          )}
+                        >
+                          <span aria-hidden className="tabular-nums">{done ? "✓" : i + 1}</span>
+                          {s.label(data)}
+                          {stepHasError(s.id, errors) && i < stepIndex && <span className="sr-only"> (יש פרטים לתקן)</span>}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </nav>
             </div>
           ) : (
             <nav aria-label="חלקי העריכה" className="mb-6 flex flex-wrap gap-2">
@@ -493,7 +582,8 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
 
           <div className="mt-4 space-y-3" aria-live="polite">
             {error && (!errorIsValidation || Object.keys(errors).length > 0 || slugBlockMessage(step.id)) && <Notice kind="error">{error}</Notice>}
-            {saved && <Notice kind="success">השינויים נשמרו. אם האתר מפורסם, הם כבר מופיעים בו.</Notice>}
+            {saved && <Notice kind="success">{published ? "השינויים נשמרו, והם כבר מופיעים באתר." : "השינויים נשמרו. האתר עדיין טיוטה, ולקוחות יראו אותו אחרי הפרסום."}</Notice>}
+            {publishedNow && <Notice kind="success">האתר נשמר ופורסם! מעכשיו הלקוחות יכולים לראות אותו.</Notice>}
           </div>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -501,14 +591,18 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
               <>
                 <Button type="button" variant="secondary" disabled={stepIndex === 0 || pending} onClick={() => go(stepIndex - 1)}>חזרה</Button>
                 {last ? (
-                  <Button type="button" onClick={save} loading={pending}>{pending ? "יוצרים את האתר..." : "צור את האתר"}</Button>
+                  <Button type="button" onClick={() => save()} loading={pending}>{pending ? "יוצרים את האתר..." : "צור את האתר"}</Button>
                 ) : (
                   <Button type="button" onClick={next}>המשך</Button>
                 )}
               </>
             ) : (
               <>
-                <Button type="button" onClick={save} loading={pending}>{pending ? "שומר..." : "שמירת שינויים"}</Button>
+                {/* A draft can go live right from here: save, then publish. A Pro design on Basic is explained in the header instead. */}
+                {!published && !needsProToPublish({ plan, templateId: data.templateId }) && (
+                  <Button type="button" onClick={() => save({ publish: true })} loading={pending}>{pending ? "שומר..." : "שמירה ופרסום"}</Button>
+                )}
+                <Button type="button" variant={published ? "primary" : "secondary"} onClick={() => save()} loading={pending}>{pending ? "שומר..." : "שמירת שינויים"}</Button>
                 {liveUrl && (
                   <Link href={liveUrl} target="_blank" className="inline-flex min-h-11 items-center font-semibold text-brand-700 underline underline-offset-2 hover:text-brand-800">
                     צפייה באתר החי
@@ -519,7 +613,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
           </div>
         </div>
 
-        <aside aria-label="תצוגה מקדימה" className={cx(view === "preview" ? "" : "hidden", "lg:block")}>
+        <aside aria-label="תצוגה מקדימה" className={cx(view === "preview" ? "" : "hidden", "scroll-mt-20 lg:block")}>
           <div className="lg:sticky lg:top-24">
             <p className="text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
             <p className="mb-3 text-center text-xs text-ink-500">{isNew ? "תצוגה מקדימה בלבד. שום דבר לא מתפרסם עד שתלחצו על ״פרסום״." : "התצוגה מתעדכנת תוך כדי עריכה."}</p>
@@ -535,6 +629,7 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
               </div>
             )}
             <PreviewPane data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
+            <p className="mt-3 text-center text-xs text-ink-500">מסגרת הטלפון ושורת הכתובת הן רק חלק מהתצוגה. באתר עצמו הלקוחות יראו רק את האתר שלכם.</p>
           </div>
         </aside>
       </div>

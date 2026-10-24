@@ -2,6 +2,7 @@ import { z } from "zod";
 import { BOOKING_METHODS, CTA_TYPES, SOCIAL_PLATFORMS, TEMPLATE_IDS } from "./constants";
 import { ALL_SECTIONS } from "./sections";
 import { isValidNavLayout } from "./nav-layout";
+import { emailProblem, phoneProblem } from "./field-format";
 
 const text = (max: number) => z.string().trim().max(max);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).or(z.literal(""));
@@ -25,7 +26,7 @@ const imageUrl = z.string().superRefine((v, ctx) => {
 /** A bare link such as "calendly.com/daniel" or a full https:// URL - same laxness as the existing booking-link check. */
 const looseUrl = (max: number) => text(max).refine((v) => v === "" || /^(https?:\/\/)?[^\s]+\.[^\s]+$/i.test(v), "הקישור לא נראה תקין");
 
-export const siteSchema = z.object({
+const siteFields = z.object({
   businessName: text(80).min(2, "נא למלא את שם העסק"),
   slug: text(40),
   category: text(30).min(1),
@@ -40,7 +41,7 @@ export const siteSchema = z.object({
 
   phone: text(30),
   whatsapp: text(30),
-  email: text(120).refine((v) => v === "" || z.email().safeParse(v).success, "כתובת האימייל לא תקינה"),
+  email: text(120),
   address: text(120),
   city: text(60),
   ctaType: z.enum(Object.values(CTA_TYPES) as [string, ...string[]]),
@@ -110,13 +111,38 @@ export const siteSchema = z.object({
 });
 
 /**
+ * A finished save also checks the email and phone numbers' format, the same rules the wizard shows live.
+ * Only here, not in the draft schema below: a half-typed number or address is normal while autosaving.
+ */
+export const siteSchema = siteFields.superRefine((d, ctx) => {
+  const emergencyOn = d.sections.some((x) => x.type === "emergency" && x.enabled);
+  const phones: [string, string[]][] = [[d.phone, ["phone"]], [d.whatsapp, ["whatsapp"]]];
+  if (emergencyOn) phones.push([d.emergency.phone, ["emergency", "phone"]]);
+  if (d.email && (emailProblem(d.email) || !z.email().safeParse(d.email).success)) {
+    ctx.addIssue({ code: "custom", message: "כתובת האימייל לא תקינה", path: ["email"] });
+  }
+  for (const [value, path] of phones) {
+    const problem = phoneProblem(value);
+    if (problem) ctx.addIssue({ code: "custom", message: problem, path });
+  }
+});
+
+/**
  * Same structural checks as `siteSchema` (image URL restrictions, formats,
  * enums, max lengths) but without the "must already look finished" UX
  * requirements - used only to autosave an in-progress wizard draft, where a
  * business name of one character or zero is a normal, temporary state while
  * the owner is mid-keystroke, not something to reject.
  */
-export const draftSiteSchema = siteSchema.extend({ businessName: text(80) });
+export const draftSiteSchema = siteFields.extend({ businessName: text(80) });
+
+/** Phone and email format on the public forms - the same rules the forms show the visitor before sending. */
+function contactFormats(d: { phone: string; email: string }, ctx: z.RefinementCtx) {
+  const phone = phoneProblem(d.phone);
+  if (phone) ctx.addIssue({ code: "custom", message: phone, path: ["phone"] });
+  const email = emailProblem(d.email) ?? (d.email.trim() && !z.email().safeParse(d.email.trim()).success ? "כתובת האימייל לא תקינה." : undefined);
+  if (email) ctx.addIssue({ code: "custom", message: email, path: ["email"] });
+}
 
 /** Public "צור קשר" form on a live website. Anonymous, so kept tight: short fields, and at least one way to reach the visitor back. */
 export const contactFormSchema = z
@@ -131,10 +157,7 @@ export const contactFormSchema = z
     message: "נא למלא טלפון או אימייל.",
     path: ["phone"],
   })
-  .refine((d) => d.email.trim() === "" || z.email().safeParse(d.email.trim()).success, {
-    message: "כתובת האימייל לא תקינה.",
-    path: ["email"],
-  });
+  .superRefine(contactFormats);
 
 /** Public "השאירו פרטים" lead form on a live website - a short callback request, deliberately separate from the fuller contact form (no message field, phone is mandatory). */
 export const leadFormSchema = z
@@ -144,10 +167,7 @@ export const leadFormSchema = z
     phone: text(30).min(1, "נא למלא מספר טלפון."),
     email: text(120),
   })
-  .refine((d) => d.email.trim() === "" || z.email().safeParse(d.email.trim()).success, {
-    message: "כתובת האימייל לא תקינה.",
-    path: ["email"],
-  });
+  .superRefine(contactFormats);
 
 /** Trimmed, lowercased email, in one place so every entry point normalizes the same way (this is also what keeps one person from creating two accounts with "Name@Gmail.com" and "name@gmail.com"). */
 const emailField = z

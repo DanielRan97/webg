@@ -1,4 +1,4 @@
-import { cx } from "./ui/ui";
+import { cx } from "@/lib/cx";
 
 /** What the wizard adds after its first step - real step names, so the promise matches the product. */
 const NEXT = ["עיצוב וצבעים", "שירותים ומחירים", "גלריית תמונות", "שעות פתיחה", "המלצות", "קביעת תור"];

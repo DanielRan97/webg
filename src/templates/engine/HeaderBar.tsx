@@ -24,9 +24,11 @@ function gridColumns(layout: NavLayout, used: Record<Zone, boolean>): string {
   return "auto minmax(0,1fr) auto";
 }
 
+const DESKTOP_PARTS = ["logo", "name", "menu"] as const;
+
 /**
  * Every template's top bar, arranged by the owner's nav layout (or the template's default): logo,
- * business name and menu each sit right / center / left, or are hidden. Templates supply only their
+ * business name, menu and the phone-only call button each sit right / center / left, or are hidden. Templates supply only their
  * own look - the header/container classes and how their logo, name and links render.
  */
 export function HeaderBar({
@@ -49,19 +51,25 @@ export function HeaderBar({
   name: ReactNode;
   linkClassName: string;
   gapPx?: number;
-  /** Small-screen extra (e.g. a call button), shown after everything else below lg. */
+  /** The template's call button, or undefined when the site has no phone. Placed by the layout's "call" part, below lg only. */
   mobileExtra?: ReactNode;
 }) {
   const layout = resolveNavLayout(d.navLayout, d.templateId);
   const showMenu = layout.menu !== "off" && nav.length > 0;
-  const zoneOf = (part: NavPart) => (part === "menu" && !showMenu ? "off" : layout[part]);
+  const zoneOf = (part: NavPart) => {
+    if (part === "menu" && !showMenu) return "off";
+    if (part === "call" && !mobileExtra) return "off";
+    return layout[part];
+  };
+  // Desktop only: the call button never shows at lg, so it doesn't shape the desktop columns.
   const used: Record<Zone, boolean> = {
-    start: (["logo", "name", "menu"] as const).some((p) => zoneOf(p) === "start"),
-    center: (["logo", "name", "menu"] as const).some((p) => zoneOf(p) === "center"),
-    end: (["logo", "name", "menu"] as const).some((p) => zoneOf(p) === "end"),
+    start: DESKTOP_PARTS.some((p) => zoneOf(p) === "start"),
+    center: DESKTOP_PARTS.some((p) => zoneOf(p) === "center"),
+    end: DESKTOP_PARTS.some((p) => zoneOf(p) === "end"),
   };
   const empty = !used.start && !used.center && !used.end;
-  if (empty && !mobileExtra) return null;
+  const callShown = zoneOf("call") !== "off";
+  if (empty && !callShown) return null;
 
   // Logo and name side by side form one link to the top of the page; apart, each is its own link.
   const together = zoneOf("logo") !== "off" && zoneOf("logo") === zoneOf("name");
@@ -85,8 +93,9 @@ export function HeaderBar({
   };
 
   return (
-    // Everything hidden but a small-screen extra (the call button): no empty bar on desktop.
-    <header className={empty ? `${headerClassName} lg:hidden` : headerClassName}>
+    // Everything hidden but the call button: no empty bar on desktop.
+    // Sticky in every template. --webg-site-top lets a page that puts its own bar above the site (the owner preview) push it down.
+    <header className={`sticky top-[var(--webg-site-top,0px)] z-30 ${headerClassName}${empty ? " lg:hidden" : ""}`}>
       <div className={innerClassName}>
         <div
           className="grid w-full items-center gap-2 [grid-template-columns:var(--hb-cols)] sm:gap-4 lg:[grid-template-columns:var(--hb-cols-lg)]"
@@ -96,7 +105,7 @@ export function HeaderBar({
             <div key={zone} className={`flex min-w-0 items-center gap-2 sm:gap-4 ${ZONE_JUSTIFY[zone]}`}>
               {brandIn(zone)}
               {zoneOf("menu") === zone && <SiteNav nav={nav} linkClassName={linkClassName} gapPx={gapPx} justify={zone} />}
-              {zone === "end" && mobileExtra && <div className="flex shrink-0 items-center lg:hidden">{mobileExtra}</div>}
+              {zoneOf("call") === zone && <div className="flex shrink-0 items-center lg:hidden">{mobileExtra}</div>}
             </div>
           ))}
         </div>

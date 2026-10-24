@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { submitContactFormAction } from "@/server/actions/contact";
+import { emailProblem, phoneProblem } from "@/lib/field-format";
 import type { TemplateTheme } from "./types";
 
 const inputCls =
@@ -16,12 +17,21 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+  const [checked, setChecked] = useState({ phone: false, email: false });
+  const phoneErr = checked.phone ? phoneProblem(phone) : undefined;
+  const emailErr = checked.email ? emailProblem(email) : undefined;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    setChecked({ phone: true, email: true });
     if (!phone.trim() && !email.trim()) {
       setStatus("error");
       setError("נא למלא טלפון או אימייל.");
+      return;
+    }
+    if (phoneProblem(phone) || emailProblem(email)) {
+      setStatus("error");
+      setError("יש פרט שצריך לתקן. הוא מסומן למעלה.");
       return;
     }
     setStatus("idle");
@@ -35,6 +45,7 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
           setPhone("");
           setEmail("");
           setMessage("");
+          setChecked({ phone: false, email: false });
         } else {
           setStatus("error");
           setError(res.error ?? "לא הצלחנו לשלוח את ההודעה. נסו שוב.");
@@ -55,11 +66,13 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="cf-phone" className="mb-1.5 block text-sm font-semibold">טלפון</label>
-          <input id="cf-phone" type="tel" inputMode="tel" dir="ltr" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={30} className={inputCls} />
+          <input id="cf-phone" type="tel" inputMode="tel" dir="ltr" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} onBlur={() => setChecked((c) => ({ ...c, phone: true }))} aria-invalid={phoneErr ? true : undefined} aria-describedby={phoneErr ? "cf-phone-err" : undefined} placeholder="050-1234567" maxLength={30} className={inputCls} />
+          <FieldError id="cf-phone-err" text={phoneErr} />
         </div>
         <div>
           <label htmlFor="cf-email" className="mb-1.5 block text-sm font-semibold">אימייל</label>
-          <input id="cf-email" type="email" dir="ltr" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={120} className={inputCls} />
+          <input id="cf-email" type="email" dir="ltr" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setChecked((c) => ({ ...c, email: true }))} aria-invalid={emailErr ? true : undefined} aria-describedby={emailErr ? "cf-email-err" : undefined} placeholder="name@gmail.com" maxLength={120} className={inputCls} />
+          <FieldError id="cf-email-err" text={emailErr} />
         </div>
       </div>
       <div>
@@ -75,4 +88,10 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
       </div>
     </form>
   );
+}
+
+/** Shown under a field once the visitor leaves it or presses send - readable on every template's colors. */
+function FieldError({ id, text }: { id: string; text?: string }) {
+  if (!text) return null;
+  return <p id={id} className="mt-1.5 inline-block rounded-lg bg-red-600 px-2.5 py-1 text-sm font-medium text-white">{text}</p>;
 }

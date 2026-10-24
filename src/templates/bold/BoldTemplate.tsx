@@ -37,7 +37,7 @@ function Header({ d, nav }: { d: SiteData; nav: NavItem[] }) {
     <HeaderBar
       d={d}
       nav={nav}
-      headerClassName="sticky top-0 z-30 border-b-[3px] border-black bg-t-brand text-t-brand-fg"
+      headerClassName="border-b-[3px] border-black bg-t-brand text-t-brand-fg"
       innerClassName="mx-auto max-w-5xl px-5 py-3"
       logo={<Logo logoUrl={d.logoUrl} name={d.businessName} color="#ffffff" size={36} decorative />}
       name={<span className="max-w-[10rem] truncate font-[family-name:var(--font-secular)] text-xl sm:max-w-none">{d.businessName}</span>}

@@ -21,13 +21,24 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { getCategory } from "@/lib/categories";
 import { SECTION_META, type SectionType } from "@/lib/sections";
-import type { SectionData } from "@/types/site";
+import type { SectionData, SiteData } from "@/types/site";
 import { sectionHasContent } from "@/templates/shared/helpers";
 import { Button, StepTitle, Toggle, cx } from "../ui/ui";
 import { ChevronDownIcon, GripIcon, WarningIcon } from "../ui/icons";
 import type { StepProps } from "./steps";
+import { showInPreview } from "./preview-scroll";
 
 const label = (id: string | number) => SECTION_META[id as SectionType]?.label ?? String(id);
+
+/** Which form step fills each section - for the "no content yet" note. Sections not listed have a step of their own name. */
+function contentStep(type: SectionType, d: SiteData): string {
+  const on = (t: SectionType) => d.sections.some((s) => s.type === t && s.enabled);
+  if (type === "about" || type === "location" || type === "contact") return "פרטי העסק";
+  if (type === "services" || type === "prices" || type === "menu") return on("menu") && !on("services") && !on("prices") ? "תפריט" : "שירותים ומחירים";
+  if (type === "gallery") return "תמונות";
+  if (type === "social") return "יצירת קשר";
+  return SECTION_META[type].label;
+}
 
 /** Spoken by screen readers while dragging with the keyboard. */
 const announcements: Announcements = {
@@ -38,12 +49,14 @@ const announcements: Announcements = {
 };
 
 function Row({
-  s, index, count, hasContent, onToggle, onMove,
+  s, index, count, hasContent, fillIn, onToggle, onMove,
 }: {
   s: SectionData;
   index: number;
   count: number;
   hasContent: boolean;
+  /** Where the owner adds this section's content, shown when it has none yet. */
+  fillIn: string;
   onToggle: (v: boolean) => void;
   onMove: (dir: -1 | 1) => void;
 }) {
@@ -73,13 +86,31 @@ function Row({
         </button>
 
         <div className="min-w-0 flex-1 space-y-1">
-          <p className={cx("text-base font-bold", muted ? "text-ink-700" : "text-ink-900")}>{meta.label}</p>
-          <p className={cx("text-sm", muted ? "text-ink-500" : "text-ink-500")}>{meta.hint}</p>
+          {s.enabled && hasContent ? (
+            // Shown on the site: the name scrolls the live preview to it.
+            <button
+              type="button"
+              onClick={() => showInPreview(s.type)}
+              aria-label={`${meta.label}: הצגה בתצוגה המקדימה`}
+              className="group/show block w-full rounded-lg text-start"
+            >
+              <span className="flex items-center gap-2 text-base font-bold text-ink-900 group-hover/show:text-brand-700">
+                {meta.label}
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">הצגה בתצוגה</span>
+              </span>
+              <span className="block text-sm text-ink-500">{meta.hint}</span>
+            </button>
+          ) : (
+            <>
+              <p className={cx("text-base font-bold", muted ? "text-ink-700" : "text-ink-900")}>{meta.label}</p>
+              <p className="text-sm text-ink-500">{meta.hint}</p>
+            </>
+          )}
           <Toggle checked={s.enabled} onChange={onToggle} label={meta.label} labelClassName="sr-only" onText="מוצג" offText="מוסתר" />
           {s.enabled && !hasContent && (
             <p className="flex items-center gap-1.5 text-xs font-medium text-amber-700">
               <WarningIcon className="shrink-0" width="14" height="14" />
-              עדיין אין כאן תוכן, ולכן החלק לא יוצג עד שתמלאו אותו.
+              <span>עדיין אין כאן תוכן, ולכן החלק לא יוצג עד שתמלאו אותו. {fillIn}</span>
             </p>
           )}
         </div>
@@ -109,7 +140,7 @@ function Row({
   );
 }
 
-export function SectionsStep({ data, update }: StepProps) {
+export function SectionsStep({ data, update, isNew }: StepProps) {
   const cat = getCategory(data.category);
   const [status, setStatus] = useState("");
   const hero = data.sections.find((s) => s.type === "hero");
@@ -161,9 +192,11 @@ export function SectionsStep({ data, update }: StepProps) {
 
       <div className="space-y-2">
         <p className="text-sm font-semibold text-ink-900">החלקים באתר</p>
-        <p className="text-sm text-ink-500">גררו חלקים כדי לשנות את הסדר. אפשר גם להשתמש בחצים.</p>
+        <p className="text-sm text-ink-500">גררו חלקים כדי לשנות את הסדר. אפשר גם להשתמש בחצים. לחיצה על שם של חלק שמוצג באתר גוללת אליו בתצוגה המקדימה.</p>
 
+        {/* A fixed id keeps dnd-kit's generated aria ids identical on the server and the client. */}
         <DndContext
+          id="sections-order"
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={onDragEnd}
@@ -183,6 +216,13 @@ export function SectionsStep({ data, update }: StepProps) {
                   index={i}
                   count={shown.length}
                   hasContent={sectionHasContent(s.type, data)}
+                  fillIn={
+                    contentStep(s.type, data) === "פרטי העסק"
+                      ? `את התוכן ממלאים בשלב ״פרטי העסק״${isNew ? ", ואפשר לחזור אליו בכל רגע" : ""}.`
+                      : isNew
+                        ? `את התוכן תוכלו להוסיף בהמשך הטופס, בשלב ״${contentStep(s.type, data)}״.`
+                        : `את התוכן ממלאים בלשונית ״${contentStep(s.type, data)}״.`
+                  }
                   onToggle={(v) => toggle(s.type, v)}
                   onMove={(dir) => move(i, i + dir)}
                 />
