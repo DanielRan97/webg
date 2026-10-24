@@ -9,7 +9,7 @@ import { isValidSlug, slugify } from "@/lib/slug-format";
 import { publicSiteUrlDisplay } from "@/lib/site-url";
 import { STEP_ERROR_KEYS, validateSite } from "@/lib/validate-site";
 import type { SiteData } from "@/types/site";
-import { Button, Notice, ValidationContext, cx } from "../ui/ui";
+import { Button, Notice, StepNoteContext, ValidationContext, cx } from "../ui/ui";
 import { CreatedScreen } from "./CreatedScreen";
 import { PreviewPane } from "./PreviewPane";
 import { SectionsStep } from "./SectionsStep";
@@ -37,6 +37,20 @@ interface StepDef {
   /** Steps for optional sections only appear when that section is switched on. */
   show?: (d: SiteData) => boolean;
 }
+
+/**
+ * Shown under each wizard step's title (new sites only), so owners never feel a choice is final:
+ * what the preview is, and what they can still change later. Steps without an entry get CONTENT_NOTE.
+ */
+const STEP_NOTES: Partial<Record<string, string>> = {
+  basics: "העיצוב שבתצוגה הוא רק דוגמה לפי סוג העסק. בשלב הבא תבחרו צבעים, לוגו ותבנית עיצוב. את כל מה שכאן אפשר לשנות בכל רגע, גם אחרי שהאתר באוויר.",
+  branding: "שום בחירה כאן אינה סופית. אפשר להחליף צבעים, לוגו ותבנית בכל רגע, גם אחרי הפרסום, והתוכן שכתבתם נשמר.",
+  sections: "אפשר להדליק, לכבות ולסדר את החלקים גם אחר כך. חלק שתכבו לא יופיע באתר, והמידע שבו נשמר.",
+  images: "אין עכשיו תמונה טובה? אפשר להמשיך בלי, ולהוסיף או להחליף תמונות בכל רגע.",
+  address: "אפשר לשנות את הכתובת גם אחר כך. אם כבר שיתפתם אותה עם לקוחות, כדאי לבחור כתובת סופית לפני הפרסום.",
+  social: "לחיצה על ״צור את האתר״ עדיין לא מפרסמת אותו. קודם תראו את האתר, ותפרסמו רק כשתחליטו.",
+};
+const CONTENT_NOTE = "לא חייבים להשלים הכול עכשיו. אפשר להוסיף, לערוך ולמחוק את זה גם אחרי שהאתר באוויר.";
 
 const STEPS: StepDef[] = [
   { id: "basics", label: () => "פרטי העסק", Component: BasicsStep },
@@ -457,7 +471,9 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
           )}
 
           <div className="rounded-xl border border-ink-200 bg-white p-5 sm:p-8">
-            <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} />
+            <StepNoteContext.Provider value={isNew ? (STEP_NOTES[step.id] ?? CONTENT_NOTE) : null}>
+              <step.Component data={data} update={update} isNew={isNew} errors={errors} plan={plan} slugCheck={slugCheck} />
+            </StepNoteContext.Provider>
           </div>
 
           <div className="mt-4 space-y-3" aria-live="polite">
@@ -490,7 +506,8 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl }: Props) 
 
         <aside aria-label="תצוגה מקדימה" className={cx(view === "preview" ? "" : "hidden", "lg:block")}>
           <div className="lg:sticky lg:top-24">
-            <p className="mb-3 text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
+            <p className="text-center text-sm font-semibold text-ink-700">כך האתר ייראה בטלפון</p>
+            <p className="mb-3 text-center text-xs text-ink-500">{isNew ? "תצוגה מקדימה בלבד. שום דבר לא מתפרסם עד שתלחצו על ״פרסום״." : "התצוגה מתעדכנת תוך כדי עריכה."}</p>
             <PreviewPane data={data} address={publicSiteUrlDisplay({ slug: (isNew && !data.businessName.trim()) || !data.slug ? "your-business" : data.slug, plan })} />
           </div>
         </aside>

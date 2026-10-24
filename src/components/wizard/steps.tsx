@@ -77,7 +77,10 @@ export function BasicsStep({ data, update, isNew, errors, plan }: StepProps) {
       />
       <div role="group" aria-labelledby="cat-label" className="space-y-2">
         <p id="cat-label" className="text-sm font-semibold text-ink-900">מה סוג העסק?</p>
-        <p className="text-sm text-ink-500">לפי הבחירה נציע לכם חלקים שמתאימים לאתר.</p>
+        <p className="text-sm text-ink-500">
+          לפי הבחירה נציע לכם חלקים שמתאימים לאתר.
+          {isNew && " הצבעים והעיצוב שבתצוגה הם רק דוגמה, ובשלב הבא תבחרו אותם בעצמכם."}
+        </p>
         {CATEGORIES.length > CATEGORY_SEARCH_THRESHOLD && (
           <TextField
             label="חיפוש סוג עסק"

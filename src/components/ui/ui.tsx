@@ -10,6 +10,7 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from "react";
+import { InfoIcon } from "../icons";
 
 export const cx = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
@@ -390,11 +391,21 @@ export function ImageUploader({
   );
 }
 
+/** A reassurance line the wizard shows under each step title: what is not final yet and what can still change later. Provided by SiteForm for new sites only. */
+export const StepNoteContext = createContext<string | null>(null);
+
 export function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  const note = useContext(StepNoteContext);
   return (
     <div className="mb-6">
       <h2 id="step-title" tabIndex={-1} className="text-2xl font-bold tracking-tight text-ink-900 outline-none md:text-3xl">{title}</h2>
       {subtitle && <p className="mt-2 text-ink-700">{subtitle}</p>}
+      {note && (
+        <p className="mt-4 flex gap-2.5 rounded-xl bg-brand-50 px-4 py-3 text-sm leading-relaxed text-brand-900">
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+          <span>{note}</span>
+        </p>
+      )}
     </div>
   );
 }
