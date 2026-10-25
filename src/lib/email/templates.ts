@@ -165,3 +165,14 @@ export function contactCodeEmail(code: string, businessName: string) {
 ${helpText}`;
   return { subject, html, text };
 }
+
+/** To WEBG admins: SMS credit for verification codes is low (or out). */
+export function smsBalanceAlertEmail(left: number) {
+  const subject = left > 0 ? `נשארו ${left} הודעות SMS בחשבון Global SMS` : "נגמרו הודעות ה-SMS בחשבון Global SMS";
+  const html = wrap(
+    "יתרת ה-SMS נמוכה",
+    `<p style="color:#374151;line-height:1.6;font-size:15px">${left > 0 ? `נשארו ${left} הודעות SMS` : "נגמרו הודעות ה-SMS"} לשליחת קודי אימות טלפון. כשההודעות נגמרות, בעלי עסקים לא יכולים לאמת את הטלפון ולכן לא יכולים לפרסם. כדאי לקנות חבילה חדשה ב-Global SMS.</p>`,
+  );
+  const text = `${left > 0 ? `נשארו ${left} הודעות SMS` : "נגמרו הודעות ה-SMS"} בחשבון Global SMS של WEBG. בלי הודעות, בעלי עסקים לא יכולים לאמת טלפון ולפרסם. כדאי לקנות חבילה חדשה.`;
+  return { subject, html, text };
+}

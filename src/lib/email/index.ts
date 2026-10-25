@@ -2,7 +2,7 @@ import "server-only";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { consoleAdapter } from "./console-adapter";
 import { createResendAdapter } from "./resend-adapter";
-import { contactCodeEmail, contactFormEmail, leadFormEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
+import { contactCodeEmail, contactFormEmail, leadFormEmail, smsBalanceAlertEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
 import type { EmailAdapter } from "./types";
 
 /**
@@ -66,4 +66,10 @@ export async function sendSupportTicketOpenedEmail(to: string, input: { subject:
 export async function sendContactCodeEmail(to: string, code: string, businessName: string) {
   const { subject, html, text } = contactCodeEmail(code, businessName);
   await getAdapter().send({ to, subject, html, text, replyTo: SUPPORT_EMAIL });
+}
+
+/** Internal alert to a WEBG admin that SMS credit is low. */
+export async function sendSmsBalanceAlert(to: string, left: number) {
+  const { subject, html, text } = smsBalanceAlertEmail(left);
+  await getAdapter().send({ to, subject, html, text });
 }
