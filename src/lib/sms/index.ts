@@ -1,5 +1,5 @@
 import "server-only";
-import { adminEmailList } from "@/lib/admin";
+import { adminEmailList } from "@/lib/admin-emails";
 import { sendSmsBalanceAlert } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
 import { consoleSmsAdapter } from "./console-adapter";

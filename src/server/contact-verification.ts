@@ -2,7 +2,7 @@ import "server-only";
 import { randomInt, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { sendContactCodeEmail } from "@/lib/email";
-import { emailProblem, normalizeContact, phoneProblem } from "@/lib/field-format";
+import { emailProblem, isIsraeliMobile, normalizeContact, phoneProblem } from "@/lib/field-format";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendSms, smsAvailable } from "@/lib/sms";
 import { hashToken } from "@/lib/tokens";
@@ -19,6 +19,8 @@ const CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const SENDS_PER_VALUE = { limit: 3, windowMs: 15 * 60 * 1000 };
 const SENDS_PER_USER = { limit: 15, windowMs: 60 * 60 * 1000 };
+/** SMS costs a message from the package: a tight daily cap per account, plenty for a real owner. */
+const SMS_PER_USER_PER_DAY = { limit: 10, windowMs: 24 * 60 * 60 * 1000 };
 
 export interface VerifyResult {
   ok: boolean;
@@ -40,7 +42,8 @@ export async function verifiedContacts(websiteId: string): Promise<string[]> {
 
 /**
  * The contact details a site shows that aren't verified yet, as Hebrew names ("האימייל", "הטלפון",
- * "מספר ה-WhatsApp"). Phones count only while phone verification is available.
+ * "מספר ה-WhatsApp"). Phones count only while phone verification is available, and only mobile numbers:
+ * a landline can't receive an SMS code, so it isn't required (the owner's decision).
  */
 export async function unverifiedContacts(websiteId: string, d: { email: string; phone: string; whatsapp: string }): Promise<string[]> {
   const done = new Set(await verifiedContacts(websiteId));
@@ -50,8 +53,8 @@ export async function unverifiedContacts(websiteId: string, d: { email: string; 
   if (phoneVerificationOn()) {
     const phone = normalizeContact("PHONE", d.phone);
     const wa = normalizeContact("PHONE", d.whatsapp);
-    if (phone && !done.has(key("PHONE", phone))) missing.push("הטלפון");
-    if (wa && wa !== phone && !done.has(key("PHONE", wa))) missing.push("מספר ה-WhatsApp");
+    if (isIsraeliMobile(phone) && !done.has(key("PHONE", phone))) missing.push("הטלפון");
+    if (isIsraeliMobile(wa) && wa !== phone && !done.has(key("PHONE", wa))) missing.push("מספר ה-WhatsApp");
   }
   return missing;
 }
@@ -66,7 +69,14 @@ export async function sendContactCode(
   const problem = kind === "EMAIL" ? emailProblem(rawValue) : phoneProblem(rawValue);
   const value = normalizeContact(kind, rawValue);
   if (!value || problem) return { ok: false, error: problem ?? "נא למלא קודם את הפרט." };
-  if (kind === "PHONE" && !phoneVerificationOn()) return { ok: false, error: "אימות טלפון עדיין לא זמין." };
+  if (kind === "PHONE") {
+    if (!phoneVerificationOn()) return { ok: false, error: "אימות טלפון עדיין לא זמין." };
+    if (!isIsraeliMobile(value)) return { ok: false, error: "קוד ב-SMS אפשר לשלוח רק למספר נייד (שמתחיל ב-05). מספר קווי לא צריך אימות." };
+    // A verified account first: fake accounts shouldn't be able to spend the SMS package.
+    if (!user.emailVerifiedAt) {
+      return { ok: false, error: "כדי לקבל קוד ב-SMS, אמתו קודם את האימייל של חשבון ה-WEBG שלכם. הקישור נשלח אליכם בהרשמה, ואפשר לשלוח אותו שוב מלוח הבקרה." };
+    }
+  }
 
   const existing = await db.contactVerification.findUnique({ where: { websiteId_kind_value: { websiteId: site.id, kind, value } } });
   if (existing?.verifiedAt) return { ok: true, verified: true };
@@ -85,6 +95,9 @@ export async function sendContactCode(
     rateLimit(`contact-code:user:${user.id}`, SENDS_PER_USER.limit, SENDS_PER_USER.windowMs),
   ]);
   if (!okValue || !okUser) return { ok: false, error: "שלחנו כבר כמה קודים. נסו שוב בעוד כמה דקות." };
+  if (kind === "PHONE" && !(await rateLimit(`sms-code:user:${user.id}`, SMS_PER_USER_PER_DAY.limit, SMS_PER_USER_PER_DAY.windowMs))) {
+    return { ok: false, error: "הגעתם למספר הקודים ב-SMS להיום. אפשר לנסות שוב מחר, או לכתוב לנו אם משהו לא מסתדר." };
+  }
 
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   const data = { codeHash: hashToken(code), expiresAt: new Date(Date.now() + CODE_TTL_MS), attempts: 0 };

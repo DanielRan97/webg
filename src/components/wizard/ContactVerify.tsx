@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useId, useState, useTransition } from "react";
-import { emailProblem, normalizeContact, phoneProblem } from "@/lib/field-format";
+import { emailProblem, isIsraeliMobile, normalizeContact, phoneProblem } from "@/lib/field-format";
 import { confirmContactCodeAction, sendContactCodeAction } from "@/server/actions/contact-verify";
 import { cx, inputClass } from "../ui/ui";
 
@@ -43,6 +43,9 @@ export function ContactVerify({ kind, value, label, sameAs }: { kind: Kind; valu
   if (invalid) return null;
   if (sameAs && normalizeContact("PHONE", sameAs) === normalized) {
     return <p className="text-xs text-ink-500">אותו מספר כמו הטלפון, ולכן מאומת יחד איתו.</p>;
+  }
+  if (kind === "PHONE" && !isIsraeliMobile(normalized)) {
+    return <p className="text-xs text-ink-500">מספר קווי לא מקבל SMS, ולכן לא צריך לאמת אותו.</p>;
   }
   const key = `${kind}:${normalized}`;
   if (ctx.verified.has(key)) {

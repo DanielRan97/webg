@@ -115,3 +115,6 @@ export function normalizeContact(kind: "EMAIL" | "PHONE", value: string): string
   const digits = value.replace(/\D/g, "");
   return digits.startsWith("972") ? `0${digits.slice(3)}` : digits;
 }
+
+/** An Israeli mobile number (normalized: "05" + 8 digits) - the only kind an SMS code can reach. */
+export const isIsraeliMobile = (normalizedPhone: string) => /^05\d{8}$/.test(normalizedPhone);
