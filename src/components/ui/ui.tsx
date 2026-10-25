@@ -335,10 +335,52 @@ export function ChoiceCard({
   );
 }
 
-const MAX_BYTES = 5 * 1024 * 1024;
+/** What a phone may hand over: photos from new phones are often 5-15MB. */
+const MAX_ORIGINAL_BYTES = 30 * 1024 * 1024;
+/** What is actually sent: Vercel refuses request bodies over 4.5MB, so larger photos are reduced first. */
+const MAX_SEND_BYTES = 4 * 1024 * 1024;
+/** Same long-side size the server keeps (see lib/storage/optimize.ts) - shrinking further here would lose detail. */
+const MAX_SIDE = 2400;
 const OK_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
-/** Uploads one or more images. Always shows what is accepted, and clearly reports progress and results. */
+const toBlob = (canvas: HTMLCanvasElement, type: string, quality: number) =>
+  new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+
+/**
+ * Makes a file small enough to upload: a photo larger than MAX_SEND_BYTES or MAX_SIDE is redrawn upright
+ * at no more than MAX_SIDE pixels and re-encoded (WebP, or JPEG where the browser can't make WebP; PNG
+ * keeps transparency). GIFs aren't touched (they may be animated). The server optimizes again anyway.
+ */
+async function prepareForUpload(file: File): Promise<{ ok: true; blob: Blob } | { ok: false; error: string }> {
+  if (file.type === "image/gif") {
+    return file.size <= MAX_SEND_BYTES ? { ok: true, blob: file } : { ok: false, error: `"${file.name}" גדולה מדי. קובץ GIF אפשר להעלות עד 4MB.` };
+  }
+  let bmp: ImageBitmap;
+  try {
+    bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    // The browser can't read it here; small files still go up and the server decides.
+    return file.size <= MAX_SEND_BYTES ? { ok: true, blob: file } : { ok: false, error: `לא הצלחנו לעבד את "${file.name}". נסו תמונה אחרת או צילום מסך שלה.` };
+  }
+  const scale = Math.min(1, MAX_SIDE / Math.max(bmp.width, bmp.height));
+  if (scale === 1 && file.size <= MAX_SEND_BYTES) {
+    bmp.close();
+    return { ok: true, blob: file };
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bmp.width * scale);
+  canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext("2d")?.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  bmp.close();
+  for (const quality of [0.86, 0.72, 0.6]) {
+    let blob = await toBlob(canvas, "image/webp", quality);
+    // Some browsers can't encode WebP and quietly hand back PNG: use JPEG then (PNG for transparent images).
+    if (!blob || blob.type !== "image/webp") blob = await toBlob(canvas, file.type === "image/png" ? "image/png" : "image/jpeg", quality);
+    if (blob && blob.size <= MAX_SEND_BYTES) return { ok: true, blob };
+  }
+  return { ok: false, error: `"${file.name}" גדולה מדי גם אחרי הקטנה. נסו תמונה אחרת.` };
+}
+
 /** Pixel size of an image file, or null if the browser can't read it (the upload still goes ahead). */
 async function imageSize(file: File): Promise<{ w: number; h: number } | null> {
   try {
@@ -351,6 +393,7 @@ async function imageSize(file: File): Promise<{ w: number; h: number } | null> {
   }
 }
 
+/** Uploads one or more images. Always shows what is accepted, and clearly reports progress and results. */
 export function ImageUploader({
   label,
   hint,
@@ -388,16 +431,21 @@ export function ImageUploader({
         setError(`"${file.name}" אינו קובץ תמונה מתאים. אפשר להעלות PNG, JPG, WEBP או GIF.`);
         continue;
       }
-      if (file.size > MAX_BYTES) {
-        setError(`"${file.name}" גדולה מדי (עד 5MB). נסו תמונה קטנה יותר.`);
+      if (file.size > MAX_ORIGINAL_BYTES) {
+        setError(`"${file.name}" גדולה מדי (עד 30MB). נסו תמונה קטנה יותר.`);
         continue;
       }
       if (minSize) {
         const size = await imageSize(file);
         if (size && (size.w < minSize.w || size.h < minSize.h)) tooSmall.push(`״${file.name}״ (${size.w}×${size.h})`);
       }
+      const prepared = await prepareForUpload(file);
+      if (!prepared.ok) {
+        setError(prepared.error);
+        continue;
+      }
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", prepared.blob, file.name);
       try {
         const res = await fetch("/api/upload", { method: "POST", body });
         const json = await res.json();

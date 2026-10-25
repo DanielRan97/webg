@@ -149,7 +149,7 @@ export function BrandingStep({ data, update, plan, live }: StepProps) {
           <div className="flex flex-wrap items-center gap-2">
             <ImageUploader
               label={data.logoUrl ? "החלפת לוגו" : "העלאת לוגו"}
-              hint="הכי טוב: קובץ PNG עם רקע שקוף, ברוחב 512 פיקסלים לפחות. לוגו ריבועי או רחב ייראה טוב בסרגל העליון. אפשר גם JPG או WEBP, עד 5MB."
+              hint="הכי טוב: קובץ PNG עם רקע שקוף, ברוחב 512 פיקסלים לפחות. לוגו ריבועי או רחב ייראה טוב בסרגל העליון. אפשר גם JPG או WEBP."
               onUploaded={(u) => update({ logoUrl: u[0] })}
               minSize={{ w: 256, h: 128 }}
             />
@@ -305,7 +305,7 @@ export function ImagesStep({ data, update, errors }: StepProps) {
         <div className="space-y-2">
           <ImageUploader
             label={data.heroImageUrl ? "החלפת תמונה" : "העלאת תמונה ראשית"}
-            hint="מומלץ תמונה לרוחב, לפחות 1600×900 פיקסלים, עם הדבר החשוב במרכז (בטלפון רואים בעיקר את המרכז). JPG, PNG או WEBP, עד 5MB."
+            hint="מומלץ תמונה לרוחב, לפחות 1600×900 פיקסלים, עם הדבר החשוב במרכז (בטלפון רואים בעיקר את המרכז). JPG, PNG או WEBP. תמונות גדולות מהטלפון מוקטנות אוטומטית."
             onUploaded={(u) => update({ heroImageUrl: u[0] })}
             minSize={{ w: 1600, h: 900 }}
           />
@@ -340,7 +340,7 @@ export function ImagesStep({ data, update, errors }: StepProps) {
           )}
           <ImageUploader
             label="הוספת תמונות לגלריה"
-            hint="אפשר לבחור כמה תמונות יחד. מומלץ לפחות 1200×1200 פיקסלים, ריבועיות או לרוחב, עם הדבר החשוב במרכז. JPG, PNG או WEBP, עד 5MB לתמונה."
+            hint="אפשר לבחור כמה תמונות יחד. מומלץ לפחות 1200×1200 פיקסלים, ריבועיות או לרוחב, עם הדבר החשוב במרכז. JPG, PNG או WEBP. תמונות גדולות מהטלפון מוקטנות אוטומטית."
             multiple
             disabled={room <= 0}
             minSize={{ w: 800, h: 800 }}

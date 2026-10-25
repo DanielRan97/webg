@@ -93,7 +93,7 @@ export function TestimonialsStep({ data, update, errors }: StepProps) {
                     <Button type="button" variant="ghost" onClick={() => update({ testimonials: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
                   </div>
                 )}
-                <ImageUploader label={t.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונת פנים ריבועית, לפחות 400×400 פיקסלים. JPG, PNG או WEBP, עד 5MB." onUploaded={(u) => update({ testimonials: setAt(list, i, { imageUrl: u[0] }) })} />
+                <ImageUploader label={t.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונת פנים ריבועית, לפחות 400×400 פיקסלים. JPG, PNG או WEBP. תמונות גדולות מהטלפון מוקטנות אוטומטית." onUploaded={(u) => update({ testimonials: setAt(list, i, { imageUrl: u[0] }) })} />
               </div>
             </fieldset>
           );
@@ -362,7 +362,7 @@ export function ProjectsStep({ data, update }: StepProps) {
                 <Button type="button" variant="ghost" onClick={() => update({ projects: setAt(list, i, { imageUrl: "" }) })}>הסרת התמונה</Button>
               </div>
             )}
-            <ImageUploader label={p.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונה לאורך או ריבועית, לפחות 1000×1250 פיקסלים. JPG, PNG או WEBP, עד 5MB." onUploaded={(u) => update({ projects: setAt(list, i, { imageUrl: u[0] }) })} />
+            <ImageUploader label={p.imageUrl ? "החלפת תמונה" : "הוספת תמונה"} hint="תמונה לאורך או ריבועית, לפחות 1000×1250 פיקסלים. JPG, PNG או WEBP. תמונות גדולות מהטלפון מוקטנות אוטומטית." onUploaded={(u) => update({ projects: setAt(list, i, { imageUrl: u[0] }) })} />
           </div>
           <TextField label="קישור (לא חובה)" dir="ltr" placeholder="לדוגמה: github.com/yourname/project" value={p.link} onChange={(v) => update({ projects: setAt(list, i, { link: v }) })} maxLength={300} />
           <RemoveButton what={`פרויקט ${i + 1}`} onClick={() => update({ projects: removeAt(list, i) })} />
