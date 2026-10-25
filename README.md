@@ -70,4 +70,4 @@ Optional hardening once the schema has settled: convert the status strings to Pr
 
 Phase 2 only **adds** things: new tables (testimonials, service areas, FAQ, highlights), new optional columns (menu/price group, emergency and booking settings), all with defaults. Sites saved before Phase 2 keep every value and every section exactly as it was; sections that did not exist yet are appended **switched off**, so nothing appears or disappears on a live site. Switching templates only changes `templateId`.
 
-Migration: `npm run db:migrate` (or `npx prisma migrate deploy` in production).
+Migration: `npm run db:migrate` locally. In production, every Vercel deploy runs `vercel-build` (`prisma migrate deploy && next build`), so migrations committed to `master` are applied to the production database on deploy - pushing a migration is applying it. That needs both `DATABASE_URL` and `DIRECT_URL` set on Vercel. A local `npm run build` never touches the database.
