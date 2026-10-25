@@ -1,5 +1,6 @@
 import "server-only";
 import { localAdapter, readLocalImage } from "./local";
+import { optimizeImage } from "./optimize";
 import { r2Adapter } from "./r2";
 import { ALLOWED_TYPES, MAX_UPLOAD_BYTES, sniffImageMime } from "./shared";
 import type { StorageAdapter } from "./types";
@@ -28,7 +29,8 @@ export type SaveImageResult = { ok: true; url: string } | { ok: false; error: st
  * declared type, and - the important part - re-derives the real type from
  * the file's own bytes rather than trusting the Content-Type a client sent,
  * before handing it to whichever adapter is active (local disk in dev, R2
- * in production).
+ * in production). Photos are then made web-ready (resized, WebP, metadata
+ * removed - see optimize.ts).
  */
 export async function saveUploadedImage(bytes: Buffer, declaredMime: string): Promise<SaveImageResult> {
   if (bytes.length === 0) return { ok: false, error: "הקובץ ריק" };
@@ -36,7 +38,9 @@ export async function saveUploadedImage(bytes: Buffer, declaredMime: string): Pr
   if (!(declaredMime in ALLOWED_TYPES)) return { ok: false, error: "אפשר להעלות רק תמונות (PNG, JPG, WEBP, GIF)" };
   const sniffed = sniffImageMime(bytes);
   if (!sniffed) return { ok: false, error: "הקובץ לא נראה כמו תמונה תקינה" };
-  const url = await adapter().save(bytes, sniffed);
+  const optimized = await optimizeImage(bytes, sniffed);
+  if (!optimized.ok) return { ok: false, error: "הקובץ לא נראה כמו תמונה תקינה" };
+  const url = await adapter().save(optimized.bytes, optimized.mime);
   return { ok: true, url };
 }
 
