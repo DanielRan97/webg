@@ -282,13 +282,15 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
   // already saved when it wasn't.
   const lastSavedRef = useRef(initial);
   const lastSavedStepRef = useRef(wizardStep);
+  // Set once "צור את האתר" starts the final save: no autosave may follow it (the server refuses one too).
+  const finishingRef = useRef(false);
 
   useEffect(() => { dataRef.current = data; }, [data]);
   useEffect(() => { stepsRef.current = steps; }, [steps]);
   useEffect(() => { stepIndexRef.current = stepIndex; }, [stepIndex]);
 
   const autosave = useCallback((explicitStepId?: string) => {
-    if (!isNew) return;
+    if (!isNew || finishingRef.current) return;
     if (inFlightRef.current) {
       pendingSaveRef.current = true;
       return;
@@ -476,10 +478,17 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
       focusFirstInvalid();
       return;
     }
+    if (isNew) {
+      finishingRef.current = true;
+      pendingSaveRef.current = false;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    }
     startTransition(async () => {
       try {
         const res = await updateSiteAction(siteId, data);
         if (!res.ok) {
+          // Still in the wizard: let autosave carry on.
+          finishingRef.current = false;
           fail(res.error, false);
           if (/כתובת/.test(res.error)) {
             const i = steps.findIndex((s) => s.id === "address");
@@ -497,11 +506,11 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
           router.refresh();
         }
       } catch {
+        finishingRef.current = false;
         fail("לא הצלחנו לשמור. בדקו את החיבור לאינטרנט ונסו שוב. המידע שמילאתם עדיין כאן.", false);
       }
     });
   }
-
 
   return (
     <ValidationContext.Provider value={{ submitted }}>

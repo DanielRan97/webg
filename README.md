@@ -15,6 +15,12 @@ npm run dev                 # http://localhost:3000
 
 Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run db:reset` (wipes the database - **never** run this against a database with real data).
 
+### Tests
+
+- `npm test` - unit tests (Vitest, `tests/unit`): field formats, site validation, plans, header layout, dates and the Global SMS client. No server, database or network; takes under a second.
+- `npm run test:e2e` - end-to-end smoke tests (Playwright, `tests/e2e`) in desktop Chrome and a phone-sized one: sign up, log in/out, build a site in the wizard, verify its email, publish on Basic, see the public page and send it a message; plus the guards (login required, no publishing with an unverified email, another account gets a 404). They start their own dev server on port 3001 with email and SMS keys blanked, so nothing is really sent. First run: `npx playwright install chromium`.
+  They write to the database in `.env` and **refuse to run unless it is the Neon `dev` branch**. Test accounts use `@e2e.webg.test` and are deleted before and after every run, together with the tests' rate-limit counters. A full run takes about 6 minutes, mostly dev-mode compiling.
+
 ### Local development database
 
 The app now targets PostgreSQL everywhere, including local dev - there is no SQLite fallback. The simplest options: a free [Neon](https://neon.tech) or [Supabase](https://supabase.com) project (same as production, see below), or a local Postgres install / Docker container. Either way, set `DATABASE_URL` (and `DIRECT_URL` if your provider pools connections) in `.env`.

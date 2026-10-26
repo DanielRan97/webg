@@ -629,6 +629,9 @@ export async function autosaveWebsiteDraft(
 ): Promise<{ id: string } | null> {
   const before = await getOwnedWebsite(userId, id);
   if (!before) return null;
+  // Autosave belongs to the wizard only. Once "צור את האתר" has finished it (wizardStep cleared), a late
+  // autosave - e.g. one queued behind that final save - must not write old data or reopen the wizard.
+  if (before.wizardStep === null) return { id };
 
   const domainSet = new Set(domains);
   const fullWebsiteCols = websiteColumns(d);
