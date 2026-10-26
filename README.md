@@ -36,6 +36,7 @@ The app now targets PostgreSQL everywhere, including local dev - there is no SQL
 - **Section order** can be changed by dragging (`@dnd-kit`, works with mouse, touch and keyboard) or with the up/down buttons.
 - **Visibility rule** (one place): `isPubliclyVisible()` in `src/lib/subscription.ts` - published AND subscription `ACTIVE` or `TRIAL`. When a subscription lapses nothing is deleted; the public page shows "unavailable" and the dashboard shows "האתר לא פעיל" with "הפעל מחדש".
 - **Mock billing.** `activate/deactivateSubscriptionAction` (`src/server/actions/sites.ts`) flip `Subscription.status`. Real payments should call `setSubscriptionStatus()` from a webhook instead.
+- **Error reporting**: Sentry, on Vercel only (`NEXT_PUBLIC_SENTRY_DSN`, see `.env.example`). Server and browser errors, no tracing or session replay. Emails, phone numbers, form contents, cookies and headers are stripped before sending (`src/lib/sentry-options.ts`).
 - **Uploads** go through an adapter (`src/lib/storage/`): local disk in dev, Cloudflare R2 in production (required whenever `NODE_ENV=production`, see `src/lib/env.ts`).
 
 ## Database: PostgreSQL (Neon)
