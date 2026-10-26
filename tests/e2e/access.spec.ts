@@ -7,6 +7,16 @@ test("pages behind login send a visitor to log in", async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
 });
 
+test("unknown addresses get the Hebrew 404 page", async ({ page }) => {
+  for (const path of ["/no-such-page", "/s/no-such-site-e2e"]) {
+    const res = await page.goto(path);
+    expect(res?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "הדף לא נמצא" })).toBeVisible();
+  }
+  await page.getByRole("link", { name: "לדף הבית" }).click();
+  await expect(page).toHaveURL((url) => url.pathname === "/");
+});
+
 test("an owner can log out and log back in", async ({ page }) => {
   const email = await signUp(page);
   await page.getByRole("button", { name: "תפריט חשבון" }).click();
@@ -50,7 +60,7 @@ test("a site can't be published until its email is verified, and stays private t
   await signUp(otherPage);
   for (const path of [`/sites/${id}/edit`, `/sites/${id}/created`, `/sites/${id}/preview`]) {
     await otherPage.goto(path);
-    await expect(otherPage.getByText("404")).toBeVisible();
+    await expect(otherPage.getByRole("heading", { name: "הדף לא נמצא" })).toBeVisible();
     await expect(otherPage.getByText("עסק לא מאומת")).toHaveCount(0);
   }
   await other.close();
