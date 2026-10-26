@@ -25,6 +25,7 @@ import { ExternalLinkIcon, InboxIcon, LightbulbIcon, LockIcon, MoreIcon } from "
 import { CopyButton } from "./CopyButton";
 import { DeleteSiteDialog } from "./DeleteSiteDialog";
 import { PublishButton, UpgradeToPro } from "./PlanChoice";
+import { useBillingEnabled } from "./BillingContext";
 
 // Inlined at build time by Next.js - not a secret, just a mode flag.
 const isDev = process.env.NODE_ENV !== "production";
@@ -37,6 +38,7 @@ type Pending = "publish" | "unpublish" | "activate" | "deactivate" | "delete" | 
 export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCount: number }) {
   const d = site.data;
   const router = useRouter();
+  const billing = useBillingEnabled();
   const [isPending, start] = useTransition();
   const [running, setRunning] = useState<Pending>(null);
   const [confirm, setConfirm] = useState<"unpublish" | "deactivate" | null>(null);
@@ -105,6 +107,11 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
     start(async () => {
       try {
         const res = await action(site.id);
+        if (res.redirectTo) {
+          // Payment needed (billing on): the payment page brings the site back.
+          window.location.assign(res.redirectTo);
+          return;
+        }
         setNotice(res.ok ? { kind: "success", text: success } : { kind: "error", text: res.error ?? "משהו השתבש. נסו שוב." });
       } catch {
         setNotice({ kind: "error", text: "לא הצלחנו להשלים את הפעולה. בדקו את החיבור לאינטרנט ונסו שוב." });
@@ -229,6 +236,15 @@ export function SiteCard({ site, unreadCount }: { site: WebsiteRecord; unreadCou
             <LockIcon aria-hidden />
           )}
         </Link>
+
+        {billing && site.subscriptionStatus === SUBSCRIPTION_STATUS.PAST_DUE && (
+          <Notice kind="error">החיוב החודשי לא עבר. האתר עדיין באוויר, אבל צריך לעדכן אמצעי תשלום כדי שלא יירד.</Notice>
+        )}
+        {billing && (
+          <Link href={`/sites/${site.id}/billing`} className="flex min-h-11 w-full items-center justify-center rounded-lg border border-ink-200 bg-white px-4 text-sm font-semibold text-ink-800 shadow-sm transition hover:bg-ink-50">
+            תשלום ומנוי
+          </Link>
+        )}
 
         {notice && <Notice kind={notice.kind}>{notice.text}</Notice>}
 

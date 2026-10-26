@@ -1,15 +1,15 @@
 import { SUBSCRIPTION_STATUS, WEBSITE_STATUS } from "./constants";
 
 /**
- * The single rule that decides whether the public can see a site.
- * Payments are mocked for now; real billing only needs to update
- * Subscription.status through server/subscription.ts.
+ * The single rule that decides whether the public can see a site. A site whose renewal failed
+ * (PAST_DUE) stays live through the grace period; billing (server/billing.ts) moves it to INACTIVE after.
  */
 export function isPubliclyVisible(site: { status: string; subscriptionStatus: string }): boolean {
   return (
     site.status === WEBSITE_STATUS.PUBLISHED &&
     (site.subscriptionStatus === SUBSCRIPTION_STATUS.ACTIVE ||
-      site.subscriptionStatus === SUBSCRIPTION_STATUS.TRIAL)
+      site.subscriptionStatus === SUBSCRIPTION_STATUS.TRIAL ||
+      site.subscriptionStatus === SUBSCRIPTION_STATUS.PAST_DUE)
   );
 }
 

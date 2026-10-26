@@ -26,6 +26,7 @@ export const STATUS_INFO = {
 export const SUBSCRIPTION_INFO = {
   TRIAL: { label: "תקופת ניסיון", meaning: "אפשר לפרסם ולנסות את האתר בלי תשלום." },
   ACTIVE: { label: "מנוי פעיל", meaning: "האתר יכול להיות אונליין." },
+  PAST_DUE: { label: "בעיה בתשלום", meaning: "החיוב החודשי לא עבר. האתר עדיין באוויר, אבל צריך לעדכן אמצעי תשלום כדי שלא יירד." },
   INACTIVE: { label: "מנוי לא פעיל", meaning: "האתר לא מוצג ללקוחות עד שתפעילו מחדש." },
 } as const;
 

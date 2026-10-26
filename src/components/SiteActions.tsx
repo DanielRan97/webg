@@ -54,6 +54,11 @@ export function SiteActions({
     start(async () => {
       try {
         const res = await action(id);
+        if (res.redirectTo) {
+          // Payment needed (billing on): the payment page brings the site back.
+          window.location.assign(res.redirectTo);
+          return;
+        }
         setNotice(res.ok ? { kind: "success", text: success } : { kind: "error", text: res.error ?? "משהו השתבש. נסו שוב." });
       } catch {
         setNotice({ kind: "error", text: "לא הצלחנו להשלים את הפעולה. בדקו את החיבור לאינטרנט ונסו שוב." });

@@ -5,6 +5,8 @@ import { logoutAction } from "@/server/actions/auth";
 import { getUserUnreadCount } from "@/server/support";
 import { AccountMenu } from "@/components/AccountMenu";
 import { WebgMark } from "@/components/WebgMark";
+import { BillingProvider } from "@/components/BillingContext";
+import { billingEnabled } from "@/lib/payments";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
@@ -21,7 +23,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <AccountMenu email={user.email} logoutAction={logoutAction} isAdmin={admin} supportUnreadCount={supportUnreadCount} />
         </div>
       </header>
-      <div id="main-content" tabIndex={-1} className="outline-none">{children}</div>
+      <div id="main-content" tabIndex={-1} className="outline-none">
+        <BillingProvider enabled={billingEnabled()}>{children}</BillingProvider>
+      </div>
     </div>
   );
 }

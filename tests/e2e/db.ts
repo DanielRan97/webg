@@ -49,5 +49,7 @@ export async function cleanUp(): Promise<void> {
     ...sites.flatMap((s) => [`contact-code:${s.id}:`, `:site:${s.slug}`]),
   ];
   await db.rateLimitHit.deleteMany({ where: { OR: keys.map((k) => ({ key: { contains: k } })) } });
+  // Payments outlive their site on purpose (the record of money taken), so test ones are removed by owner.
+  await db.payment.deleteMany({ where: { userId: { in: ids } } });
   await db.user.deleteMany({ where: { id: { in: ids } } });
 }

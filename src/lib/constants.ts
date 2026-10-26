@@ -6,6 +6,8 @@ export type WebsiteStatus = (typeof WEBSITE_STATUS)[keyof typeof WEBSITE_STATUS]
 
 export const SUBSCRIPTION_STATUS = {
   ACTIVE: "ACTIVE",
+  /** A renewal charge failed: still live during the grace period (see server/billing.ts). */
+  PAST_DUE: "PAST_DUE",
   INACTIVE: "INACTIVE",
   TRIAL: "TRIAL",
 } as const;

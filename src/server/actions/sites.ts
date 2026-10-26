@@ -10,6 +10,7 @@ import { unverifiedContacts } from "../contact-verification";
 import { draftSiteSchema, siteSchema } from "@/lib/validation";
 import { INQUIRY_DELIVERY, PRO_TEMPLATE_PUBLISH_ERROR, isPro, needsProToPublish } from "@/lib/plan";
 import type { SiteData } from "@/types/site";
+import { getGateway, hasPaidPeriod, setCancelAtPeriodEnd, startCheckout, upgradeWithCardOnFile } from "../billing";
 import {
   ProRequiredError,
   SlugError,
@@ -183,6 +184,8 @@ export async function autosaveSiteAction(
 export interface SimpleResult {
   ok: boolean;
   error?: string;
+  /** Payment needed first: send the owner here (the gateway's payment page). */
+  redirectTo?: string;
 }
 
 type OwnedUser = { id: string; email: string; emailVerifiedAt: Date | null };
@@ -199,54 +202,97 @@ async function withOwnedSite(id: string, fn: (user: OwnedUser, slug: string) => 
   return result;
 }
 
+type OwnedSite = NonNullable<Awaited<ReturnType<typeof getOwnedWebsite>>>;
+const forBilling = (site: OwnedSite, userId: string) => ({ id: site.id, businessName: site.data.businessName, plan: site.plan, userId });
+
+const VERIFY_ACCOUNT_FIRST = "יש לאמת את כתובת האימייל לפני פרסום האתר. שלחנו קישור אימות בהרשמה - אפשר לשלוח שוב מלוח הבקרה.";
+const CHECKOUT_FAILED = "לא הצלחנו לפתוח את דף התשלום. נסו שוב בעוד כמה דקות.";
+
+/** What stops this site from going live on `plan`, as a message for the owner - or null. */
+async function publishProblem(user: OwnedUser, site: OwnedSite, plan: string): Promise<string | null> {
+  // A verified email is required to go from draft to published - it does not
+  // retroactively affect sites that are already live (see prisma/backfill-verified.ts).
+  if (!user.emailVerifiedAt) return VERIFY_ACCOUNT_FIRST;
+  if (needsProToPublish({ plan, templateId: site.data.templateId })) return PRO_TEMPLATE_PUBLISH_ERROR;
+  // Every email/phone shown on the site must be the owner's, proven with a code (see contact-verification.ts).
+  const missing = await unverifiedContacts(site.id, site.data);
+  if (missing.length) return `כדי לפרסם, אמתו קודם את ${listHe(missing)} של העסק. עושים את זה בשלב ״פרטי העסק״, עם קוד שנשלח אליכם.`;
+  return null;
+}
+
 export async function publishSiteAction(id: string): Promise<SimpleResult> {
   return withOwnedSite(id, async (user) => {
-    // A verified email is required to go from draft to published - it does not
-    // retroactively affect sites that are already live (see prisma/backfill-verified.ts).
-    if (!user.emailVerifiedAt) {
-      return { ok: false, error: "יש לאמת את כתובת האימייל לפני פרסום האתר. שלחנו קישור אימות בהרשמה - אפשר לשלוח שוב מלוח הבקרה." };
-    }
     const site = await getOwnedWebsite(user.id, id);
-    if (site?.subscriptionStatus === SUBSCRIPTION_STATUS.INACTIVE) {
+    if (!site) return { ok: false, error: "האתר לא נמצא" };
+    if (site.subscriptionStatus === SUBSCRIPTION_STATUS.INACTIVE) {
       return { ok: false, error: "האתר לא פעיל. יש להפעיל אותו מחדש לפני הפרסום." };
     }
-    if (site && needsProToPublish({ plan: site.plan, templateId: site.data.templateId })) {
-      return { ok: false, error: PRO_TEMPLATE_PUBLISH_ERROR };
-    }
-    // Every email/phone shown on the site must be the owner's, proven with a code (see contact-verification.ts).
-    const missing = site ? await unverifiedContacts(site.id, site.data) : [];
-    if (missing.length) {
-      return { ok: false, error: `כדי לפרסם, אמתו קודם את ${listHe(missing)} של העסק. עושים את זה בשלב ״פרטי העסק״, עם קוד שנשלח אליכם.` };
-    }
+    const problem = await publishProblem(user, site, site.plan);
+    if (problem) return { ok: false, error: problem };
     await setWebsiteStatus(user.id, id, WEBSITE_STATUS.PUBLISHED);
     return { ok: true };
   });
 }
 
 /**
- * The publish dialog: puts the site on the plan the owner chose, then publishes it. Basic can't be chosen
- * for a site built with a Pro design. Until payments are connected, choosing Pro costs nothing (owner's
- * decision) - once they are, this is where the Pro choice will go through payment first.
+ * The publish dialog: puts the site on the plan the owner chose and publishes it. Basic can't be chosen for
+ * a site built with a Pro design. With billing on (server/billing.ts), a site without a paid period goes to
+ * the payment page first (`redirectTo`) and is published when the payment is verified; without billing,
+ * publishing and Pro cost nothing.
  */
 export async function publishWithPlanAction(id: string, plan: Plan): Promise<SimpleResult> {
   if (plan !== PLAN.BASIC && plan !== PLAN.PRO) return { ok: false, error: "בחירה לא תקינה." };
   const user = await requireUser();
   const site = await getOwnedWebsite(user.id, id);
   if (!site) return { ok: false, error: "האתר לא נמצא" };
-  if (!user.emailVerifiedAt) {
-    return { ok: false, error: "יש לאמת את כתובת האימייל לפני פרסום האתר. שלחנו קישור אימות בהרשמה - אפשר לשלוח שוב מלוח הבקרה." };
+  const problem = await publishProblem(user, site, plan);
+  if (problem) return { ok: false, error: problem };
+
+  const gateway = getGateway();
+  if (!gateway) {
+    if (site.plan !== plan) await setPlan(user.id, id, plan);
+    return publishSiteAction(id);
   }
-  if (needsProToPublish({ plan, templateId: site.data.templateId })) return { ok: false, error: PRO_TEMPLATE_PUBLISH_ERROR };
-  if (site.plan !== plan) await setPlan(user.id, id, plan);
-  return publishSiteAction(id);
+  if (await hasPaidPeriod(id)) {
+    if (plan === PLAN.PRO && site.plan !== PLAN.PRO) {
+      const upgraded = await upgradeWithCardOnFile(forBilling(site, user.id), user.email, gateway);
+      if (upgraded && !upgraded.ok) return { ok: false, error: upgraded.error ?? CHECKOUT_FAILED };
+    } else if (site.plan !== plan) {
+      // Back to Basic: the cheaper price applies from the next renewal; the paid month isn't refunded.
+      await setPlan(user.id, id, plan);
+    }
+    return publishSiteAction(id);
+  }
+  try {
+    return { ok: true, redirectTo: await startCheckout(forBilling(site, user.id), user.email, "PUBLISH", plan, gateway) };
+  } catch (e) {
+    console.error("checkout failed:", e instanceof Error ? e.message : e);
+    return { ok: false, error: CHECKOUT_FAILED };
+  }
 }
 
-/** "שדרוג ל-Pro" on a site. Free until payments are connected (see publishWithPlanAction). */
+/** "שדרוג ל-Pro" on a live Basic site: free without billing; with it, the difference on the card on file, or the payment page. */
 export async function upgradeToProAction(id: string): Promise<SimpleResult> {
+  const gateway = getGateway();
   return withOwnedSite(id, async (user) => {
-    const ok = await setPlan(user.id, id, PLAN.PRO);
-    if (ok) revalidatePath(`/sites/${id}/edit`);
-    return ok ? { ok: true } : { ok: false, error: "האתר לא נמצא" };
+    const site = await getOwnedWebsite(user.id, id);
+    if (!site) return { ok: false, error: "האתר לא נמצא" };
+    if (gateway) {
+      const upgraded = await upgradeWithCardOnFile(forBilling(site, user.id), user.email, gateway);
+      if (!upgraded) {
+        try {
+          return { ok: true, redirectTo: await startCheckout(forBilling(site, user.id), user.email, "UPGRADE", PLAN.PRO, gateway) };
+        } catch (e) {
+          console.error("checkout failed:", e instanceof Error ? e.message : e);
+          return { ok: false, error: CHECKOUT_FAILED };
+        }
+      }
+      if (!upgraded.ok) return { ok: false, error: upgraded.error ?? CHECKOUT_FAILED };
+    } else if (!(await setPlan(user.id, id, PLAN.PRO))) {
+      return { ok: false, error: "האתר לא נמצא" };
+    }
+    revalidatePath(`/sites/${id}/edit`);
+    return { ok: true };
   });
 }
 
@@ -257,10 +303,36 @@ export async function unpublishSiteAction(id: string): Promise<SimpleResult> {
   });
 }
 
-/** Mock: "הפעל מחדש". Real payments will call the same server function from a webhook. */
+/**
+ * "הפעל מחדש" / "עדכון אמצעי תשלום": with billing, the payment page for a month on the site's plan (with
+ * the new card); the payment brings the site back. Without billing (mock), flips the status directly.
+ */
 export async function activateSubscriptionAction(id: string): Promise<SimpleResult> {
+  const gateway = getGateway();
   return withOwnedSite(id, async (user) => {
+    if (gateway) {
+      const site = await getOwnedWebsite(user.id, id);
+      if (!site) return { ok: false, error: "האתר לא נמצא" };
+      try {
+        return { ok: true, redirectTo: await startCheckout(forBilling(site, user.id), user.email, "CARD", site.plan as Plan, gateway) };
+      } catch (e) {
+        console.error("checkout failed:", e instanceof Error ? e.message : e);
+        return { ok: false, error: CHECKOUT_FAILED };
+      }
+    }
     await setSubscriptionStatus(user.id, id, SUBSCRIPTION_STATUS.ACTIVE);
+    return { ok: true };
+  });
+}
+
+/** The owner cancels (or takes back the cancellation): no further charges; the site stays live until the paid period ends. */
+export async function setCancelSubscriptionAction(id: string, cancel: boolean): Promise<SimpleResult> {
+  return withOwnedSite(id, async (user) => {
+    const site = await getOwnedWebsite(user.id, id);
+    if (!site) return { ok: false, error: "האתר לא נמצא" };
+    if (!(await hasPaidPeriod(id))) return { ok: false, error: "אין מנוי פעיל לביטול." };
+    await setCancelAtPeriodEnd(id, cancel);
+    revalidatePath(`/sites/${id}/billing`);
     return { ok: true };
   });
 }

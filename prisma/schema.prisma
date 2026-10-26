@@ -93,7 +93,7 @@ model Website {
   /// Top-bar arrangement ("logo:start,name:start,menu:end"); null = the template's own default. See src/lib/nav-layout.ts.
   navLayout          String?
   status             String   @default("DRAFT") // DRAFT | PUBLISHED
-  subscriptionStatus String   @default("TRIAL") // ACTIVE | INACTIVE | TRIAL (cache of Subscription.status)
+  subscriptionStatus String   @default("TRIAL") // ACTIVE | PAST_DUE | INACTIVE | TRIAL (cache of Subscription.status)
   plan               String   @default("BASIC") // BASIC | PRO
   /**
    * Pro only: where new inquiries go - BOTH (email + inquiries center), EMAIL (center switched off) or
@@ -132,6 +132,7 @@ model Website {
   certifications Certification[]
   interactions   CustomerInteraction[]
   pageViews      PageView[]
+  payments       Payment[]
 
   @@index([userId])
 }
@@ -267,15 +268,64 @@ model WebsiteSection {
   @@unique([websiteId, type])
 }
 
+/**
+ * A site's billing (see src/server/billing.ts). WEBG runs the monthly cycle itself: the first payment goes
+ * through HYP's payment page, which leaves a card token; on `currentPeriodEnd` the daily job charges that
+ * token. A failed charge makes the site PAST_DUE (still shown) for a 7-day grace; after it, INACTIVE.
+ */
 model Subscription {
-  id               String    @id @default(cuid())
-  websiteId        String    @unique
-  status           String    @default("TRIAL") // ACTIVE | INACTIVE | TRIAL
-  currentPeriodEnd DateTime?
-  provider         String? // reserved for Phase 3 payments
-  providerRef      String?
+  id                String    @id @default(cuid())
+  websiteId         String    @unique
+  status            String    @default("TRIAL") // TRIAL | ACTIVE | PAST_DUE | INACTIVE (cached on Website.subscriptionStatus)
+  /// When the paid (or free) period ends - the next charge is due then.
+  currentPeriodEnd  DateTime?
+  provider          String? // "HYP" once a card is on file
+  providerRef       String?
+  /// HYP's card token (19 digits, useless outside WEBG's terminal - never the card number) and its expiry (YYMM).
+  cardToken         String?
+  cardExpiry        String?
+  cardLast4         String?
+  /// Failed renewal attempts in the current grace period, and when that period began.
+  failedAttempts    Int       @default(0)
+  pastDueSince      DateTime?
+  /// The owner cancelled: no further charges, the site stays live until currentPeriodEnd.
+  cancelAtPeriodEnd Boolean   @default(false)
+  /// When the "billing starts" / "card needed soon" reminders were last sent (TRIAL sites with no card).
+  remindedAt        DateTime?
 
   website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@index([status, currentPeriodEnd])
+}
+
+/**
+ * One payment attempt: a checkout through HYP's payment page (PENDING until the owner comes back and the
+ * redirect is verified) or a renewal charge of the stored token. Kept when the site is deleted (websiteId
+ * becomes null) - it is the record of money taken. Amounts in agorot.
+ */
+model Payment {
+  id              String    @id @default(cuid())
+  websiteId       String?
+  userId          String
+  /// CHECKOUT (payment page: first payment, upgrade, or paying an overdue month with a new card) | RENEWAL
+  kind            String
+  /// What the payment is for once it succeeds: PUBLISH | UPGRADE | CARD (renew with a new card) | RENEWAL
+  purpose         String
+  plan            String // BASIC | PRO
+  amountAgorot    Int
+  status          String    @default("PENDING") // PENDING | PAID | FAILED
+  /// HYP's transaction id (`Id`) and status code (`CCode`).
+  providerTransId String?
+  providerCode    String?
+  /// The business name when paid, for the record.
+  description     String
+  createdAt       DateTime  @default(now())
+  paidAt          DateTime?
+
+  website Website? @relation(fields: [websiteId], references: [id], onDelete: SetNull)
+
+  @@index([websiteId, createdAt])
+  @@index([status, createdAt])
 }
 
 model Testimonial {

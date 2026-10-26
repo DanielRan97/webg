@@ -36,7 +36,19 @@ export default defineConfig({
     command: `npx next dev --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
+    // E2E_SERVER_LOG=1 shows the server's console - e.g. the emails it "sends" (printed, never sent).
+    stdout: process.env.E2E_SERVER_LOG ? "pipe" : "ignore",
     timeout: 180_000,
-    env: { RESEND_API_KEY: "", GLOBALSMS_API_KEY: "", SMS_SENDER: "" },
+    // Billing runs against the fake gateway (lib/payments/fake.ts); HYP's settings are blanked.
+    env: {
+      RESEND_API_KEY: "",
+      GLOBALSMS_API_KEY: "",
+      SMS_SENDER: "",
+      HYP_MASOF: "",
+      HYP_KEY: "",
+      HYP_PASSP: "",
+      PAYMENTS_FAKE: "1",
+      CRON_SECRET: "e2e-cron-secret",
+    },
   },
 });

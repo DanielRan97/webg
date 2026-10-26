@@ -2,7 +2,7 @@ import "server-only";
 import { SUPPORT_EMAIL } from "@/lib/constants";
 import { consoleAdapter } from "./console-adapter";
 import { createResendAdapter } from "./resend-adapter";
-import { contactCodeEmail, contactFormEmail, leadFormEmail, smsBalanceAlertEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail } from "./templates";
+import { billingNoticeEmail, contactCodeEmail, contactFormEmail, leadFormEmail, smsBalanceAlertEmail, passwordResetEmail, supportReplyEmail, supportTicketOpenedEmail, verifyEmailEmail, type BillingNotice } from "./templates";
 import type { EmailAdapter } from "./types";
 
 /**
@@ -25,6 +25,12 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
 
 export async function sendVerifyEmail(to: string, verifyUrl: string) {
   const { subject, html, text } = verifyEmailEmail(verifyUrl);
+  await getAdapter().send({ to, subject, html, text, replyTo: SUPPORT_EMAIL });
+}
+
+/** `to` is the site owner's account email, resolved server-side (server/billing.ts). */
+export async function sendBillingNoticeEmail(to: string, kind: BillingNotice, input: { businessName: string; url: string; amount: string; date: string }) {
+  const { subject, html, text } = billingNoticeEmail(kind, input);
   await getAdapter().send({ to, subject, html, text, replyTo: SUPPORT_EMAIL });
 }
 

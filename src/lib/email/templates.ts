@@ -166,6 +166,49 @@ ${helpText}`;
   return { subject, html, text };
 }
 
+export type BillingNotice = "PAYMENT_FAILED" | "PAYMENT_RETRY_FAILED" | "SITE_SUSPENDED" | "SUBSCRIPTION_ENDED" | "CARD_NEEDED";
+
+/** Billing emails to a site's owner (see server/billing.ts). `date` is already formatted for Israel. */
+export function billingNoticeEmail(kind: BillingNotice, input: { businessName: string; url: string; amount: string; date: string }) {
+  const name = escapeHtml(input.businessName || "האתר שלכם");
+  const copy: Record<BillingNotice, { subject: string; title: string; body: string; button: string }> = {
+    PAYMENT_FAILED: {
+      subject: `החיוב החודשי של ${input.businessName} לא עבר`,
+      title: "החיוב החודשי לא עבר",
+      body: `ניסינו לחייב ₪${input.amount} עבור האתר ״${name}״, והחיוב לא אושר. זה קורה בדרך כלל כשתוקף הכרטיס הסתיים או שהכרטיס הוחלף. האתר עדיין באוויר. כדי שיישאר כך, עדכנו אמצעי תשלום עד ${input.date}.`,
+      button: "עדכון אמצעי תשלום",
+    },
+    PAYMENT_RETRY_FAILED: {
+      subject: `תזכורת: צריך לעדכן אמצעי תשלום ל${input.businessName}`,
+      title: "החיוב עדיין לא עובר",
+      body: `ניסינו שוב לחייב ₪${input.amount} עבור האתר ״${name}״, והחיוב לא אושר. אם אמצעי התשלום לא יעודכן עד ${input.date}, האתר יפסיק להיות מוצג ללקוחות. שום תוכן לא יימחק.`,
+      button: "עדכון אמצעי תשלום",
+    },
+    SITE_SUSPENDED: {
+      subject: `האתר ${input.businessName} הפסיק להיות מוצג`,
+      title: "האתר הפסיק להיות מוצג",
+      body: `לא הצלחנו לחייב את המנוי של ״${name}״, ולכן האתר כבר לא מוצג ללקוחות. כל התוכן שמור. אחרי תשלום, האתר חוזר לאוויר מיד.`,
+      button: "תשלום והחזרת האתר",
+    },
+    SUBSCRIPTION_ENDED: {
+      subject: `המנוי של ${input.businessName} הסתיים`,
+      title: "המנוי הסתיים",
+      body: `כפי שביקשתם, המנוי של ״${name}״ הסתיים והאתר כבר לא מוצג ללקוחות. כל התוכן שמור, ואפשר לחדש את המנוי בכל זמן.`,
+      button: "חידוש המנוי",
+    },
+    CARD_NEEDED: {
+      subject: `צריך להוסיף אמצעי תשלום ל${input.businessName}`,
+      title: "תקופת החינם מסתיימת",
+      body: `תקופת החינם של האתר ״${name}״ מסתיימת ב-${input.date}. כדי שהאתר יישאר באוויר, הוסיפו אמצעי תשלום. החיוב החודשי: ₪${input.amount}.`,
+      button: "הוספת אמצעי תשלום",
+    },
+  };
+  const c = copy[kind];
+  const html = wrap(escapeHtml(c.title), `<p style="color:#374151;line-height:1.6;font-size:15px">${c.body}</p>${btn(input.url, c.button)}${fallbackLink(input.url)}${helpLine}`);
+  const text = `${c.title}\n\n${c.body.replace(/<[^>]+>/g, "")}\n\n${c.button}: ${input.url}\n\n${helpText}`;
+  return { subject: c.subject, html, text };
+}
+
 /** To WEBG admins: SMS credit for verification codes is low (or out). */
 export function smsBalanceAlertEmail(left: number) {
   const subject = left > 0 ? `נשארו ${left} הודעות SMS בחשבון Global SMS` : "נגמרו הודעות ה-SMS בחשבון Global SMS";

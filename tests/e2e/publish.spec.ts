@@ -1,31 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { db, uniqueId } from "./db";
-import { goToStep, setSlug, signUp, startSite } from "./helpers";
+import { db } from "./db";
+import { buildReadySite, payOnFakePage } from "./helpers";
 
 /**
- * The core path: an owner signs up, builds a site in the wizard, verifies its email, publishes on
- * Basic - and a visitor sees the site and sends a message that reaches the owner.
+ * The core path: an owner signs up, builds a site in the wizard, verifies its email, pays for Basic on the
+ * payment page (the fake gateway in tests) and the site goes live - and a visitor sees it and sends a
+ * message that reaches the owner.
  */
-test("owner builds and publishes a site, and a visitor sends a message", async ({ page, browser }) => {
-  const email = await signUp(page);
-  const { id } = await startSite(page);
-  const slug = `e2e-${uniqueId()}`;
-
-  await page.getByLabel("איך קוראים לעסק?").fill("מספרת בדיקה");
-  await page.getByRole("button", { name: "ספר", exact: true }).click();
-  // A landline needs no SMS code.
-  await page.getByLabel("טלפון", { exact: true }).fill("03-1234567");
-  await expect(page.getByText("מספר קווי לא מקבל SMS")).toBeVisible();
-  // The same address as the (confirmed) account is verified at once, with no code.
-  await page.getByLabel("אימייל (לא חובה)").fill(email);
-  await page.getByRole("button", { name: "שליחת קוד אימות" }).click();
-  await expect(page.getByText("האימייל מאומת")).toBeVisible();
-
-  await setSlug(page, slug);
-  await goToStep(page, "יצירת קשר");
-  await page.getByRole("button", { name: "שלחו הודעה" }).click();
-  await page.getByRole("button", { name: "צור את האתר" }).click();
-  await page.waitForURL(`**/sites/${id}/created`);
+test("owner builds, pays for and publishes a site, and a visitor sends a message", async ({ page, browser }) => {
+  const { id, slug } = await buildReadySite(page, "מספרת בדיקה");
   await expect(page.getByText(`webg.co.il/s/${slug}`).first()).toBeVisible();
 
   // Not public until published.
@@ -36,9 +19,15 @@ test("owner builds and publishes a site, and a visitor sends a message", async (
   await page.getByRole("button", { name: "פרסום האתר" }).click();
   const dialog = page.getByRole("dialog", { name: "באיזו חבילה לפרסם את האתר?" });
   await expect(dialog.getByRole("radio", { name: /^Basic/ })).toBeChecked();
+  await expect(dialog.getByText("תעברו לדף התשלום המאובטח")).toBeVisible();
   await dialog.getByRole("button", { name: "פרסום ב-Basic" }).click();
-  await expect(dialog).toBeHidden();
-  await expect.poll(async () => (await db.website.findUniqueOrThrow({ where: { id } })).status).toBe("PUBLISHED");
+  await payOnFakePage(page, id);
+
+  const site = await db.website.findUniqueOrThrow({ where: { id }, include: { subscription: true, payments: true } });
+  expect(site.status).toBe("PUBLISHED");
+  expect(site.subscription).toMatchObject({ status: "ACTIVE", provider: "FAKE", cardLast4: "4242" });
+  expect(site.payments).toMatchObject([{ status: "PAID", amountAgorot: 5000, purpose: "PUBLISH" }]);
+  await expect(page.getByText("מנוי פעיל")).toBeVisible();
 
   // The public page, as a visitor.
   await visitor.goto(`/s/${slug}`);

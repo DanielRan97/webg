@@ -9,6 +9,7 @@ import { needsProToPublish } from "@/lib/plan";
 import { basicUrlDisplay, proUrlDisplay } from "@/lib/site-url";
 import { publishWithPlanAction, upgradeToProAction } from "@/server/actions/sites";
 import { Button, Notice, cx } from "./ui/ui";
+import { useBillingEnabled } from "./BillingContext";
 
 /*
  * Choosing a plan where it matters: the publish dialog (every "פרסום" button opens it) and the
@@ -22,6 +23,11 @@ const PRO = PLANS.find((p) => p.id === "PRO")!;
 const PRO_EXTRAS = PRO.features.filter((f) => !f.startsWith("כל מה שב-"));
 
 const FREE_FOR_NOW = "בינתיים אין חיוב: התשלומים עדיין לא מחוברים. לפני שיתחיל חיוב נעדכן אתכם.";
+/** With billing on: what happens when the owner confirms (server/billing.ts decides whether a payment is needed). */
+const PAY_NOTE = (price: number) =>
+  `₪${price} לחודש, חיוב חודשי מתחדש. אם לאתר אין מנוי פעיל, תעברו לדף התשלום המאובטח של HYP. פרטי הכרטיס לא נשמרים אצלנו, חשבונית נשלחת למייל, ואפשר לבטל בכל זמן.`;
+const UPGRADE_PAY_NOTE =
+  "אם יש לאתר מנוי פעיל עם כרטיס שמור, תחויבו רק בהפרש היחסי עד סוף החודש, ומהחיוב הבא המחיר יהיה של Pro. אחרת תעברו לדף התשלום המאובטח של HYP.";
 /** Addresses are isolated (<bdi>) so their Latin text doesn't reorder the Hebrew sentence around them. */
 const addressNote = (slug: string) => (
   <>
@@ -66,6 +72,7 @@ export function PublishButton({
   trigger?: (open: () => void) => ReactNode;
 }) {
   const router = useRouter();
+  const billing = useBillingEnabled();
   const [open, setOpen] = useState(false);
   const basicBlocked = needsProToPublish({ plan: PLAN.BASIC, templateId });
   const [choice, setChoice] = useState<Plan>(basicBlocked || plan === PLAN.PRO ? PLAN.PRO : PLAN.BASIC);
@@ -85,6 +92,11 @@ export function PublishButton({
     start(async () => {
       try {
         const res = await publishWithPlanAction(siteId, choice);
+        if (res.redirectTo) {
+          // Payment first: the site is published when the payment is verified.
+          window.location.assign(res.redirectTo);
+          return;
+        }
         if (!res.ok) {
           setError(res.error ?? "לא הצלחנו לפרסם. נסו שוב.");
           return;
@@ -169,10 +181,10 @@ export function PublishButton({
             </p>
           )}
 
-          {choice === PLAN.PRO && (
+          {(billing || choice === PLAN.PRO) && (
             <div className="mt-4 space-y-1.5 rounded-xl bg-ink-50 p-3 text-sm text-ink-800">
-              <p>{FREE_FOR_NOW}</p>
-              <p>{addressNote(slug)}</p>
+              <p>{billing ? PAY_NOTE(choice === PLAN.PRO ? PRO.price : BASIC.price) : FREE_FOR_NOW}</p>
+              {choice === PLAN.PRO && <p>{addressNote(slug)}</p>}
             </div>
           )}
 
@@ -206,6 +218,7 @@ export function UpgradeToPro({
   onUpgraded?: () => void;
 }) {
   const router = useRouter();
+  const billing = useBillingEnabled();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
@@ -217,6 +230,10 @@ export function UpgradeToPro({
     start(async () => {
       try {
         const res = await upgradeToProAction(siteId);
+        if (res.redirectTo) {
+          window.location.assign(res.redirectTo);
+          return;
+        }
         if (!res.ok) {
           setError(res.error ?? "לא הצלחנו לשדרג. נסו שוב.");
           return;
@@ -273,7 +290,7 @@ export function UpgradeToPro({
           ))}
         </ul>
         <div className="mt-4 space-y-1.5 rounded-xl bg-ink-50 p-3 text-sm text-ink-800">
-          <p>{FREE_FOR_NOW}</p>
+          <p>{billing ? UPGRADE_PAY_NOTE : FREE_FOR_NOW}</p>
           <p>{addressNote(slug)}</p>
         </div>
         <div aria-live="polite" className="mt-3">{error && <Notice kind="error">{error}</Notice>}</div>
