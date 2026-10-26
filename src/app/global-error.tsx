@@ -10,7 +10,9 @@ import "./globals.css";
  */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    // An error with a digest came from the server, which already reported it with the real message
+    // (instrumentation.ts) - the browser only gets a generic copy, so don't report it twice.
+    if (!error.digest) Sentry.captureException(error);
   }, [error]);
 
   return (

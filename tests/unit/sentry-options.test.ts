@@ -26,8 +26,15 @@ describe("Sentry privacy", () => {
     expect(out.breadcrumbs?.[0]).toEqual({ message: "typed [phone]" });
   });
 
-  it("is off without a DSN, and never sends default PII", () => {
+  it("is off without a DSN, and collects no personal data", () => {
     expect(sentryOptions.enabled).toBe(false);
-    expect(sentryOptions.sendDefaultPii).toBe(false);
+    expect(sentryOptions.dataCollection).toMatchObject({
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      stackFrameVariables: false,
+    });
   });
 });

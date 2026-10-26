@@ -6,8 +6,9 @@ import type { ErrorEvent } from "@sentry/nextjs";
  * local development never reports. Errors only: no performance tracing and no session replay.
  *
  * Privacy: owners' and their customers' details (emails, phones, form contents) must never reach Sentry.
- * The SDK leaves out IPs and cookies by default (sendDefaultPii: false); beforeSend also drops request
- * bodies, query strings and headers, and blanks anything shaped like an email or a phone number.
+ * Since SDK v11 the SDK collects user info (IP), cookies, headers, request bodies, query strings and
+ * stack-frame variables unless `dataCollection` turns each off - all of it is off here. beforeSend is a
+ * second layer: it drops the same fields again and blanks anything shaped like an email or a phone number.
  */
 const DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -42,7 +43,20 @@ export const sentryOptions = {
   dsn: DSN,
   enabled: Boolean(DSN),
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.VERCEL_ENV ?? "development",
-  sendDefaultPii: false,
+  dataCollection: {
+    userInfo: false,
+    cookies: false,
+    httpHeaders: false,
+    httpBodies: [],
+    urlQueryParams: false,
+    stackFrameVariables: false,
+    databaseQueryData: false,
+    graphQL: { document: false, variables: false },
+    genAI: { inputs: false, outputs: false },
+    mcp: { inputs: false, outputs: false },
+  },
   tracesSampleRate: 0,
+  // A visitor left before the page finished streaming - not a fault, and it would flood the issue list.
+  ignoreErrors: ["The destination stream closed early"],
   beforeSend: scrubEvent,
 };
