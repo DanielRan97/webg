@@ -506,7 +506,8 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
   return (
     <ValidationContext.Provider value={{ submitted }}>
       <ContactVerifyContext.Provider value={contactVerify}>
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        {/* minmax(0,1fr): the column never grows past the screen, so wide rows (the step list) scroll inside it. */}
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* Mobile: switch between form and preview */}
           <div className="flex rounded-lg bg-ink-50 p-1 lg:hidden">
             {(["form", "preview"] as const).map((v) => (
