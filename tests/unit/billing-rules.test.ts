@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, addMonths, cardReminderDue, graceOver, paidPeriodEnd, priceAgorot, retryDue, upgradeDifferenceAgorot } from "@/lib/billing-rules";
+import { addDays, addMonths, cardReminderDue, graceOver, launchFreeUntil, paidPeriodEnd, priceAgorot, retryDue, upgradeDifferenceAgorot } from "@/lib/billing-rules";
 
 const d = (iso: string) => new Date(iso);
 
@@ -57,5 +57,11 @@ describe("billing rules", () => {
     expect(paidPeriodEnd(now, { status: "TRIAL", currentPeriodEnd: null }).toISOString()).toBe("2026-12-10T10:00:00.000Z");
     expect(paidPeriodEnd(now, { status: "INACTIVE", currentPeriodEnd: freeUntil }).toISOString()).toBe("2026-12-10T10:00:00.000Z");
     expect(paidPeriodEnd(now, null).toISOString()).toBe("2026-12-10T10:00:00.000Z");
+  });
+
+  it("the launch free month is a calendar month, and never under 30 days", () => {
+    expect(launchFreeUntil(d("2026-11-10T10:00:00Z")).toISOString()).toBe("2026-12-10T10:00:00.000Z");
+    // 31 Jan + a month is 28 Feb - only 28 days, so 30 days instead.
+    expect(launchFreeUntil(d("2027-01-31T10:00:00Z")).toISOString()).toBe("2027-03-02T10:00:00.000Z");
   });
 });

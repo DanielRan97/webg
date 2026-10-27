@@ -166,7 +166,7 @@ ${helpText}`;
   return { subject, html, text };
 }
 
-export type BillingNotice = "BILLING_STARTS" | "PAYMENT_FAILED" | "PAYMENT_RETRY_FAILED" | "SITE_SUSPENDED" | "SUBSCRIPTION_ENDED" | "CARD_NEEDED" | "FREE_PERIOD_ENDED";
+export type BillingNotice = "BILLING_STARTS" | "CANCELLED" | "PAYMENT_FAILED" | "PAYMENT_RETRY_FAILED" | "SITE_SUSPENDED" | "SUBSCRIPTION_ENDED" | "CARD_NEEDED" | "FREE_PERIOD_ENDED";
 
 /** Billing emails to a site's owner (see server/billing.ts). `date` is already formatted for Israel. */
 export function billingNoticeEmail(kind: BillingNotice, input: { businessName: string; url: string; amount: string; date: string }) {
@@ -207,6 +207,12 @@ export function billingNoticeEmail(kind: BillingNotice, input: { businessName: s
       title: "תקופת החינם מסתיימת",
       body: `תקופת החינם של האתר ״${name}״ מסתיימת ב-${input.date}. כדי שהאתר יישאר באוויר, הוסיפו אמצעי תשלום. החיוב החודשי: ₪${input.amount}.`,
       button: "הוספת אמצעי תשלום",
+    },
+    CANCELLED: {
+      subject: `אישור ביטול המנוי של ${input.businessName}`,
+      title: "המנוי בוטל",
+      body: `ביטלתם את המנוי של האתר ״${name}״. לא יבוצעו חיובים נוספים. האתר יישאר באוויר עד ${input.date}, ואז יפסיק להיות מוצג ללקוחות. כל התוכן נשמר. עד אז אפשר לחזור בכם מהביטול בלחיצה אחת. אם תרצו שהביטול ייכנס לתוקף מיד, עם החזר יחסי על הימים שנשארו, השיבו למייל הזה.`,
+      button: "ניהול המנוי",
     },
     FREE_PERIOD_ENDED: {
       subject: `תקופת החינם של ${input.businessName} הסתיימה`,

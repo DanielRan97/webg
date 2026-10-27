@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { addMonths, priceAgorot } from "@/lib/billing-rules";
+import { launchFreeUntil, priceAgorot } from "@/lib/billing-rules";
 import { PLAN } from "@/lib/constants";
 import { formatDate } from "@/lib/dates";
 import { billingEnabled } from "@/lib/payments";
@@ -62,7 +62,7 @@ export default async function AdminPurchasesPage() {
           </div>
         )}
 
-        <BillingLaunch count={candidates.length} enabled={enabled} endDate={formatDate(addMonths(new Date()))} />
+        <BillingLaunch count={candidates.length} enabled={enabled} endDate={formatDate(launchFreeUntil(new Date()))} />
       </section>
     </div>
   );

@@ -74,3 +74,10 @@ export function paidPeriodEnd(now: Date, current: { status: string; currentPerio
   const freeUntil = current?.status === SUBSCRIPTION_STATUS.TRIAL ? current.currentPeriodEnd : null;
   return addMonths(freeUntil && freeUntil > now ? freeUntil : now);
 }
+
+/** The end of an existing site's free launch month: a calendar month, and never under the 30 days' notice the terms promise. */
+export function launchFreeUntil(now: Date): Date {
+  const month = addMonths(now);
+  const thirty = addDays(now, 30);
+  return month > thirty ? month : thirty;
+}

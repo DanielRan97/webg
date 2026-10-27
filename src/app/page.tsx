@@ -6,6 +6,7 @@ import { HeroDemo } from "@/components/landing/HeroDemo";
 import { WebgMark } from "@/components/WebgMark";
 import { Blueprint } from "@/components/landing/Blueprint";
 import { HeroSpotlight } from "@/components/landing/HeroSpotlight";
+import { LeadsSection } from "@/components/landing/LeadsSection";
 import { SiteFooter } from "@/components/SiteFooter";
 import { KeyIcon, LockIcon, MailCheckIcon, TrashIcon } from "@/components/icons";
 
@@ -35,6 +36,7 @@ export default async function LandingPage() {
         <header className="relative mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
           <WebgMark tone="dark" />
           <nav className="flex items-center gap-2 text-sm font-semibold">
+            <a href="#leads" className="hidden min-h-11 items-center px-3 text-ink-300 transition hover:text-white sm:inline-flex">איסוף לידים</a>
             <a href="#pricing" className="hidden min-h-11 items-center px-3 text-ink-300 transition hover:text-white sm:inline-flex">מחירים</a>
             {user ? (
               <Link href="/dashboard" className="inline-flex min-h-11 items-center rounded-lg border border-white/15 px-4 text-white transition hover:bg-white/10">האתרים שלי</Link>
@@ -69,6 +71,8 @@ export default async function LandingPage() {
             </ol>
           </div>
         </section>
+
+        <LeadsSection />
 
         <section className="border-y border-ink-100 bg-paper px-5 py-24">
           <div className="webg-reveal mx-auto max-w-6xl">

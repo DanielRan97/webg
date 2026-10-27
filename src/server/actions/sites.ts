@@ -331,7 +331,7 @@ export async function setCancelSubscriptionAction(id: string, cancel: boolean): 
     const site = await getOwnedWebsite(user.id, id);
     if (!site) return { ok: false, error: "האתר לא נמצא" };
     if (!(await hasPaidPeriod(id))) return { ok: false, error: "אין מנוי פעיל לביטול." };
-    await setCancelAtPeriodEnd(id, cancel);
+    await setCancelAtPeriodEnd(forBilling(site, user.id), cancel);
     revalidatePath(`/sites/${id}/billing`);
     return { ok: true };
   });

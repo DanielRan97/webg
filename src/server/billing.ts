@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { addMonths, cardReminderDue, GRACE_DAYS, graceOver, paidPeriodEnd, priceAgorot, retryDue, upgradeDifferenceAgorot, addDays } from "@/lib/billing-rules";
+import { addMonths, cardReminderDue, GRACE_DAYS, graceOver, launchFreeUntil, paidPeriodEnd, priceAgorot, retryDue, upgradeDifferenceAgorot, addDays } from "@/lib/billing-rules";
 import { PLAN, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type Plan, type SubscriptionStatus } from "@/lib/constants";
 import { formatDate } from "@/lib/dates";
 import { sendBillingNoticeEmail } from "@/lib/email";
@@ -138,9 +138,10 @@ export async function upgradeWithCardOnFile(site: SiteForBilling, email: string,
   return { ok: true };
 }
 
-/** The owner cancels: no more charges; the site stays live until the paid period ends. `resume` undoes it. */
-export async function setCancelAtPeriodEnd(websiteId: string, cancel: boolean) {
-  await db.subscription.update({ where: { websiteId }, data: { cancelAtPeriodEnd: cancel } });
+/** The owner cancels: no more charges; the site stays live until the paid period ends. `false` undoes it. A cancellation is confirmed by email. */
+export async function setCancelAtPeriodEnd(site: SiteForBilling, cancel: boolean) {
+  const sub = await db.subscription.update({ where: { websiteId: site.id }, data: { cancelAtPeriodEnd: cancel } });
+  if (cancel) await notify("CANCELLED", site, sub.currentPeriodEnd);
 }
 
 export interface RenewalReport {
@@ -255,7 +256,7 @@ export async function listLaunchCandidates() {
  * update, so running it twice (or two admins at once) never restarts a month or sends a second email.
  */
 export async function startLaunchFreeMonth(now = new Date()): Promise<{ started: number }> {
-  const end = addMonths(now);
+  const end = launchFreeUntil(now);
   const sites = await db.website.findMany({ where: launchWhere, select: { id: true, businessName: true, plan: true, userId: true } });
   let started = 0;
   for (const site of sites) {
