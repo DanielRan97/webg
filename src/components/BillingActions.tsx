@@ -64,7 +64,10 @@ export function BillingActions({
       {needsPayment && (
         <>
           <Button type="button" loading={pending} onClick={pay}>{payLabel}</Button>
-          <p className="text-sm text-ink-700">תעברו לדף התשלום המאובטח של HYP. פרטי הכרטיס לא נשמרים אצלנו.</p>
+          <p className="text-sm text-ink-700">
+            תעברו לדף התשלום המאובטח של HYP. פרטי הכרטיס לא נשמרים אצלנו.
+            {status === SUBSCRIPTION_STATUS.TRIAL && periodEnd && ` החודש ששולם מתחיל רק ב-${periodEnd}, אחרי תקופת החינם, כך שלא מפסידים אף יום.`}
+          </p>
         </>
       )}
       {paidPeriod && !cancelAtPeriodEnd && (

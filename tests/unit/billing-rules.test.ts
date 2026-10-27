@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { addDays, addMonths, cardReminderDue, graceOver, priceAgorot, retryDue, upgradeDifferenceAgorot } from "@/lib/billing-rules";
+import { addDays, addMonths, cardReminderDue, graceOver, paidPeriodEnd, priceAgorot, retryDue, upgradeDifferenceAgorot } from "@/lib/billing-rules";
 
 const d = (iso: string) => new Date(iso);
 
 describe("billing rules", () => {
   it("prices come from the plans", () => {
-    expect(priceAgorot("BASIC")).toBe(5000);
+    expect(priceAgorot("BASIC")).toBe(4900);
     expect(priceAgorot("PRO")).toBe(7900);
-    expect(priceAgorot("unknown")).toBe(5000);
+    expect(priceAgorot("unknown")).toBe(4900);
   });
 
   it("adds calendar months, keeping the day where it exists", () => {
@@ -21,9 +21,9 @@ describe("billing rules", () => {
   it("charges the upgrade difference only for the days left", () => {
     const start = d("2026-04-01T00:00:00Z");
     const end = d("2026-05-01T00:00:00Z");
-    // Half the month left: half of ₪29, rounded to whole shekels.
+    // Half the month left: half of ₪30, rounded to whole shekels.
     expect(upgradeDifferenceAgorot("BASIC", "PRO", d("2026-04-16T00:00:00Z"), end, start)).toBe(1500);
-    expect(upgradeDifferenceAgorot("BASIC", "PRO", start, end, start)).toBe(2900);
+    expect(upgradeDifferenceAgorot("BASIC", "PRO", start, end, start)).toBe(3000);
     expect(upgradeDifferenceAgorot("BASIC", "PRO", end, end, start)).toBe(0);
     expect(upgradeDifferenceAgorot("PRO", "BASIC", start, end, start)).toBe(0);
   });
@@ -46,5 +46,16 @@ describe("billing rules", () => {
     expect(cardReminderDue(end, addDays(end, -0.5), addDays(end, -6))).toBe(1);
     expect(cardReminderDue(end, addDays(end, -0.4), addDays(end, -0.5))).toBeNull();
     expect(cardReminderDue(end, addDays(end, 1), null)).toBeNull();
+  });
+
+  it("a month paid during a free period starts when the free period ends", () => {
+    const now = d("2026-11-10T10:00:00Z");
+    const freeUntil = d("2026-11-27T10:00:00Z");
+    expect(paidPeriodEnd(now, { status: "TRIAL", currentPeriodEnd: freeUntil }).toISOString()).toBe("2026-12-27T10:00:00.000Z");
+    // No free period left, none at all, or not a free one: the month starts now.
+    expect(paidPeriodEnd(now, { status: "TRIAL", currentPeriodEnd: d("2026-11-01T00:00:00Z") }).toISOString()).toBe("2026-12-10T10:00:00.000Z");
+    expect(paidPeriodEnd(now, { status: "TRIAL", currentPeriodEnd: null }).toISOString()).toBe("2026-12-10T10:00:00.000Z");
+    expect(paidPeriodEnd(now, { status: "INACTIVE", currentPeriodEnd: freeUntil }).toISOString()).toBe("2026-12-10T10:00:00.000Z");
+    expect(paidPeriodEnd(now, null).toISOString()).toBe("2026-12-10T10:00:00.000Z");
   });
 });

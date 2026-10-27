@@ -1,11 +1,13 @@
 import { expect, type Page } from "@playwright/test";
-import { markEmailVerified, testEmail, uniqueId } from "./db";
+import { db, markEmailVerified, TEST_IP, testEmail, uniqueId } from "./db";
 
 export const PASSWORD = "Test-password-123";
 
 /** Signs up a fresh test account through the form and lands on the dashboard. */
-export async function signUp(page: Page, opts: { verified?: boolean } = {}): Promise<string> {
-  const email = testEmail("owner");
+export async function signUp(page: Page, opts: { verified?: boolean; email?: string } = {}): Promise<string> {
+  const email = opts.email ?? testEmail("owner");
+  // The suite signs up more accounts from its one test IP than the per-IP limit allows in an hour.
+  await db.rateLimitHit.deleteMany({ where: { key: { contains: `signup:ip:${TEST_IP}` } } });
   await page.goto("/signup");
   await page.getByLabel("אימייל").fill(email);
   await page.getByLabel("סיסמה", { exact: true }).fill(PASSWORD);

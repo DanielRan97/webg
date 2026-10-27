@@ -42,7 +42,7 @@ export default async function BillingPage({ params, searchParams }: PageProps<"/
         <p className="text-ink-700">{site.data.businessName}</p>
       </div>
 
-      {payment === "ok" && <Notice kind="success">התשלום התקבל, תודה! חשבונית נשלחה אליכם במייל.</Notice>}
+      {payment === "ok" && <Notice kind="success">התשלום התקבל, תודה! קבלה נשלחה אליכם במייל.</Notice>}
       {payment === "failed" && <Notice kind="error">לא הצלחנו לאשר את התשלום. אם חויבתם, כתבו לנו ונבדוק מיד.</Notice>}
 
       <section className="space-y-3 rounded-2xl border border-ink-200 bg-white p-5">
@@ -89,7 +89,7 @@ export default async function BillingPage({ params, searchParams }: PageProps<"/
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-ink-600">על כל תשלום שעבר נשלחת חשבונית מס-קבלה למייל שלכם.</p>
+          <p className="mt-3 text-xs text-ink-600">על כל תשלום שעבר נשלחת קבלה למייל שלכם.</p>
         </section>
       )}
     </main>

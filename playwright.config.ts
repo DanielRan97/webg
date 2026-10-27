@@ -49,6 +49,8 @@ export default defineConfig({
       HYP_PASSP: "",
       PAYMENTS_FAKE: "1",
       CRON_SECRET: "e2e-cron-secret",
+      // The only admin while testing (tests/e2e/billing-launch.spec.ts) - a test account, removed by the cleanup.
+      ADMIN_EMAILS: "admin@e2e.webg.test",
     },
   },
 });

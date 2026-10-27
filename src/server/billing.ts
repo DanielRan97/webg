@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { addMonths, cardReminderDue, GRACE_DAYS, graceOver, priceAgorot, retryDue, upgradeDifferenceAgorot, addDays } from "@/lib/billing-rules";
+import { addMonths, cardReminderDue, GRACE_DAYS, graceOver, paidPeriodEnd, priceAgorot, retryDue, upgradeDifferenceAgorot, addDays } from "@/lib/billing-rules";
 import { PLAN, SUBSCRIPTION_STATUS, WEBSITE_STATUS, type Plan, type SubscriptionStatus } from "@/lib/constants";
 import { formatDate } from "@/lib/dates";
 import { sendBillingNoticeEmail } from "@/lib/email";
@@ -93,8 +93,9 @@ export async function completeCheckout(rawQuery: string, gateway: PaymentGateway
   const card = await gateway.getToken(verified.transId);
   if (!card) console.error(`billing: no card token for payment ${payment.id} - the next renewal will ask for a card`);
   const websiteId = payment.websiteId;
+  const current = await db.subscription.findUnique({ where: { websiteId }, select: { status: true, currentPeriodEnd: true } });
   await setStatus(websiteId, SUBSCRIPTION_STATUS.ACTIVE, {
-    currentPeriodEnd: addMonths(now),
+    currentPeriodEnd: paidPeriodEnd(now, current),
     provider: gateway.name,
     cardToken: card?.token ?? null,
     cardExpiry: card?.expiry ?? null,
@@ -174,7 +175,7 @@ export async function runBilling(gateway: PaymentGateway, now = new Date()): Pro
       // whose card token is missing goes through the failed-charge path below: grace, emails, a new card.)
       if (sub.cancelAtPeriodEnd || (sub.status === SUBSCRIPTION_STATUS.TRIAL && !sub.cardToken)) {
         await setStatus(site.id, SUBSCRIPTION_STATUS.INACTIVE, { cancelAtPeriodEnd: false });
-        await notify(sub.cancelAtPeriodEnd ? "SUBSCRIPTION_ENDED" : "SITE_SUSPENDED", site, null);
+        await notify(sub.cancelAtPeriodEnd ? "SUBSCRIPTION_ENDED" : "FREE_PERIOD_ENDED", site, null);
         report.ended++;
         continue;
       }
@@ -228,6 +229,52 @@ export async function runBilling(gateway: PaymentGateway, now = new Date()): Pro
     report.reminded++;
   }
   return report;
+}
+
+/**
+ * Sites from before billing: published, showing, no card and no period - the daily job never touches them,
+ * so they would stay free forever. The launch gives each a free month from now (then the usual reminders,
+ * and the site stops showing at the end unless a card was added).
+ */
+const launchWhere = {
+  status: WEBSITE_STATUS.PUBLISHED,
+  subscriptionStatus: { in: [SUBSCRIPTION_STATUS.TRIAL, SUBSCRIPTION_STATUS.ACTIVE] },
+  OR: [{ subscription: null }, { subscription: { cardToken: null, currentPeriodEnd: null } }],
+};
+
+export async function listLaunchCandidates() {
+  return db.website.findMany({
+    where: launchWhere,
+    select: { id: true, businessName: true, slug: true, plan: true, user: { select: { email: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+/**
+ * Starts the free month for every candidate and emails its owner. Each site is claimed with a conditional
+ * update, so running it twice (or two admins at once) never restarts a month or sends a second email.
+ */
+export async function startLaunchFreeMonth(now = new Date()): Promise<{ started: number }> {
+  const end = addMonths(now);
+  const sites = await db.website.findMany({ where: launchWhere, select: { id: true, businessName: true, plan: true, userId: true } });
+  let started = 0;
+  for (const site of sites) {
+    try {
+      // Rows from before subscriptions existed get one first (still without a period, so the claim below applies).
+      await db.subscription.upsert({ where: { websiteId: site.id }, create: { websiteId: site.id }, update: {} });
+      const { count } = await db.subscription.updateMany({
+        where: { websiteId: site.id, cardToken: null, currentPeriodEnd: null },
+        data: { status: SUBSCRIPTION_STATUS.TRIAL, currentPeriodEnd: end, remindedAt: null },
+      });
+      if (count === 0) continue;
+      await db.website.update({ where: { id: site.id }, data: { subscriptionStatus: SUBSCRIPTION_STATUS.TRIAL } });
+      await notify("BILLING_STARTS", site, end);
+      started++;
+    } catch (e) {
+      console.error(`billing launch: ${site.id} failed:`, e instanceof Error ? e.message : e);
+    }
+  }
+  return { started };
 }
 
 export { getGateway };

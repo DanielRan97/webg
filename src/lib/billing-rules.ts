@@ -1,10 +1,10 @@
 import { PLANS } from "./business";
-import { PLAN, type Plan } from "./constants";
+import { PLAN, SUBSCRIPTION_STATUS, type Plan } from "./constants";
 
 /**
  * The rules of WEBG's billing, free of the database so they can be tested on their own (server/billing.ts
  * applies them). Monthly cycles; a failed renewal is retried on days 3 and 7 of a 7-day grace, after which
- * the site stops showing. Prices come from PLANS (shekels, VAT included).
+ * the site stops showing. Prices come from PLANS (whole shekels, final - WEBG is an exempt dealer, no VAT).
  */
 
 export const GRACE_DAYS = 7;
@@ -64,4 +64,13 @@ export function cardReminderDue(end: Date, now: Date, remindedAt: Date | null): 
     }
   }
   return null;
+}
+
+/**
+ * Where a month just paid through the payment page ends. Paid during a free period (an existing site's free
+ * launch month), it starts when the free period ends, so paying early loses no free days.
+ */
+export function paidPeriodEnd(now: Date, current: { status: string; currentPeriodEnd: Date | null } | null): Date {
+  const freeUntil = current?.status === SUBSCRIPTION_STATUS.TRIAL ? current.currentPeriodEnd : null;
+  return addMonths(freeUntil && freeUntil > now ? freeUntil : now);
 }

@@ -25,7 +25,7 @@ const PRO_EXTRAS = PRO.features.filter((f) => !f.startsWith("כל מה שב-"));
 const FREE_FOR_NOW = "בינתיים אין חיוב: התשלומים עדיין לא מחוברים. לפני שיתחיל חיוב נעדכן אתכם.";
 /** With billing on: what happens when the owner confirms (server/billing.ts decides whether a payment is needed). */
 const PAY_NOTE = (price: number) =>
-  `₪${price} לחודש, חיוב חודשי מתחדש. אם לאתר אין מנוי פעיל, תעברו לדף התשלום המאובטח של HYP. פרטי הכרטיס לא נשמרים אצלנו, חשבונית נשלחת למייל, ואפשר לבטל בכל זמן.`;
+  `₪${price} לחודש, חיוב חודשי מתחדש. אם לאתר אין מנוי פעיל, תעברו לדף התשלום המאובטח של HYP. פרטי הכרטיס לא נשמרים אצלנו, קבלה נשלחת למייל, ואפשר לבטל בכל זמן.`;
 const UPGRADE_PAY_NOTE =
   "אם יש לאתר מנוי פעיל עם כרטיס שמור, תחויבו רק בהפרש היחסי עד סוף החודש, ומהחיוב הבא המחיר יהיה של Pro. אחרת תעברו לדף התשלום המאובטח של HYP.";
 /** Addresses are isolated (<bdi>) so their Latin text doesn't reorder the Hebrew sentence around them. */

@@ -26,7 +26,7 @@ test("owner builds, pays for and publishes a site, and a visitor sends a message
   const site = await db.website.findUniqueOrThrow({ where: { id }, include: { subscription: true, payments: true } });
   expect(site.status).toBe("PUBLISHED");
   expect(site.subscription).toMatchObject({ status: "ACTIVE", provider: "FAKE", cardLast4: "4242" });
-  expect(site.payments).toMatchObject([{ status: "PAID", amountAgorot: 5000, purpose: "PUBLISH" }]);
+  expect(site.payments).toMatchObject([{ status: "PAID", amountAgorot: 4900, purpose: "PUBLISH" }]);
   await expect(page.getByText("מנוי פעיל")).toBeVisible();
 
   // The public page, as a visitor.

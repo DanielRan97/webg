@@ -166,12 +166,18 @@ ${helpText}`;
   return { subject, html, text };
 }
 
-export type BillingNotice = "PAYMENT_FAILED" | "PAYMENT_RETRY_FAILED" | "SITE_SUSPENDED" | "SUBSCRIPTION_ENDED" | "CARD_NEEDED";
+export type BillingNotice = "BILLING_STARTS" | "PAYMENT_FAILED" | "PAYMENT_RETRY_FAILED" | "SITE_SUSPENDED" | "SUBSCRIPTION_ENDED" | "CARD_NEEDED" | "FREE_PERIOD_ENDED";
 
 /** Billing emails to a site's owner (see server/billing.ts). `date` is already formatted for Israel. */
 export function billingNoticeEmail(kind: BillingNotice, input: { businessName: string; url: string; amount: string; date: string }) {
   const name = escapeHtml(input.businessName || "האתר שלכם");
   const copy: Record<BillingNotice, { subject: string; title: string; body: string; button: string }> = {
+    BILLING_STARTS: {
+      subject: `האתר ${input.businessName} עובר למנוי חודשי, והחודש הראשון עלינו`,
+      title: "האתר עובר למנוי חודשי",
+      body: `עד היום האתר ״${name}״ היה באוויר בלי תשלום. מעכשיו המנוי עולה ₪${input.amount} לחודש. כתודה על שהצטרפתם מוקדם, החודש הראשון עלינו: האתר נשאר באוויר בחינם עד ${input.date}.<br><br>כדי שהאתר יישאר באוויר גם אחרי זה, הוסיפו אמצעי תשלום. החודש ששולם מתחיל רק אחרי סוף החודש החינם, כך שלא מפסידים אף יום. אפשר לבטל בכל זמן. אם לא יתווסף אמצעי תשלום, ב-${input.date} האתר יפסיק להיות מוצג ללקוחות, וכל התוכן יישמר.`,
+      button: "הוספת אמצעי תשלום",
+    },
     PAYMENT_FAILED: {
       subject: `החיוב החודשי של ${input.businessName} לא עבר`,
       title: "החיוב החודשי לא עבר",
@@ -202,10 +208,16 @@ export function billingNoticeEmail(kind: BillingNotice, input: { businessName: s
       body: `תקופת החינם של האתר ״${name}״ מסתיימת ב-${input.date}. כדי שהאתר יישאר באוויר, הוסיפו אמצעי תשלום. החיוב החודשי: ₪${input.amount}.`,
       button: "הוספת אמצעי תשלום",
     },
+    FREE_PERIOD_ENDED: {
+      subject: `תקופת החינם של ${input.businessName} הסתיימה`,
+      title: "תקופת החינם הסתיימה",
+      body: `תקופת החינם של האתר ״${name}״ הסתיימה, ולא נוסף אמצעי תשלום, ולכן האתר כבר לא מוצג ללקוחות. כל התוכן שמור. אחרי תשלום, האתר חוזר לאוויר מיד.`,
+      button: "תשלום והחזרת האתר",
+    },
   };
   const c = copy[kind];
   const html = wrap(escapeHtml(c.title), `<p style="color:#374151;line-height:1.6;font-size:15px">${c.body}</p>${btn(input.url, c.button)}${fallbackLink(input.url)}${helpLine}`);
-  const text = `${c.title}\n\n${c.body.replace(/<[^>]+>/g, "")}\n\n${c.button}: ${input.url}\n\n${helpText}`;
+  const text = `${c.title}\n\n${c.body.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "")}\n\n${c.button}: ${input.url}\n\n${helpText}`;
   return { subject: c.subject, html, text };
 }
 
