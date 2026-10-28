@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import type { InteractionType } from "@/lib/constants";
+import { INTERACTION_STATUS, type InteractionStatus, type InteractionType } from "@/lib/constants";
 import { canAccessInbox } from "@/lib/plan";
 
 export interface CreateInteractionInput {
@@ -56,6 +56,7 @@ export interface InteractionRecord {
   metadata: Record<string, unknown> | null;
   createdAt: Date;
   seenAt: Date | null;
+  status: InteractionStatus;
 }
 
 function parseMetadata(raw: string | null): Record<string, unknown> | null {
@@ -87,6 +88,7 @@ export async function listInteractions(userId: string, websiteId: string): Promi
     metadata: parseMetadata(r.metadata),
     createdAt: r.createdAt,
     seenAt: r.seenAt,
+    status: (INTERACTION_STATUS as readonly string[]).includes(r.status) ? (r.status as InteractionStatus) : "OPEN",
   }));
 }
 
@@ -103,4 +105,16 @@ export async function markInteractionsSeen(userId: string, websiteId: string): P
   if (!site || !canAccessInbox(site)) return false;
   await db.customerInteraction.updateMany({ where: { websiteId, seenAt: null }, data: { seenAt: new Date() } });
   return true;
+}
+
+/**
+ * Sets the owner's follow-up status on one interaction. Same owner + plan checks as markInteractionsSeen;
+ * the interaction must belong to that site, so an id from another site changes nothing.
+ */
+export async function setInteractionStatus(userId: string, websiteId: string, id: string, status: InteractionStatus): Promise<boolean> {
+  if (!INTERACTION_STATUS.includes(status)) return false;
+  const site = await db.website.findFirst({ where: { id: websiteId, userId }, select: { id: true, plan: true } });
+  if (!site || !canAccessInbox(site)) return false;
+  const { count } = await db.customerInteraction.updateMany({ where: { id, websiteId }, data: { status } });
+  return count === 1;
 }

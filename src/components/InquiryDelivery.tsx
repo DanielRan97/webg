@@ -5,8 +5,9 @@ import { InboxIcon } from "./ui/icons";
 /**
  * Where a site's inquiries (the "שליחת הודעה" and "השאירו פרטים" forms) end up, in plain words, per
  * plan and setting: Basic gets every one by email; Pro gets email, the inquiries center, or both.
+ * `embedded`: drawn without its own card, inside the inquiries center's settings panel.
  */
-export function InquiryDelivery({ plan, email, delivery }: { plan: string; email?: string; delivery?: string }) {
+export function InquiryDelivery({ plan, email, delivery, embedded }: { plan: string; email?: string; delivery?: string; embedded?: boolean }) {
   const pro = isPro({ plan });
   const mode = inquiryDelivery({ plan, inquiryDelivery: delivery });
   const to = email ? (
@@ -17,7 +18,7 @@ export function InquiryDelivery({ plan, email, delivery }: { plan: string; email
   const viaEmail = !pro || mode !== "CENTER";
   const viaCenter = pro && mode !== "EMAIL";
   return (
-    <div className="rounded-xl border border-ink-200 bg-white p-4">
+    <div className={embedded ? undefined : "rounded-xl border border-ink-200 bg-white p-4"}>
       <p className="font-bold text-ink-950">לאן מגיעות הפניות מהאתר?</p>
       <p className="mt-1 text-sm text-ink-700">כשלקוח ממלא באתר טופס ״שליחת הודעה״ או ״השאירו פרטים״, הפנייה מגיעה אליכם כך:</p>
       <ul className="mt-3 space-y-2 text-sm text-ink-800">

@@ -109,6 +109,16 @@ export const INTERACTION_LABELS: Record<InteractionType, string> = {
   OTHER: "פנייה",
 };
 
+/** Where the owner is with an inquiry - set by hand in the inquiries center; every new one starts OPEN. */
+export const INTERACTION_STATUS = ["OPEN", "IN_PROGRESS", "CLOSED"] as const;
+export type InteractionStatus = (typeof INTERACTION_STATUS)[number];
+
+export const INTERACTION_STATUS_LABELS: Record<InteractionStatus, string> = {
+  OPEN: "ממתינה למענה",
+  IN_PROGRESS: "בטיפול",
+  CLOSED: "טופלה",
+};
+
 /**
  * The independent, self-contained pieces a wizard draft autosave can touch -
  * one per wizard step. Autosave sends only the domains that actually changed

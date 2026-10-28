@@ -481,6 +481,7 @@ model CustomerInteraction {
   metadata  String?
   createdAt DateTime  @default(now())
   seenAt    DateTime?
+  status    String    @default("OPEN") // OPEN | IN_PROGRESS | CLOSED - the owner's own follow-up, see INTERACTION_STATUS
 
   website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 

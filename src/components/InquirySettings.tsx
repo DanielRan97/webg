@@ -10,7 +10,7 @@ import { Button, Notice, cx } from "./ui/ui";
  * Pro: where new inquiries go. Each choice says plainly what it means, and the riskier ones what could
  * be missed, before the owner saves it. Nothing is ever deleted by changing this.
  */
-export function InquirySettings({ siteId, value }: { siteId: string; value: InquiryDelivery }) {
+export function InquirySettings({ siteId, value, embedded }: { siteId: string; value: InquiryDelivery; embedded?: boolean }) {
   const router = useRouter();
   const [choice, setChoice] = useState<InquiryDelivery>(value);
   const [saved, setSaved] = useState(false);
@@ -35,7 +35,7 @@ export function InquirySettings({ siteId, value }: { siteId: string; value: Inqu
   }
 
   return (
-    <section aria-labelledby="inq-settings" className="rounded-xl border border-ink-200 bg-white p-4">
+    <section aria-labelledby="inq-settings" className={embedded ? undefined : "rounded-xl border border-ink-200 bg-white p-4"}>
       <h2 id="inq-settings" className="font-bold text-ink-950">איך תרצו לקבל פניות?</h2>
       <p className="mt-1 text-sm text-ink-700">אפשר לשנות בכל רגע. שום פנייה לא נמחקת כשמשנים את ההגדרה.</p>
       <div role="radiogroup" aria-labelledby="inq-settings" className="mt-3 space-y-2">
