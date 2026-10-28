@@ -151,7 +151,10 @@ interface Props {
 const AUTOSAVE_DEBOUNCE_MS = 800;
 
 export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published = false, initialTab, verifiedContacts = [], phoneVerification = false }: Props) {
-  const contactVerify = useContactVerifyState(siteId, verifiedContacts, phoneVerification);
+  // A verified email or phone on a finished site is saved right away, so the new detail doesn't sit unsaved
+  // (the wizard's autosave already covers drafts). Points at this render's save, see below.
+  const saveAfterVerifyRef = useRef<() => void>(() => {});
+  const contactVerify = useContactVerifyState(siteId, verifiedContacts, phoneVerification, () => saveAfterVerifyRef.current());
   const router = useRouter();
   const isNew = wizardStep !== null;
   const [data, setData] = useState<SiteData>(initial);
@@ -511,6 +514,16 @@ export function SiteForm({ initial, siteId, wizardStep, plan, liveUrl, published
       }
     });
   }
+
+  // Only when everything else is valid too: verifying must never jump the owner to another step's error.
+  useEffect(() => {
+    saveAfterVerifyRef.current = () => {
+      if (isNew || pending) return;
+      if (steps.some((s) => stepHasError(s.id, errors))) return;
+      if (steps.some((s) => s.id === "address") && slugBlockMessage("address")) return;
+      save();
+    };
+  });
 
   return (
     <ValidationContext.Provider value={{ submitted }}>

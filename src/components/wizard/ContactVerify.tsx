@@ -18,10 +18,21 @@ interface ContactVerifyState {
 
 export const ContactVerifyContext = createContext<ContactVerifyState | null>(null);
 
-/** SiteForm's provider: the verified list from the server, plus what gets verified during this visit. */
-export function useContactVerifyState(siteId: string, initial: string[], phoneOn: boolean): ContactVerifyState {
+/**
+ * SiteForm's provider: the verified list from the server, plus what gets verified during this visit.
+ * `onVerified` runs once a code is confirmed (SiteForm saves the edit then).
+ */
+export function useContactVerifyState(siteId: string, initial: string[], phoneOn: boolean, onVerified?: () => void): ContactVerifyState {
   const [verified, setVerified] = useState(() => new Set(initial));
-  return { siteId, verified, phoneOn, markVerified: (key) => setVerified((s) => new Set(s).add(key)) };
+  return {
+    siteId,
+    verified,
+    phoneOn,
+    markVerified: (key) => {
+      setVerified((s) => new Set(s).add(key));
+      onVerified?.();
+    },
+  };
 }
 
 /**
