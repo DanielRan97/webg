@@ -14,6 +14,7 @@ import type { InteractionRecord } from "@/server/interactions";
 import { Notice, cx } from "./ui/ui";
 import { ChevronDownIcon } from "./ui/icons";
 import { formatDateTime } from "@/lib/dates";
+import { displayPhone } from "@/lib/field-format";
 
 type Filter = "ALL" | "UNREAD" | "LEAD" | "CONTACT_MESSAGE" | "BOOKING";
 
@@ -109,7 +110,7 @@ function InteractionRow({
   onStatus: (s: InteractionStatus) => void;
   rowRef?: (el: HTMLDivElement | null) => void;
 }) {
-  const preview = item.message ? item.message.slice(0, 80) : [item.phone, item.email].filter(Boolean).join(" · ");
+  const preview = item.message ? item.message.slice(0, 80) : [item.phone && displayPhone(item.phone), item.email].filter(Boolean).join(" · ");
   return (
     <div
       ref={rowRef}
@@ -148,7 +149,7 @@ function InteractionRow({
             {item.phone && (
               <div>
                 <dt className="text-ink-500">טלפון</dt>
-                <dd dir="ltr" className="text-end font-medium text-ink-900 sm:text-start">{item.phone}</dd>
+                <dd dir="ltr" className="text-end font-medium text-ink-900 sm:text-start">{displayPhone(item.phone)}</dd>
               </div>
             )}
             {item.email && (

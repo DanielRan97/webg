@@ -1,4 +1,5 @@
 import { SUPPORT_EMAIL } from "@/lib/constants";
+import { displayPhone } from "@/lib/field-format";
 
 /** Minimal, RTL-friendly Hebrew email templates. Kept plain (no heavy HTML/CSS, no external assets) so they render well in every client, including on a phone. */
 
@@ -79,7 +80,8 @@ export function contactFormEmail(input: {
   message: string;
   submittedAt: string;
 }) {
-  const { businessName, siteUrl, adminUrl, name, phone, email, message, submittedAt } = input;
+  const { businessName, siteUrl, adminUrl, name, email, message, submittedAt } = input;
+  const phone = input.phone && displayPhone(input.phone);
   const subject = "פנייה חדשה מהאתר שלך ב-WEBG";
   const html = wrap(
     `פנייה חדשה מ-${escapeHtml(businessName)}`,
@@ -106,7 +108,8 @@ export function leadFormEmail(input: {
   email: string;
   submittedAt: string;
 }) {
-  const { businessName, siteUrl, adminUrl, name, phone, email, submittedAt } = input;
+  const { businessName, siteUrl, adminUrl, name, email, submittedAt } = input;
+  const phone = displayPhone(input.phone);
   const subject = "ליד חדש מהאתר שלך ב-WEBG";
   const html = wrap(
     `ליד חדש מ-${escapeHtml(businessName)}`,

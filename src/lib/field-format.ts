@@ -116,5 +116,16 @@ export function normalizeContact(kind: "EMAIL" | "PHONE", value: string): string
   return digits.startsWith("972") ? `0${digits.slice(3)}` : digits;
 }
 
+/**
+ * A phone as an Israeli reads it: "+972542571330" -> "054-257-1330", "+97236123456" -> "03-612-3456".
+ * Anything that isn't an Israeli number (a foreign one, a typo) is shown exactly as it was typed.
+ */
+export function displayPhone(value: string): string {
+  if (/[^\d\s\-+().]/.test(value)) return value;
+  const local = normalizeContact("PHONE", value);
+  const m = local.match(/^(0\d{2})(\d{3})(\d{4})$/) ?? local.match(/^(0\d)(\d{3})(\d{4})$/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : value;
+}
+
 /** An Israeli mobile number (normalized: "05" + 8 digits) - the only kind an SMS code can reach. */
 export const isIsraeliMobile = (normalizedPhone: string) => /^05\d{8}$/.test(normalizedPhone);

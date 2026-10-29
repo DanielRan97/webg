@@ -3,6 +3,7 @@ import {
   bookingLinkProblem,
   dateOrderProblem,
   dateProblem,
+  displayPhone,
   emailProblem,
   isIsraeliMobile,
   normalizeContact,
@@ -113,5 +114,21 @@ describe("normalizeContact / isIsraeliMobile", () => {
     expect(isIsraeliMobile("031234567")).toBe(false);
     expect(isIsraeliMobile("050123456")).toBe(false);
     expect(isIsraeliMobile("05012345678")).toBe(false);
+  });
+});
+
+describe("displayPhone", () => {
+  it("shows an Israeli number the local way, however it was typed", () => {
+    expect(displayPhone("+972542571330")).toBe("054-257-1330");
+    expect(displayPhone("0542571330")).toBe("054-257-1330");
+    expect(displayPhone("+972 54-257-1330")).toBe("054-257-1330");
+    expect(displayPhone("036123456")).toBe("03-612-3456");
+    expect(displayPhone("+972-77-123-4567")).toBe("077-123-4567");
+  });
+
+  it("leaves anything else as typed", () => {
+    expect(displayPhone("+1 415 555 0100")).toBe("+1 415 555 0100");
+    expect(displayPhone("12345")).toBe("12345");
+    expect(displayPhone("call me")).toBe("call me");
   });
 });
