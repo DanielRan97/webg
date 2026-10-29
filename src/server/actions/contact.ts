@@ -3,7 +3,9 @@
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/env";
 import { sendContactFormEmail } from "@/lib/email";
+import { looksLikeBot, type FormGuard } from "@/lib/form-guard";
 import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/request";
 import { isPubliclyVisible } from "@/lib/subscription";
 import { emailsInquiries, inquiryCenterOn, isPro } from "@/lib/plan";
@@ -19,6 +21,7 @@ export interface ContactFormResult {
 
 /** Never more specific than this for a failure: never confirms whether a site/owner exists, and never repeats an internal (Resend, DB) error message. */
 const GENERIC_ERROR = "לא הצלחנו לשלוח את ההודעה כרגע. נסו שוב מאוחר יותר.";
+const BOT_CHECK_ERROR = "לא הצלחנו לוודא שהשליחה אמיתית. רעננו את הדף ונסו שוב.";
 const RATE_LIMIT_ERROR = "יותר מדי הודעות בזמן קצר. נסו שוב בעוד כמה דקות.";
 
 /**
@@ -32,12 +35,23 @@ export async function submitContactFormAction(input: {
   phone: string;
   email: string;
   message: string;
+  guard?: FormGuard;
+  /** Cloudflare Turnstile token, when Turnstile is on (lib/turnstile). */
+  turnstile?: string;
 }): Promise<ContactFormResult> {
   const parsed = contactFormSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? GENERIC_ERROR };
   const { slug, name, phone, email, message } = parsed.data;
 
+  // A bot gets the same "sent" reply, and nothing is saved or emailed - see lib/form-guard.
+  if (looksLikeBot(input.guard)) {
+    console.warn("contact-form: dropped a submission that looked automated");
+    return { ok: true };
+  }
+
   const ip = await clientIp();
+  // Checked before the rate limits, so failed checks don't use up the site's quota.
+  if (!(await verifyTurnstile(input.turnstile, ip))) return { ok: false, error: BOT_CHECK_ERROR };
   const [okIp, okSite] = await Promise.all([
     rateLimit(`contact-form:ip:${ip}`, RATE_LIMITS.contactFormPerIp.limit, RATE_LIMITS.contactFormPerIp.windowMs),
     rateLimit(`contact-form:site:${slug}`, RATE_LIMITS.contactFormPerSite.limit, RATE_LIMITS.contactFormPerSite.windowMs),

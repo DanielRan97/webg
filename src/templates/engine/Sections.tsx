@@ -488,8 +488,8 @@ export function renderSectionBody(type: SectionType, ctx: Ctx): ReactNode {
     case "projects": return <Projects {...ctx} />;
     case "certifications": return <Certifications {...ctx} />;
     case "delivery": return <Delivery {...ctx} />;
-    case "inquiry": return <ContactForm slug={d.slug} t={t} />;
-    case "lead": return <LeadForm slug={d.slug} t={t} />;
+    case "inquiry": return <ContactForm slug={d.slug} businessName={d.businessName} t={t} />;
+    case "lead": return <LeadForm slug={d.slug} businessName={d.businessName} t={t} />;
   }
 }
 

@@ -40,8 +40,14 @@ test("owner builds, pays for and publishes a site, and a visitor sends a message
   await form.getByLabel("שם מלא").fill("לקוח בדיקה");
   await form.getByLabel("טלפון").fill("050-1234567");
   await form.getByLabel("איך אפשר לעזור?").fill("רציתי לקבוע תספורת ליום שלישי");
+  await expect(form.getByText("הפרטים נשלחים בחיבור מאובטח ישירות אל מספרת בדיקה")).toBeVisible();
+  // A form sent faster than a person could fill it is treated as a bot (lib/form-guard) - wait like one.
+  await visitor.waitForTimeout(1600);
+  await form.screenshot({ path: test.info().outputPath("contact-form.png") });
+  expect(await visitor.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await form.getByRole("button", { name: "שליחה" }).click();
   await expect(visitor.getByText("ההודעה נשלחה בהצלחה")).toBeVisible();
+  await expect(visitor.getByText("מספרת בדיקה קיבלו את ההודעה ויחזרו אליכם.")).toBeVisible();
 
   const saved = await db.customerInteraction.findMany({ where: { websiteId: id } });
   expect(saved).toHaveLength(1);

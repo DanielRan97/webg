@@ -3,13 +3,17 @@
 import { useState, useTransition } from "react";
 import { submitContactFormAction } from "@/server/actions/contact";
 import { emailProblem, phoneProblem } from "@/lib/field-format";
+import { FormTrustNote, TrapField, useFormGuard } from "./form-guard";
+import { useTurnstile } from "./Turnstile";
 import type { TemplateTheme } from "./types";
 
 const inputCls =
   "w-full rounded-xl border border-t-line bg-t-surface px-4 py-3 text-t-fg outline-none transition placeholder:text-t-muted focus:border-t-accent";
 
 /** Public "צור קשר" form: name, phone, email, message. Submits to a server action that resolves the recipient itself - this component never knows the owner's email. */
-export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
+export function ContactForm({ slug, businessName, t }: { slug: string; businessName: string; t: TemplateTheme }) {
+  const { trap, setTrap, guard } = useFormGuard();
+  const turnstile = useTurnstile();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -34,11 +38,22 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
       setError("יש פרט שצריך לתקן. הוא מסומן למעלה.");
       return;
     }
+    if (turnstile.failed) {
+      setStatus("error");
+      setError("לא הצלחנו לוודא שהשליחה אמיתית. רעננו את הדף ונסו שוב.");
+      return;
+    }
+    if (!turnstile.ready) {
+      setStatus("error");
+      setError("רגע, מוודאים שהשליחה אמיתית. נסו שוב בעוד שנייה.");
+      return;
+    }
     setStatus("idle");
     setError("");
     startTransition(async () => {
       try {
-        const res = await submitContactFormAction({ slug, name, phone, email, message });
+        const res = await submitContactFormAction({ slug, name, phone, email, message, guard: guard(), turnstile: turnstile.token });
+        turnstile.reset();
         if (res.ok) {
           setStatus("success");
           setName("");
@@ -51,6 +66,7 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
           setError(res.error ?? "לא הצלחנו לשלוח את ההודעה. נסו שוב.");
         }
       } catch {
+        turnstile.reset();
         setStatus("error");
         setError("לא הצלחנו לשלוח את ההודעה. נסו שוב.");
       }
@@ -58,7 +74,8 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className={`max-w-xl space-y-4 ${t.narrow} ${t.card}`}>
+    <form onSubmit={submit} noValidate className={`relative max-w-xl space-y-4 ${t.narrow} ${t.card}`}>
+      <TrapField value={trap} onChange={setTrap} />
       <div>
         <label htmlFor="cf-name" className="mb-1.5 block text-sm font-semibold">שם מלא</label>
         <input id="cf-name" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className={inputCls} />
@@ -79,11 +96,18 @@ export function ContactForm({ slug, t }: { slug: string; t: TemplateTheme }) {
         <label htmlFor="cf-message" className="mb-1.5 block text-sm font-semibold">איך אפשר לעזור?</label>
         <textarea id="cf-message" required rows={4} value={message} onChange={(e) => setMessage(e.target.value)} maxLength={1000} className={inputCls} />
       </div>
+      {turnstile.widget}
       <button type="submit" disabled={pending} className={`${t.btn} ${t.btnPrimary} w-full disabled:opacity-60 sm:w-auto`}>
         {pending ? "שולח..." : "שליחה"}
       </button>
+      <FormTrustNote businessName={businessName} />
       <div aria-live="polite">
-        {status === "success" && <p className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white">ההודעה נשלחה בהצלחה</p>}
+        {status === "success" && (
+          <p className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white">
+            ההודעה נשלחה בהצלחה
+            <span className="block font-normal opacity-90">{businessName || "בית העסק"} קיבלו את ההודעה ויחזרו אליכם.</span>
+          </p>
+        )}
         {status === "error" && <p role="alert" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white">{error}</p>}
       </div>
     </form>

@@ -3,7 +3,9 @@
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/env";
 import { sendLeadFormEmail } from "@/lib/email";
+import { looksLikeBot, type FormGuard } from "@/lib/form-guard";
 import { RATE_LIMITS, rateLimit } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { clientIp } from "@/lib/request";
 import { isPubliclyVisible } from "@/lib/subscription";
 import { emailsInquiries, inquiryCenterOn, isPro } from "@/lib/plan";
@@ -19,6 +21,7 @@ export interface LeadFormResult {
 
 /** Never more specific than this for a failure: never confirms whether a site/owner exists, and never repeats an internal (Resend, DB) error message. */
 const GENERIC_ERROR = "לא הצלחנו לשלוח את הפרטים כרגע. נסו שוב מאוחר יותר.";
+const BOT_CHECK_ERROR = "לא הצלחנו לוודא שהשליחה אמיתית. רעננו את הדף ונסו שוב.";
 const RATE_LIMIT_ERROR = "יותר מדי בקשות בזמן קצר. נסו שוב בעוד כמה דקות.";
 
 /**
@@ -33,12 +36,23 @@ export async function submitLeadFormAction(input: {
   name: string;
   phone: string;
   email: string;
+  guard?: FormGuard;
+  /** Cloudflare Turnstile token, when Turnstile is on (lib/turnstile). */
+  turnstile?: string;
 }): Promise<LeadFormResult> {
   const parsed = leadFormSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? GENERIC_ERROR };
   const { slug, name, phone, email } = parsed.data;
 
+  // A bot gets the same "sent" reply, and nothing is saved or emailed - see lib/form-guard.
+  if (looksLikeBot(input.guard)) {
+    console.warn("lead-form: dropped a submission that looked automated");
+    return { ok: true };
+  }
+
   const ip = await clientIp();
+  // Checked before the rate limits, so failed checks don't use up the site's quota.
+  if (!(await verifyTurnstile(input.turnstile, ip))) return { ok: false, error: BOT_CHECK_ERROR };
   const [okIp, okSite] = await Promise.all([
     rateLimit(`lead-form:ip:${ip}`, RATE_LIMITS.leadFormPerIp.limit, RATE_LIMITS.leadFormPerIp.windowMs),
     rateLimit(`lead-form:site:${slug}`, RATE_LIMITS.leadFormPerSite.limit, RATE_LIMITS.leadFormPerSite.windowMs),

@@ -3,13 +3,17 @@
 import { useState, useTransition } from "react";
 import { submitLeadFormAction } from "@/server/actions/lead";
 import { emailProblem, phoneProblem } from "@/lib/field-format";
+import { FormTrustNote, TrapField, useFormGuard } from "./form-guard";
+import { useTurnstile } from "./Turnstile";
 import type { TemplateTheme } from "./types";
 
 const inputCls =
   "w-full rounded-xl border border-t-line bg-t-surface px-4 py-3 text-t-fg outline-none transition placeholder:text-t-muted focus:border-t-accent";
 
 /** Public "השאירו פרטים" callback form: name + phone (required) and email (optional). Deliberately short - no message field, unlike the fuller "שליחת הודעה" inquiry form. Submits to a server action that resolves the recipient itself - this component never knows the owner's email. */
-export function LeadForm({ slug, t }: { slug: string; t: TemplateTheme }) {
+export function LeadForm({ slug, businessName, t }: { slug: string; businessName: string; t: TemplateTheme }) {
+  const { trap, setTrap, guard } = useFormGuard();
+  const turnstile = useTurnstile();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -28,11 +32,22 @@ export function LeadForm({ slug, t }: { slug: string; t: TemplateTheme }) {
       setError("יש פרט שצריך לתקן. הוא מסומן למעלה.");
       return;
     }
+    if (turnstile.failed) {
+      setStatus("error");
+      setError("לא הצלחנו לוודא שהשליחה אמיתית. רעננו את הדף ונסו שוב.");
+      return;
+    }
+    if (!turnstile.ready) {
+      setStatus("error");
+      setError("רגע, מוודאים שהשליחה אמיתית. נסו שוב בעוד שנייה.");
+      return;
+    }
     setStatus("idle");
     setError("");
     startTransition(async () => {
       try {
-        const res = await submitLeadFormAction({ slug, name, phone, email });
+        const res = await submitLeadFormAction({ slug, name, phone, email, guard: guard(), turnstile: turnstile.token });
+        turnstile.reset();
         if (res.ok) {
           setStatus("success");
           setName("");
@@ -44,6 +59,7 @@ export function LeadForm({ slug, t }: { slug: string; t: TemplateTheme }) {
           setError(res.error ?? "לא הצלחנו לשלוח את הפרטים. נסו שוב.");
         }
       } catch {
+        turnstile.reset();
         setStatus("error");
         setError("לא הצלחנו לשלוח את הפרטים. נסו שוב.");
       }
@@ -51,7 +67,8 @@ export function LeadForm({ slug, t }: { slug: string; t: TemplateTheme }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate className={`max-w-xl space-y-4 ${t.narrow} ${t.card}`}>
+    <form onSubmit={submit} noValidate className={`relative max-w-xl space-y-4 ${t.narrow} ${t.card}`}>
+      <TrapField value={trap} onChange={setTrap} />
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label htmlFor="lf-name" className="mb-1.5 block text-sm font-semibold">שם מלא</label>
@@ -68,14 +85,16 @@ export function LeadForm({ slug, t }: { slug: string; t: TemplateTheme }) {
           <FieldError id="lf-email-err" text={emailErr} />
         </div>
       </div>
+      {turnstile.widget}
       <button type="submit" disabled={pending} className={`${t.btn} ${t.btnPrimary} w-full disabled:opacity-60 sm:w-auto`}>
         {pending ? "שולח..." : "חזרו אליי"}
       </button>
+      <FormTrustNote businessName={businessName} />
       <div aria-live="polite">
         {status === "success" && (
           <p className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white">
             הפרטים נשלחו בהצלחה
-            <span className="block font-normal opacity-90">בית העסק קיבל את הפרטים שלכם ויוכל לחזור אליכם.</span>
+            <span className="block font-normal opacity-90">{businessName || "בית העסק"} קיבלו את הפרטים שלכם ויחזרו אליכם.</span>
           </p>
         )}
         {status === "error" && <p role="alert" className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white">{error}</p>}
